@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniTool</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+            <span class="topbar-title">OmniTool</span>
+        </div>
+        <div class="topbar-right">
+            <button class="btn-changelog" id="btnChangelog">Novedades</button>
+            <span class="topbar-store">CeX Store</span>
+        </div>
+    </header>
+
+    <!-- Changelog Panel -->
+    <div class="changelog-overlay" id="changelogOverlay">
+        <div class="changelog-panel">
+            <div class="changelog-header">
+                <h2>Novedades</h2>
+                <button class="changelog-close" id="changelogClose">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="changelog-body" id="changelogBody"></div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-item active" title="Home">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+        </a>
+        <div class="sidebar-divider"></div>
+        <a href="xfer-reg.html" class="sidebar-item" title="Xfer Reg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="17 1 21 5 17 9"/>
+                <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                <polyline points="7 23 3 19 7 15"/>
+                <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+            </svg>
+        </a>
+        <a href="#" class="sidebar-item disabled" title="Procurement">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+        </a>
+        <a href="#" class="sidebar-item disabled" title="Garantías">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+        </a>
+        <a href="#" class="sidebar-item disabled" title="Abandoned 45 días">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </a>
+        <a href="#" class="sidebar-item disabled" title="Checklist">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+        </a>
+        <a href="#" class="sidebar-item disabled" title="Entrenamientos">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+        </a>
+    </nav>
+
+    <!-- Main content -->
+    <main class="content">
+        <div class="page-header">
+            <h1>Dashboard</h1>
+            <p class="page-subtitle">Selecciona una herramienta para comenzar</p>
+        </div>
+
+        <div class="tools-grid">
+
+            <!-- Xfer Reg -->
+            <a href="xfer-reg.html" class="tool-card">
+                <div class="tool-card-icon icon-blue">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="17 1 21 5 17 9"/>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                        <polyline points="7 23 3 19 7 15"/>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Xfer Reg</h3>
+                    <p>Gestión de transferencias entre tiendas</p>
+                </div>
+            </a>
+
+            <!-- Procurement -->
+            <a href="#" class="tool-card disabled">
+                <span class="badge-soon">Próximamente</span>
+                <div class="tool-card-icon icon-green">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Procurement</h3>
+                    <p>Control de compras y aprovisionamiento</p>
+                </div>
+            </a>
+
+            <!-- Garantías -->
+            <a href="#" class="tool-card disabled">
+                <span class="badge-soon">Próximamente</span>
+                <div class="tool-card-icon icon-amber">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Garantías</h3>
+                    <p>Seguimiento de garantías y reclamaciones</p>
+                </div>
+            </a>
+
+            <!-- Abandoned 45 días -->
+            <a href="#" class="tool-card disabled">
+                <span class="badge-soon">Próximamente</span>
+                <div class="tool-card-icon icon-red">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Abandoned 45 días</h3>
+                    <p>Artículos abandonados pendientes de gestión</p>
+                </div>
+            </a>
+
+            <!-- Checklist -->
+            <a href="#" class="tool-card disabled">
+                <span class="badge-soon">Próximamente</span>
+                <div class="tool-card-icon icon-purple">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Checklist</h3>
+                    <p>Listas de verificación diarias</p>
+                </div>
+            </a>
+
+            <!-- Entrenamientos -->
+            <a href="#" class="tool-card disabled">
+                <span class="badge-soon">Próximamente</span>
+                <div class="tool-card-icon icon-teal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Entrenamientos</h3>
+                    <p>Formación y capacitación del equipo</p>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <script src="js/changelog.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

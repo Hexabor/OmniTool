@@ -1,0 +1,543 @@
+/* === Upload Zone === */
+.upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 3rem 2rem;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: var(--color-text-lighter);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.upload-text {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+}
+
+.upload-hint {
+    font-size: 0.75rem;
+    color: var(--color-text-lighter);
+}
+
+/* === File bar === */
+.file-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+.file-bar-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.file-bar-count {
+    color: var(--color-text-lighter);
+    font-weight: 400;
+}
+
+.file-bar-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* === Buttons === */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-border-light);
+}
+
+/* === Xfer Table === */
+.xfer-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 0.78rem;
+    table-layout: auto;
+}
+
+.xfer-table td,
+.xfer-table th {
+    white-space: nowrap;
+    width: 1%;
+}
+
+.xfer-table .col-spacer {
+    width: auto;
+}
+
+.xfer-table thead th,
+.col-headers th {
+    background: var(--color-bg);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.xfer-table td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+}
+
+.xfer-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* Checkbox column — print only */
+.col-check {
+    width: 32px;
+    text-align: center;
+    display: none;
+}
+
+.col-check input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+}
+
+/* Status column */
+.col-status {
+    min-width: 180px;
+}
+
+.status-select {
+    width: 100%;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.status-select:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+/* Status colors */
+.status-select[data-status="Enviado"] {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.status-select[data-status="Vendido en tienda"] {
+    background: #fef9c3;
+    border-color: #fde047;
+    color: #854d0e;
+}
+
+.status-select[data-status="Ya enviado (RMA...)"] {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+
+.status-select[data-status="Printed cover"] {
+    background: #f3e8ff;
+    border-color: #c4b5fd;
+    color: #6b21a8;
+}
+
+.status-select[data-status="Buscando no encontrado"] {
+    background: #ffedd5;
+    border-color: #fdba74;
+    color: #9a3412;
+}
+
+.status-select[data-status="No shipeable"] {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.status-select[data-status="REVISAR"] {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
+    font-weight: 600;
+}
+
+/* Destination group header */
+.destination-header {
+    scroll-margin-top: 120px;
+}
+
+@keyframes flash-highlight {
+    0% { background: #bfdbfe; }
+    100% { background: transparent; }
+}
+
+.destination-header.flash td {
+    animation: flash-highlight 5s ease-out;
+}
+
+.destination-header td {
+    background: var(--color-primary-light);
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--color-primary);
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    width: auto !important;
+}
+
+.dest-pct {
+    font-weight: 500;
+    margin-left: 0.25rem;
+}
+
+.dest-separator {
+    margin: 0 0.4rem;
+    opacity: 0.4;
+}
+
+/* Jump buttons to other sections */
+.jump-btn {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 3px;
+    vertical-align: middle;
+    transition: opacity 0.15s;
+}
+
+.jump-btn:hover {
+    opacity: 0.7;
+}
+
+.jump-c {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.jump-h {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.jump-s {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+/* Spacer row between destination groups */
+.destination-spacer td {
+    padding: 0;
+    height: 12px;
+    background: var(--color-bg);
+    border: none;
+}
+
+/* Cost column right-aligned */
+.col-cost {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Spacer columns — absorb remaining space */
+.col-spacer {
+    width: 50%;
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Percentage column */
+.col-pct {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-lighter);
+    white-space: nowrap;
+}
+
+/* Cost % tiers — color only on the percentage text */
+.pct-tier-1 .col-pct { color: var(--color-warning); font-weight: 600; }
+.pct-tier-2 .col-pct { color: #f97316; font-weight: 600; }
+.pct-tier-3 .col-pct { color: var(--color-danger); font-weight: 700; }
+
+/* Notes column — print only */
+.col-notes {
+    display: none;
+}
+
+/* Block header rows */
+.block-header-row td {
+    text-align: center;
+    padding: 1rem 0.75rem !important;
+    font-size: 0.85rem;
+}
+
+.block-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.block-count {
+    font-size: 0.75rem;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-left: 0.5rem;
+}
+
+.block-pct {
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.block-header-row.block-header-\! td { background: #fef2f2; color: #991b1b; border-bottom: 1px solid #fca5a5; }
+.block-header-row.block-header-H td { background: #eff6ff; color: #1e40af; border-bottom: 1px solid #93c5fd; }
+.block-header-row.block-header-S td { background: #f0fdf4; color: #166534; border-bottom: 1px solid #86efac; }
+
+.block-spacer td {
+    padding: 0;
+    height: 20px;
+    background: var(--color-bg);
+    border: none;
+}
+
+/* Destination header: fulfilment % */
+.dest-count {
+    font-weight: 400;
+    color: var(--color-text-light);
+}
+
+.dest-pct {
+    font-weight: 600;
+    color: var(--color-primary) !important;
+}
+
+/* BoxID monospace */
+.col-boxid {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+}
+
+/* === Print === */
+@media print {
+    @page {
+        size: landscape;
+        margin: 0.5cm;
+    }
+
+    .topbar,
+    .sidebar,
+    .upload-zone,
+    .file-bar,
+    .page-header,
+    .col-status,
+    .col-spacer,
+    .jump-btn,
+    .destination-header,
+    .destination-spacer {
+        display: none !important;
+    }
+
+    .col-check {
+        display: table-cell !important;
+    }
+
+    .col-notes {
+        display: table-cell !important;
+        min-width: 18%;
+        border-bottom: 0.5pt solid #ccc;
+    }
+
+    .col-notes-header {
+        display: table-cell !important;
+    }
+
+    .content {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Compact sizing */
+    .xfer-table {
+        border: none;
+        font-size: 7pt;
+    }
+
+    .col-headers th {
+        background: none !important;
+        border-bottom: 1.5pt solid #333;
+        font-size: 6pt;
+        padding: 0.08cm 0.15cm;
+        color: #333;
+    }
+
+    /* Align numeric column headers to match their data */
+    .col-headers th.col-cost,
+    .col-headers th.col-pct {
+        text-align: right;
+        padding-right: 0.2cm;
+    }
+
+    .col-headers th.col-notes-header {
+        text-align: center;
+    }
+
+    .xfer-table td {
+        padding: 0.05cm 0.15cm;
+        border-bottom: 0.5pt solid #ddd;
+        line-height: 1.3;
+    }
+
+    /* Numeric columns — extra right padding */
+    .col-cost,
+    .col-pct {
+        padding-right: 0.2cm !important;
+    }
+
+    /* Category column — truncate for print */
+    .xfer-table td:nth-child(7),
+    .col-headers th:nth-child(7) {
+        max-width: 2cm;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Notes column — generous width */
+    .col-notes {
+        min-width: 4cm !important;
+    }
+
+    .dest-pct {
+        color: #000 !important;
+    }
+
+    .dest-count {
+        color: #555;
+    }
+
+    /* No colors on % tiers */
+    .pct-tier-1 .col-pct,
+    .pct-tier-2 .col-pct,
+    .pct-tier-3 .col-pct {
+        color: #000;
+    }
+
+    .destination-spacer {
+        display: table-row !important;
+    }
+
+    .destination-spacer td {
+        height: 0.2cm;
+        background: none;
+        border: none;
+    }
+
+    .block-spacer td {
+        height: 2px;
+        background: none;
+        border: none;
+    }
+
+    /* Each section starts on a new page */
+    .block-thead {
+        display: table-row-group !important;
+        break-before: page;
+        page-break-before: always;
+    }
+
+    /* First section: no page break */
+    .block-thead:first-child {
+        break-before: auto;
+        page-break-before: auto;
+    }
+
+    /* Frame each destination block */
+    tbody.dest-group tr.dest-first td {
+        border-top: 1pt solid #000;
+    }
+
+    tbody.dest-group tr.dest-last td {
+        border-bottom: 1pt solid #000;
+    }
+
+    .xfer-table tbody tr:hover {
+        background: none;
+    }
+
+    .col-boxid {
+        color: #333;
+    }
+
+    /* Keep each destination group on one page */
+    tbody.dest-group {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
