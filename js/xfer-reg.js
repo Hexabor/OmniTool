@@ -77,6 +77,7 @@ btnClear.addEventListener('click', () => {
     fileInput.value = '';
     _lastCSV = null;
     _lastFileName = null;
+    _ignorNextSnapshot = true;
     deleteModuleData(MODULE_ID).catch(e => console.error('Clear failed:', e));
 });
 
@@ -481,20 +482,51 @@ function fitTableToContainer() {
 
 window.addEventListener('resize', fitTableToContainer);
 
-// === Restore from Firestore when store is ready ===
-async function restoreSession() {
-    try {
-        const saved = await loadModuleData(MODULE_ID);
-        if (saved && saved.csv) {
-            loadCSV(saved.csv, saved.fileName || 'restored.csv', saved.statuses || {});
+// === Real-time sync from Firestore ===
+let _unsubscribe = null;
+let _ignorNextSnapshot = false;
+
+// Flag to skip the snapshot triggered by our own save
+const _origSaveState = saveState;
+saveState = function () {
+    _ignorNextSnapshot = true;
+    _origSaveState();
+};
+
+function startRealtimeSync() {
+    // Detach previous listener if any
+    if (_unsubscribe) _unsubscribe();
+
+    const ref = storeDocRef(MODULE_ID);
+    if (!ref) return;
+
+    _unsubscribe = ref.onSnapshot(snap => {
+        if (_ignorNextSnapshot) {
+            _ignorNextSnapshot = false;
+            return;
         }
-    } catch (e) {
-        console.error('Restore failed:', e);
-    }
+
+        const data = snap.exists ? snap.data() : null;
+        if (data && data.csv) {
+            loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {});
+        } else if (!data || !data.csv) {
+            // Remote cleared — reset UI if we had data loaded
+            if (_lastCSV) {
+                uploadZone.hidden = false;
+                fileBar.hidden = true;
+                tableOutput.innerHTML = '';
+                tableOutput.style.height = '';
+                _lastCSV = null;
+                _lastFileName = null;
+            }
+        }
+    }, err => {
+        console.error('Realtime sync error:', err);
+    });
 }
 
-// If store is already selected, restore now; otherwise wait for storeReady event
+// Start sync when store is ready
 if (getStoreCode()) {
-    restoreSession();
+    startRealtimeSync();
 }
-window.addEventListener('storeReady', restoreSession);
+window.addEventListener('storeReady', startRealtimeSync);

@@ -8,6 +8,7 @@ const CHANGELOG = [
             { type: 'new', text: 'Selector de tienda al abrir la app — cada tienda tiene sus propios datos aislados' },
             { type: 'new', text: 'Panel de configuración (engranaje en sidebar): muestra tienda activa, cambiar tienda y restablecer datos' },
             { type: 'new', text: 'Restablecimiento de fábrica con doble confirmación — borra todos los datos de la tienda en la nube' },
+            { type: 'new', text: 'Sincronización en tiempo real — los cambios de estado se reflejan al instante en todos los dispositivos conectados' },
         ]
     },
     {
