@@ -26,6 +26,8 @@ let _lastFileName = null;
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
 const fileBar = document.getElementById('fileBar');
+const fileBarInfo = document.getElementById('fileBarInfo');
+const fileBarActions = document.getElementById('fileBarActions');
 const fileName = document.getElementById('fileName');
 const fileCount = document.getElementById('fileCount');
 const btnClear = document.getElementById('btnClear');
@@ -70,8 +72,13 @@ fileInput.addEventListener('change', () => {
 });
 
 btnClear.addEventListener('click', () => {
+    if (!confirm('¿Borrar el archivo cargado y todos los estados?')) return;
+    if (!confirm('Esta acción no se puede deshacer. ¿Confirmar?')) return;
     uploadZone.hidden = false;
-    fileBar.hidden = true;
+    fileBarInfo.hidden = true;
+    fileBarActions.hidden = true;
+    fileName.textContent = '';
+    fileCount.textContent = '';
     tableOutput.innerHTML = '';
     tableOutput.style.height = '';
     fileInput.value = '';
@@ -450,7 +457,8 @@ function loadCSV(text, name, savedStatuses) {
 
     // Update UI
     uploadZone.hidden = true;
-    fileBar.hidden = false;
+    fileBarInfo.hidden = false;
+    fileBarActions.hidden = false;
     fileName.textContent = name;
     fileCount.textContent = `· ${totalItems} items · ${groups.length} destinos`;
 
@@ -513,7 +521,8 @@ function startRealtimeSync() {
             // Remote cleared — reset UI if we had data loaded
             if (_lastCSV) {
                 uploadZone.hidden = false;
-                fileBar.hidden = true;
+                fileBarInfo.hidden = true;
+                fileBarActions.hidden = true;
                 tableOutput.innerHTML = '';
                 tableOutput.style.height = '';
                 _lastCSV = null;

@@ -449,9 +449,9 @@ body {
     background: var(--color-surface);
     border-radius: var(--radius);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    width: 480px;
+    width: 700px;
     max-width: 90vw;
-    max-height: 80vh;
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
 }
@@ -587,19 +587,37 @@ body {
     margin-bottom: 1.25rem;
 }
 
-.store-gate-input {
+.store-gate-select {
     width: 100%;
     padding: 0.6rem 0.85rem;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-family: inherit;
-    font-weight: 600;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-weight: 500;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     background: var(--color-surface);
     color: var(--color-text);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.store-gate-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.store-gate-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.85rem;
+    font-family: inherit;
+    font-weight: 500;
+    text-align: center;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    margin-top: 0.5rem;
     transition: border-color 0.15s;
 }
 
@@ -608,11 +626,86 @@ body {
     border-color: var(--color-primary);
 }
 
+.store-gate-error {
+    font-size: 0.75rem;
+    color: var(--color-danger);
+    min-height: 1.2em;
+    margin-top: 0.35rem;
+    text-align: center;
+}
+
 .store-gate-btn {
     width: 100%;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     padding: 0.6rem;
     justify-content: center;
+}
+
+.store-gate-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 0.75rem 0 0.25rem;
+}
+
+/* === Admin panel === */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-top: 0.75rem;
+}
+
+.admin-table th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-light);
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.admin-table td {
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+}
+
+.admin-store-name {
+    font-weight: 600;
+}
+
+.admin-pwd {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.75rem;
+    background: var(--color-border-light);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+}
+
+.admin-date {
+    color: var(--color-text-light);
+    font-size: 0.72rem;
+}
+
+.admin-unused-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-top: 1.25rem;
+    margin-bottom: 0.35rem;
+}
+
+.admin-unused-list {
+    font-size: 0.72rem;
+    color: var(--color-text-lighter);
+    line-height: 1.6;
+}
+
+/* Make settings panel wider for admin */
+.settings-panel {
+    max-height: 85vh;
 }
 
 /* === Responsive === */

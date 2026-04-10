@@ -1,17 +1,39 @@
+/* === Page header layout === */
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.page-header-left {
+    flex-shrink: 0;
+}
+
+.file-bar-actions {
+    margin-left: auto;
+}
+
+.btn-tall {
+    padding: 0.6rem 1.2rem;
+}
+
 /* === Upload Zone === */
 .upload-zone {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 3rem 2rem;
-    border: 2px dashed var(--color-border);
-    border-radius: var(--radius);
-    background: var(--color-surface);
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    border: 1.5px dashed var(--color-border);
+    border-radius: var(--radius-sm);
+    background: transparent;
     color: var(--color-text-lighter);
     cursor: pointer;
     transition: all 0.15s;
+}
+
+.upload-zone svg {
+    margin-top: 0.1rem;
+    flex-shrink: 0;
 }
 
 .upload-zone:hover,
@@ -21,41 +43,59 @@
     color: var(--color-primary);
 }
 
+.upload-text-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
 .upload-text {
-    font-size: 0.88rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--color-text-light);
 }
 
 .upload-hint {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     color: var(--color-text-lighter);
 }
 
-/* === File bar === */
-.file-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.6rem 1rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
+.upload-zone:hover .upload-text,
+.upload-zone:hover .upload-hint {
+    color: var(--color-primary);
 }
+
+/* === File bar (integrated in header) === */
 
 .file-bar-info {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.82rem;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--color-text);
+}
+
+.file-bar-info svg {
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+    color: var(--color-text-lighter);
+}
+
+.file-bar-info-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
 }
 
 .file-bar-count {
     color: var(--color-text-lighter);
     font-weight: 400;
+    font-size: 0.7rem;
 }
 
 .file-bar-actions {

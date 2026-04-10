@@ -1,8 +1,19 @@
 const CHANGELOG = [
     {
         date: '10/04/2026',
-        version: 'v0.3',
+        version: 'v0.4',
         tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Lista cerrada de 69 tiendas — selector dropdown, sin texto libre' },
+            { type: 'new', text: 'Contraseña por tienda — se establece en el primer acceso y se pide en los siguientes' },
+            { type: 'new', text: 'Panel de administrador — ver todas las tiendas registradas, contraseñas, último acceso y borrar datos' },
+            { type: 'new', text: 'Doble confirmación en Limpiar — evita borrados accidentales' },
+            { type: 'ui', text: 'Dropbox y barra de archivo integrados en el header del módulo' },
+        ]
+    },
+    {
+        date: '10/04/2026',
+        version: 'v0.3',
         entries: [
             { type: 'new', text: 'Sincronización en la nube — los datos se guardan en Firebase Firestore, accesibles desde cualquier dispositivo' },
             { type: 'new', text: 'Selector de tienda al abrir la app — cada tienda tiene sus propios datos aislados' },

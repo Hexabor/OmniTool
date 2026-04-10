@@ -19,9 +19,15 @@
                 </svg>
             </div>
             <h2>Selecciona tu tienda</h2>
-            <p class="store-gate-hint">Introduce el código de tienda para acceder a los datos compartidos de tu equipo.</p>
-            <input type="text" class="store-gate-input" id="storeInput" placeholder="Ej: CEX-MADRID" autocomplete="off" spellcheck="false">
+            <p class="store-gate-hint">Elige tu tienda e introduce la contraseña para acceder.</p>
+            <select class="store-gate-select" id="storeSelect">
+                <option value="">— Seleccionar tienda —</option>
+            </select>
+            <input type="password" class="store-gate-input" id="storePassword" placeholder="Contraseña" autocomplete="off">
+            <p class="store-gate-error" id="storeError"></p>
             <button class="btn btn-primary store-gate-btn" id="storeSubmit">Entrar</button>
+            <div class="store-gate-divider"></div>
+            <button class="btn btn-secondary store-gate-btn" id="adminSubmit">Acceso administrador</button>
         </div>
     </div>
 
@@ -153,35 +159,41 @@
 
     <!-- Main content -->
     <main class="content">
-        <div class="page-header">
-            <h1>Xfer Reg</h1>
-            <p class="page-subtitle">Gestión de transferencias entre tiendas</p>
-        </div>
+        <div class="page-header" id="fileBar">
+            <div class="page-header-left">
+                <h1>Xfer Reg</h1>
+                <p class="page-subtitle">Gestión de transferencias entre tiendas</p>
+            </div>
 
-        <!-- Upload zone -->
-        <div class="upload-zone" id="uploadZone">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <p class="upload-text">Arrastra un archivo CSV aquí o haz clic para seleccionar</p>
-            <p class="upload-hint">Formato esperado: ES Regular Transfers_Transfer Regular Out_Table.csv</p>
-            <input type="file" id="fileInput" accept=".csv" hidden>
-        </div>
+            <!-- Upload zone (hidden when file loaded) -->
+            <div class="upload-zone" id="uploadZone">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span class="upload-text-wrap">
+                    <span class="upload-text">Arrastra CSV aquí o haz clic para seleccionar</span>
+                    <span class="upload-hint">ES Regular Transfers_Transfer Regular Out_Table.csv</span>
+                </span>
+                <input type="file" id="fileInput" accept=".csv" hidden>
+            </div>
 
-        <!-- File info bar (hidden until file loaded) -->
-        <div class="file-bar" id="fileBar" hidden>
-            <div class="file-bar-info">
+            <!-- File info (hidden until file loaded) -->
+            <div class="file-bar-info" id="fileBarInfo" hidden>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14 2 14 8 20 8"/>
                 </svg>
-                <span id="fileName"></span>
-                <span class="file-bar-count" id="fileCount"></span>
+                <span class="file-bar-info-text">
+                    <span id="fileName"></span>
+                    <span class="file-bar-count" id="fileCount"></span>
+                </span>
             </div>
-            <div class="file-bar-actions">
-                <button class="btn btn-primary" id="btnPrint" onclick="window.print()">
+
+            <!-- Buttons pushed to the right -->
+            <div class="file-bar-actions" id="fileBarActions" hidden>
+                <button class="btn btn-primary btn-tall" id="btnPrint" onclick="window.print()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="6 9 6 2 18 2 18 9"/>
                         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
@@ -189,7 +201,7 @@
                     </svg>
                     Imprimir
                 </button>
-                <button class="btn btn-secondary" id="btnClear">Limpiar</button>
+                <button class="btn btn-secondary btn-tall" id="btnClear">Limpiar</button>
             </div>
         </div>
 
@@ -200,6 +212,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
     <script src="js/firebase.js"></script>
+    <script src="js/stores.js"></script>
     <script src="js/changelog.js"></script>
     <script src="js/app.js"></script>
     <script src="js/xfer-reg.js"></script>
