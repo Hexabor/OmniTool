@@ -709,15 +709,53 @@ function runChecker(stockCSV) {
     }
 
     // 5. Find similar items for missing ones
+    // Similarity by name: extract significant words and compute overlap
+    function nameWords(name) {
+        return (name || '').toLowerCase()
+            .replace(/[,()"/]/g, ' ')
+            .split(/\s+/)
+            .filter(w => w.length > 2 && !['sin', 'con', 'the', 'caja', 'dlc'].includes(w));
+    }
+
+    function nameSimilarity(a, b) {
+        const wa = nameWords(a);
+        const wb = nameWords(b);
+        if (wa.length === 0 || wb.length === 0) return 0;
+        const common = wa.filter(w => wb.includes(w)).length;
+        return common / Math.max(wa.length, wb.length);
+    }
+
     for (const m of missing) {
         const mDest = normStore(m.destination);
         const mBase = baseBoxId(m.boxId);
 
-        // Look for unused stock item to same dest with similar boxId
-        const similar = stockPool.find(s =>
+        // Level 1: similar Box ID to same dest
+        let similar = stockPool.find(s =>
             !s.used && normStore(s.destination) === mDest &&
             s.boxId !== m.boxId && baseBoxId(s.boxId) === mBase
         );
+
+        // Level 2: similar Box Name to same dest, XFER type, unused
+        if (!similar) {
+            let bestScore = 0;
+            let bestMatch = null;
+            for (const s of stockPool) {
+                if (s.used) continue;
+                if (normStore(s.destination) !== mDest) continue;
+                if (s.type !== XFER_TYPE) continue;
+                const score = nameSimilarity(m.boxName, s.boxName);
+                if (score > bestScore && score >= 0.4) {
+                    bestScore = score;
+                    bestMatch = s;
+                }
+            }
+            if (bestMatch) {
+                similar = bestMatch;
+                similar._matchType = 'name';
+                similar._matchScore = bestScore;
+            }
+        }
+
         m._similar = similar || null;
     }
 
@@ -789,9 +827,11 @@ function runChecker(stockCSV) {
             <div class="chk-section-title">Pendientes de enviar <span class="chk-section-count">${missing.length}</span></div>
             <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Posible sustituto</th></tr></thead><tbody>`;
         for (const m of missing) {
-            const sim = m._similar
-                ? `<span class="chk-similar">${m._similar.boxName} (${m._similar.boxId})</span>`
-                : '—';
+            let sim = '—';
+            if (m._similar) {
+                const pct = m._similar._matchScore ? `${Math.round(m._similar._matchScore * 100)}%` : 'ID';
+                sim = `<span class="chk-similar">${m._similar.boxName}<br><small>${m._similar.boxId} · coincidencia: ${pct}</small></span>`;
+            }
             html += `<tr>
                 <td>${m.boxName}</td>
                 <td class="chk-boxid">${m.boxId}</td>
