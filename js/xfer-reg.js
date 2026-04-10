@@ -1,3 +1,27 @@
+// === Cloud persistence ===
+const MODULE_ID = 'xfer-reg';
+let _saveTimer = null;
+
+function saveState() {
+    // Debounce saves to avoid flooding Firestore
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(() => {
+        const statuses = {};
+        tableOutput.querySelectorAll('.status-select').forEach(sel => {
+            const key = sel.getAttribute('data-key');
+            if (key && sel.value) statuses[key] = sel.value;
+        });
+        saveModuleData(MODULE_ID, {
+            csv: _lastCSV || null,
+            fileName: _lastFileName || null,
+            statuses
+        }).catch(e => console.error('Save failed:', e));
+    }, 500);
+}
+
+let _lastCSV = null;
+let _lastFileName = null;
+
 // === DOM refs ===
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
@@ -49,7 +73,11 @@ btnClear.addEventListener('click', () => {
     uploadZone.hidden = false;
     fileBar.hidden = true;
     tableOutput.innerHTML = '';
+    tableOutput.style.height = '';
     fileInput.value = '';
+    _lastCSV = null;
+    _lastFileName = null;
+    deleteModuleData(MODULE_ID).catch(e => console.error('Clear failed:', e));
 });
 
 // === CSV parsing ===
@@ -178,7 +206,8 @@ function classifyItems(expanded, totalCost) {
 }
 
 // === Render table ===
-function renderTable(groups, totalItems) {
+function renderTable(groups, totalItems, savedStatuses) {
+    savedStatuses = savedStatuses || {};
     const allItems = groups.flatMap(g => g.items);
     const totalCost = allItems.reduce((s, item) => s + (parseFloat(item['Unit Cost Price']) || 0), 0);
 
@@ -313,10 +342,12 @@ function renderTable(groups, totalItems) {
                 const posClass = (i === 0 ? ' dest-first' : '') +
                                  (i === group.items.length - 1 ? ' dest-last' : '');
 
+                const rowKey = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+
                 html += `<tr class="${pctClass}${posClass}">
                     <td class="col-spacer"></td>
                     <td class="col-check"><input type="checkbox"></td>
-                    <td class="col-status"><select class="status-select">${statusOptions}</select></td>
+                    <td class="col-status"><select class="status-select" data-key="${rowKey.replace(/"/g, '&quot;')}">${statusOptions}</select></td>
                     <td>${group.destination}</td>
                     <td class="col-boxid">${item['BoxID'] || ''}</td>
                     <td>${item['Box Name'] || ''}</td>
@@ -338,10 +369,16 @@ function renderTable(groups, totalItems) {
     // Responsive scaling — shrink table to fit narrow viewports
     fitTableToContainer();
 
-    // Bind status color changes
+    // Bind status color changes + persistence
     tableOutput.querySelectorAll('.status-select').forEach(select => {
+        const key = select.getAttribute('data-key');
+        if (key && savedStatuses[key]) {
+            select.value = savedStatuses[key];
+            select.setAttribute('data-status', select.value);
+        }
         select.addEventListener('change', () => {
             select.setAttribute('data-status', select.value);
+            saveState();
         });
     });
 
@@ -396,20 +433,28 @@ function processFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const text = e.target.result;
-        const rows = parseCSV(text);
-        const expanded = expandRows(rows);
-        const groups = groupByDestination(expanded);
-        const totalItems = expanded.length;
-
-        // Update UI
-        uploadZone.hidden = true;
-        fileBar.hidden = false;
-        fileName.textContent = file.name;
-        fileCount.textContent = `· ${totalItems} items · ${groups.length} destinos`;
-
-        renderTable(groups, totalItems);
+        loadCSV(text, file.name);
     };
     reader.readAsText(file, 'UTF-8');
+}
+
+function loadCSV(text, name, savedStatuses) {
+    _lastCSV = text;
+    _lastFileName = name;
+
+    const rows = parseCSV(text);
+    const expanded = expandRows(rows);
+    const groups = groupByDestination(expanded);
+    const totalItems = expanded.length;
+
+    // Update UI
+    uploadZone.hidden = true;
+    fileBar.hidden = false;
+    fileName.textContent = name;
+    fileCount.textContent = `· ${totalItems} items · ${groups.length} destinos`;
+
+    renderTable(groups, totalItems, savedStatuses);
+    if (!savedStatuses) saveState(); // only save on new upload, not on restore
 }
 
 // === Responsive table scaling ===
@@ -435,3 +480,21 @@ function fitTableToContainer() {
 }
 
 window.addEventListener('resize', fitTableToContainer);
+
+// === Restore from Firestore when store is ready ===
+async function restoreSession() {
+    try {
+        const saved = await loadModuleData(MODULE_ID);
+        if (saved && saved.csv) {
+            loadCSV(saved.csv, saved.fileName || 'restored.csv', saved.statuses || {});
+        }
+    } catch (e) {
+        console.error('Restore failed:', e);
+    }
+}
+
+// If store is already selected, restore now; otherwise wait for storeReady event
+if (getStoreCode()) {
+    restoreSession();
+}
+window.addEventListener('storeReady', restoreSession);

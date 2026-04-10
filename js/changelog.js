@@ -1,8 +1,18 @@
 const CHANGELOG = [
     {
         date: '10/04/2026',
-        version: 'v0.2',
+        version: 'v0.3',
         tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Sincronización en la nube — los datos se guardan en Firebase Firestore, accesibles desde cualquier dispositivo' },
+            { type: 'new', text: 'Selector de tienda al abrir la app — cada tienda tiene sus propios datos aislados' },
+            { type: 'new', text: 'Panel de configuración (engranaje en sidebar): muestra tienda activa, cambiar tienda y restablecer datos' },
+            { type: 'new', text: 'Restablecimiento de fábrica con doble confirmación — borra todos los datos de la tienda en la nube' },
+        ]
+    },
+    {
+        date: '10/04/2026',
+        version: 'v0.2',
         entries: [
             { type: 'new', text: 'Xfer Reg — diseño responsive: la tabla se escala automáticamente en ventanas estrechas' },
             { type: 'fix', text: 'Xfer Reg — botones de salto C (Críticos) ahora funcionan correctamente' },

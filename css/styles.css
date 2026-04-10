@@ -408,6 +408,7 @@ body {
 .changelog-entry-icon.type-new { color: var(--color-success); }
 .changelog-entry-icon.type-fix { color: var(--color-danger); }
 .changelog-entry-icon.type-improve { color: var(--color-primary); }
+.changelog-entry-icon.type-ui { color: var(--color-secondary); }
 
 /* Topbar changelog button */
 .btn-changelog {
@@ -427,6 +428,191 @@ body {
     border-color: var(--color-primary);
     color: var(--color-primary);
     background: var(--color-primary-light);
+}
+
+/* === Settings Panel === */
+.settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 500;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-overlay.open {
+    display: flex;
+}
+
+.settings-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    width: 480px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.settings-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.settings-close {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+}
+
+.settings-close:hover {
+    background: var(--color-border-light);
+    color: var(--color-text);
+}
+
+.settings-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+}
+
+.settings-section h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.settings-hint {
+    font-size: 0.78rem;
+    color: var(--color-text-light);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.btn-danger {
+    background: var(--color-danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+}
+
+.settings-store-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.settings-store-badge {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.03em;
+}
+
+.settings-divider {
+    height: 1px;
+    background: var(--color-border);
+    margin: 1.25rem 0;
+}
+
+/* Sidebar spacer — push settings to bottom */
+.sidebar-spacer {
+    flex: 1;
+}
+
+/* === Store Gate === */
+.store-gate {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--color-bg);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.store-gate.active {
+    display: flex;
+}
+
+.store-gate-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 2.5rem 2rem;
+    width: 380px;
+    max-width: 90vw;
+    text-align: center;
+}
+
+.store-gate-icon {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.store-gate-card h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.store-gate-hint {
+    font-size: 0.78rem;
+    color: var(--color-text-light);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.store-gate-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.88rem;
+    font-family: inherit;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    transition: border-color 0.15s;
+}
+
+.store-gate-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.store-gate-btn {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    justify-content: center;
 }
 
 /* === Responsive === */
