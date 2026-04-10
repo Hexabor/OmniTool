@@ -546,7 +546,8 @@ function updateHeaderProgress() {
     else if (pct >= 80)  phrase = 'Buen ritmo';
     else if (pct >= 70)  phrase = 'En la recta final';
     else if (pct >= 50)  phrase = 'Ya vamos pillando ritmo';
-    else if (pct >= 20)  phrase = 'Esto va tomando forma';
+    else if (pct >= 35)  phrase = 'Esto va tomando forma';
+    else if (pct >= 20)  phrase = 'Paso a paso';
     else if (pct > 0)    phrase = 'Esto acaba de comenzar';
     else                 phrase = 'Sin envíos registrados';
 
