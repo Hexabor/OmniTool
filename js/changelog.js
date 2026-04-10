@@ -1,8 +1,20 @@
 const CHANGELOG = [
     {
+        date: '10/04/2026',
+        version: 'v0.2',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Xfer Reg — diseño responsive: la tabla se escala automáticamente en ventanas estrechas' },
+            { type: 'fix', text: 'Xfer Reg — botones de salto C (Críticos) ahora funcionan correctamente' },
+            { type: 'new', text: 'Xfer Reg — tooltip en botones de salto: muestra nº items, % total y listado de Box Name + % al hacer hover' },
+            { type: 'new', text: 'Xfer Reg — tooltip se posiciona arriba automáticamente si no cabe abajo' },
+            { type: 'ui', text: 'Botón Novedades reubicado junto al título OmniTool' },
+            { type: 'ui', text: 'Texto de formato esperado actualizado en la zona de upload' },
+        ]
+    },
+    {
         date: '09/04/2026',
         version: 'v0.1',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Dashboard con 6 módulos: Xfer Reg, Procurement, Garantías, Abandoned 45 días, Checklist, Entrenamientos' },
             { type: 'new', text: 'Topbar fija + sidebar con iconos y navegación' },

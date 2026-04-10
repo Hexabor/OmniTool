@@ -192,18 +192,26 @@ function renderTable(groups, totalItems) {
     const COLS = 11;
 
     // Build map: destination -> which block icons it appears in
+    // and block+destination -> items (for jump button tooltips)
     const destBlockMap = {};
+    const destBlockItems = {};
     for (const block of blocks) {
         if (block.items.length === 0) continue;
-        const dests = new Set(block.items.map(i => i['Destination'] || 'Sin destino'));
-        for (const d of dests) {
+        for (const item of block.items) {
+            const d = item['Destination'] || 'Sin destino';
             if (!destBlockMap[d]) destBlockMap[d] = [];
-            destBlockMap[d].push(block.icon);
+            const key = `${block.icon}|${d}`;
+            if (!destBlockItems[key]) {
+                destBlockMap[d].push(block.icon);
+                destBlockItems[key] = [];
+            }
+            destBlockItems[key].push(item);
         }
     }
 
+    const ICON_SLUG = { '!': 'C', 'H': 'H', 'S': 'S' };
     function destId(icon, dest) {
-        return `dest-${icon}-${dest.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        return `dest-${ICON_SLUG[icon] || icon}-${dest.replace(/[^a-zA-Z0-9]/g, '_')}`;
     }
 
     const BLOCK_LABELS = { '!': 'C', 'H': 'H', 'S': 'S' };
@@ -260,9 +268,23 @@ function renderTable(groups, totalItems) {
 
             const otherBlocks = (destBlockMap[group.destination] || [])
                 .filter(icon => icon !== block.icon);
-            const jumpBtns = otherBlocks.map(icon =>
-                `<a href="#${destId(icon, group.destination)}" class="jump-btn ${BLOCK_CSS[icon]}">${BLOCK_LABELS[icon]}</a>`
-            ).join('');
+            const jumpBtns = otherBlocks.map(icon => {
+                const key = `${icon}|${group.destination}`;
+                const items = destBlockItems[key] || [];
+                const itemCount = items.length;
+                const grpPct = items.reduce((s, it) => {
+                    const c = parseFloat(it['Unit Cost Price']) || 0;
+                    return s + (totalCost > 0 ? (c / totalCost) * 100 : 0);
+                }, 0);
+                const rows = items.map(it => {
+                    const c = parseFloat(it['Unit Cost Price']) || 0;
+                    const p = totalCost > 0 ? (c / totalCost) * 100 : 0;
+                    const name = (it['Box Name'] || '—').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                    return `${name}\t${p.toFixed(2)}%`;
+                });
+                const tipData = `${itemCount}\t${grpPct.toFixed(2)}\t${rows.join('\n')}`;
+                return `<a href="#${destId(icon, group.destination)}" class="jump-btn ${BLOCK_CSS[icon]}" data-tip="${tipData.replace(/"/g, '&quot;')}">${BLOCK_LABELS[icon]}</a>`;
+            }).join('');
 
             // Each destination in its own tbody for page-break control
             html += `<tbody class="dest-group">
@@ -313,6 +335,9 @@ function renderTable(groups, totalItems) {
     html += '</table>';
     tableOutput.innerHTML = html;
 
+    // Responsive scaling — shrink table to fit narrow viewports
+    fitTableToContainer();
+
     // Bind status color changes
     tableOutput.querySelectorAll('.status-select').forEach(select => {
         select.addEventListener('change', () => {
@@ -331,6 +356,37 @@ function renderTable(groups, totalItems) {
                 void target.offsetWidth;
                 target.classList.add('flash');
             }
+        });
+
+        // Tooltip on hover
+        btn.addEventListener('mouseenter', () => {
+            const raw = btn.getAttribute('data-tip');
+            if (!raw) return;
+            const parts = raw.split('\t');
+            const count = parts[0];
+            const pct = parts[1];
+            const rows = parts.slice(2).join('\t').split('\n').filter(Boolean);
+
+            const tip = document.createElement('div');
+            tip.className = 'jump-tooltip';
+            tip.innerHTML =
+                `<div class="jump-tooltip-header">${count} items · ${pct}%</div>` +
+                rows.map(r => {
+                    const [name, p] = r.split('\t');
+                    return `<div class="jump-tooltip-row"><span>${name}</span><span class="jump-tooltip-pct">${p}</span></div>`;
+                }).join('');
+            btn.appendChild(tip);
+
+            // Flip above if it overflows the viewport bottom
+            const tipRect = tip.getBoundingClientRect();
+            if (tipRect.bottom > window.innerHeight) {
+                tip.classList.add('jump-tooltip-above');
+            }
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            const tip = btn.querySelector('.jump-tooltip');
+            if (tip) tip.remove();
         });
     });
 }
@@ -355,3 +411,27 @@ function processFile(file) {
     };
     reader.readAsText(file, 'UTF-8');
 }
+
+// === Responsive table scaling ===
+function fitTableToContainer() {
+    const table = tableOutput.querySelector('.xfer-table');
+    if (!table) return;
+
+    // Reset any previous transform so we measure the natural width
+    table.style.transform = '';
+    table.style.transformOrigin = '';
+    tableOutput.style.height = '';
+
+    const containerW = tableOutput.clientWidth;
+    const tableW = table.scrollWidth;
+
+    if (tableW > containerW) {
+        const scale = containerW / tableW;
+        table.style.transformOrigin = 'top left';
+        table.style.transform = `scale(${scale})`;
+        // Adjust container height so it doesn't leave blank space
+        tableOutput.style.height = (table.offsetHeight * scale) + 'px';
+    }
+}
+
+window.addEventListener('resize', fitTableToContainer);

@@ -97,6 +97,11 @@
     background: var(--color-border-light);
 }
 
+/* === Table container (responsive scaling) === */
+#tableOutput {
+    overflow: hidden;
+}
+
 /* === Xfer Table === */
 .xfer-table {
     width: 100%;
@@ -258,6 +263,7 @@
 /* Jump buttons to other sections */
 .jump-btn {
     display: inline-block;
+    position: relative;
     margin-left: 0.4rem;
     padding: 0.1rem 0.4rem;
     font-size: 0.65rem;
@@ -270,6 +276,50 @@
 
 .jump-btn:hover {
     opacity: 0.7;
+    z-index: 201;
+}
+
+/* Jump-button tooltip */
+.jump-tooltip {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 6px);
+    transform: translateX(-50%);
+    z-index: 200;
+    background: #1e293b;
+    color: #f1f5f9;
+    font-size: 0.7rem;
+    font-weight: 400;
+    line-height: 1.45;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.jump-tooltip-header {
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.jump-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.jump-tooltip-pct {
+    text-align: right;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+.jump-tooltip-above {
+    top: auto;
+    bottom: calc(100% + 6px);
 }
 
 .jump-c {
@@ -424,10 +474,17 @@
         padding: 0;
     }
 
+    /* Reset responsive scaling for print */
+    #tableOutput {
+        height: auto !important;
+        overflow: visible;
+    }
+
     /* Compact sizing */
     .xfer-table {
         border: none;
         font-size: 7pt;
+        transform: none !important;
     }
 
     .col-headers th {
