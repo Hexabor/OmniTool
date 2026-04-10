@@ -1,8 +1,17 @@
 const CHANGELOG = [
     {
         date: '10/04/2026',
-        version: 'v0.4',
+        version: 'v0.5',
         tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Xfer Reg — panel de Resumen con desglose por estado, valor efectivo, barra de progreso y alertas' },
+            { type: 'new', text: 'Xfer Reg — el resumen se actualiza en tiempo real al cambiar estados' },
+            { type: 'new', text: 'Botón de resumen en el sidebar (icono de barras)' },
+        ]
+    },
+    {
+        date: '10/04/2026',
+        version: 'v0.4',
         entries: [
             { type: 'new', text: 'Lista cerrada de 69 tiendas — selector dropdown, sin texto libre' },
             { type: 'new', text: 'Contraseña por tienda — se establece en el primer acceso y se pide en los siguientes' },

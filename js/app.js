@@ -117,13 +117,22 @@ async function showAdminPanel() {
 
     body.innerHTML = `
         <div class="settings-section">
-            <h3>Panel de administración</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
+                <h3>Panel de administración</h3>
+                <button class="btn btn-secondary btn-sm" id="adminLogout">Cerrar sesión</button>
+            </div>
             <p class="settings-hint">Todas las tiendas registradas y su actividad.</p>
             <div id="adminStoreList" class="admin-store-list">Cargando...</div>
         </div>
     `;
 
     settingsOverlay.classList.add('open');
+
+    document.getElementById('adminLogout').addEventListener('click', () => {
+        clearStoreCode();
+        settingsOverlay.classList.remove('open');
+        location.reload();
+    });
 
     // Load all stores from Firestore
     try {
@@ -170,7 +179,11 @@ async function showAdminPanel() {
 
         if (unused.length > 0) {
             html += `<p class="admin-unused-title">Sin registrar (${unused.length})</p>`;
-            html += `<p class="admin-unused-list">${unused.join(', ')}</p>`;
+            html += '<div class="admin-grid">';
+            for (const name of unused) {
+                html += `<div class="admin-grid-item">${name}</div>`;
+            }
+            html += '</div>';
         }
 
         list.innerHTML = html;

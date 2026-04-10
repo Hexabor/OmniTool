@@ -475,6 +475,200 @@
     color: var(--color-text-light);
 }
 
+/* === Summary Panel === */
+.summary-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 500;
+    justify-content: center;
+    align-items: center;
+}
+
+.summary-overlay.open {
+    display: flex;
+}
+
+.summary-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    width: 480px;
+    max-width: 90vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.summary-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.summary-close {
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+}
+
+.summary-close:hover {
+    background: var(--color-border-light);
+    color: var(--color-text);
+}
+
+.summary-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+}
+
+.summary-store {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 0.15rem;
+}
+
+.summary-total {
+    font-size: 0.82rem;
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+}
+
+.summary-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-lighter);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-bottom: 1.25rem;
+}
+
+.summary-table td {
+    padding: 0.3rem 0;
+    vertical-align: middle;
+}
+
+.summary-table .s-label {
+    color: var(--color-text-light);
+}
+
+.summary-table .s-count {
+    text-align: right;
+    width: 3rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.summary-table .s-cost {
+    text-align: right;
+    width: 5.5rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.summary-table .s-pct {
+    text-align: right;
+    width: 4rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-lighter);
+}
+
+.summary-table .s-total-row td {
+    font-weight: 700;
+    border-top: 1px solid var(--color-border);
+    padding-top: 0.45rem;
+}
+
+.summary-effective {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 1.25rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--color-border-light);
+    border-radius: var(--radius-sm);
+}
+
+/* Progress bar */
+.summary-progress-wrap {
+    margin-bottom: 1.25rem;
+}
+
+.summary-progress-bar {
+    height: 20px;
+    background: var(--color-border-light);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+}
+
+.summary-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.summary-progress-fill.pct-green { background: var(--color-success); }
+.summary-progress-fill.pct-yellow { background: var(--color-warning); }
+.summary-progress-fill.pct-red { background: var(--color-danger); }
+
+.summary-progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+}
+
+.summary-progress-main {
+    font-weight: 700;
+}
+
+.summary-progress-secondary {
+    color: var(--color-text-lighter);
+}
+
+/* Alert row */
+.summary-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.summary-alert-warn {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fdba74;
+}
+
+.summary-alert-ok {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
 /* === Print === */
 @media print {
     @page {
@@ -486,6 +680,7 @@
     .sidebar,
     .store-gate,
     .settings-overlay,
+    .summary-overlay,
     .upload-zone,
     .file-bar,
     .page-header,

@@ -387,6 +387,10 @@ function renderTable(groups, totalItems, savedStatuses) {
         select.addEventListener('change', () => {
             select.setAttribute('data-status', select.value);
             saveState();
+            // Auto-update summary if open
+            if (summaryOverlay && summaryOverlay.classList.contains('open')) {
+                renderSummary();
+            }
         });
     });
 
@@ -539,3 +543,158 @@ if (getStoreCode()) {
     startRealtimeSync();
 }
 window.addEventListener('storeReady', startRealtimeSync);
+
+// === Summary panel ===
+const summaryOverlay = document.getElementById('summaryOverlay');
+const summaryBody = document.getElementById('summaryBody');
+const summaryClose = document.getElementById('summaryClose');
+const btnSummary = document.getElementById('btnSummary');
+
+if (btnSummary) {
+    btnSummary.addEventListener('click', (e) => {
+        e.preventDefault();
+        renderSummary();
+        summaryOverlay.classList.add('open');
+    });
+}
+
+if (summaryClose) {
+    summaryClose.addEventListener('click', () => {
+        summaryOverlay.classList.remove('open');
+    });
+}
+
+if (summaryOverlay) {
+    summaryOverlay.addEventListener('click', (e) => {
+        if (e.target === summaryOverlay) summaryOverlay.classList.remove('open');
+    });
+}
+
+function renderSummary() {
+    if (!summaryBody || !_lastCSV) {
+        if (summaryBody) summaryBody.innerHTML = '<p style="color:var(--color-text-lighter);text-align:center;padding:2rem 0">No hay datos cargados</p>';
+        return;
+    }
+
+    const rows = parseCSV(_lastCSV);
+    const expanded = expandRows(rows);
+    const totalItems = expanded.length;
+    const totalCost = expanded.reduce((s, r) => s + (parseFloat(r['Unit Cost Price']) || 0), 0);
+
+    // Read current statuses from the DOM
+    const statusMap = {};
+    tableOutput.querySelectorAll('.status-select').forEach(sel => {
+        const key = sel.getAttribute('data-key');
+        if (key) statusMap[key] = sel.value;
+    });
+
+    // Assign status to each expanded item
+    const groups = groupByDestination(expanded);
+    const allItemsWithStatus = [];
+    const allBlocks = classifyItems(expanded, totalCost);
+
+    for (const block of allBlocks) {
+        if (block.items.length === 0) continue;
+        const destGroups = groupByDestination(block.items);
+        for (const group of destGroups) {
+            for (let i = 0; i < group.items.length; i++) {
+                const item = group.items[i];
+                const key = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+                allItemsWithStatus.push({
+                    ...item,
+                    _status: statusMap[key] || '',
+                    _cost: parseFloat(item['Unit Cost Price']) || 0
+                });
+            }
+        }
+    }
+
+    // Statuses that discount items (REVISAR = no status effectively)
+    const DISCOUNT_STATUSES = ['Printed cover', 'Vendido en tienda', 'Ya enviado (RMA...)', 'No shipeable'];
+    const COVERED_STATUS = 'Enviado';
+    const SEARCHING_STATUS = 'Buscando no encontrado';
+
+    // Compute discount breakdown
+    const discountRows = DISCOUNT_STATUSES.map(status => {
+        const items = allItemsWithStatus.filter(it => it._status === status);
+        const count = items.length;
+        const cost = items.reduce((s, it) => s + it._cost, 0);
+        const pct = totalCost > 0 ? (cost / totalCost) * 100 : 0;
+        return { status, count, cost, pct };
+    });
+
+    const totalDiscountCount = discountRows.reduce((s, r) => s + r.count, 0);
+    const totalDiscountCost = discountRows.reduce((s, r) => s + r.cost, 0);
+    const totalDiscountPct = totalCost > 0 ? (totalDiscountCost / totalCost) * 100 : 0;
+
+    // Effective values
+    const effectiveItems = totalItems - totalDiscountCount;
+    const effectiveCost = totalCost - totalDiscountCost;
+
+    // Covered (Enviado)
+    const coveredItems = allItemsWithStatus.filter(it => it._status === COVERED_STATUS);
+    const coveredCount = coveredItems.length;
+    const coveredCost = coveredItems.reduce((s, it) => s + it._cost, 0);
+    const coveredPctCost = effectiveCost > 0 ? (coveredCost / effectiveCost) * 100 : 0;
+    const coveredPctItems = effectiveItems > 0 ? (coveredCount / effectiveItems) * 100 : 0;
+
+    // Searching
+    const searchingItems = allItemsWithStatus.filter(it => it._status === SEARCHING_STATUS);
+    const searchingCount = searchingItems.length;
+    const searchingCost = searchingItems.reduce((s, it) => s + it._cost, 0);
+    const searchingPct = effectiveCost > 0 ? (searchingCost / effectiveCost) * 100 : 0;
+
+    // Progress bar color
+    let pctClass = 'pct-green';
+    if (coveredPctCost < 85) pctClass = 'pct-red';
+    else if (coveredPctCost < 95) pctClass = 'pct-yellow';
+
+    const storeName = getStoreCode() || 'Tienda';
+
+    summaryBody.innerHTML = `
+        <div class="summary-store">${storeName}</div>
+        <div class="summary-total">${totalItems} items · ${totalCost.toFixed(2)} €</div>
+
+        <div class="summary-section-title">Descontado por estado</div>
+        <table class="summary-table">
+            ${discountRows.map(r => `
+                <tr>
+                    <td class="s-label">${r.status}</td>
+                    <td class="s-count">${r.count}</td>
+                    <td class="s-cost">${r.cost.toFixed(2)} €</td>
+                    <td class="s-pct">${r.pct.toFixed(2)}%</td>
+                </tr>
+            `).join('')}
+            <tr class="s-total-row">
+                <td class="s-label">Total no penalizado</td>
+                <td class="s-count">${totalDiscountCount}</td>
+                <td class="s-cost">${totalDiscountCost.toFixed(2)} €</td>
+                <td class="s-pct">${totalDiscountPct.toFixed(2)}%</td>
+            </tr>
+        </table>
+
+        <div class="summary-section-title">Valor efectivo</div>
+        <div class="summary-effective">${effectiveItems} items · ${effectiveCost.toFixed(2)} €</div>
+
+        <div class="summary-section-title">Cubierto (Enviado)</div>
+        <div class="summary-progress-wrap">
+            <div class="summary-progress-bar">
+                <div class="summary-progress-fill ${pctClass}" style="width: ${Math.min(coveredPctCost, 100)}%"></div>
+            </div>
+            <div class="summary-progress-labels">
+                <span class="summary-progress-main">${coveredPctCost.toFixed(2)}% coste</span>
+                <span class="summary-progress-secondary">${coveredPctItems.toFixed(2)}% items</span>
+            </div>
+        </div>
+
+        ${searchingCount > 0 ? `
+            <div class="summary-alert summary-alert-warn">
+                Buscando no encontrado: ${searchingCount} items · ${searchingCost.toFixed(2)} € · ${searchingPct.toFixed(2)}%
+            </div>
+        ` : `
+            <div class="summary-alert summary-alert-ok">
+                No hay items pendientes de buscar
+            </div>
+        `}
+    `;
+}
