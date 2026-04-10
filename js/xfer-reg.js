@@ -526,10 +526,11 @@ function updateHeaderProgress() {
     const effective = totalCost - discountCost;
     const pct = effective > 0 ? (coveredCost / effective) * 100 : 0;
 
+    const isGreen = pct >= 95;
     headerProgressFill.style.width = Math.min(pct, 100) + '%';
-    headerProgressFill.className = 'header-progress-fill ' +
-        (pct >= 95 ? 'pct-green' : pct >= 85 ? 'pct-yellow' : 'pct-red');
+    headerProgressFill.className = 'header-progress-fill ' + (isGreen ? 'pct-green' : 'pct-blue');
     headerProgressLabel.textContent = pct.toFixed(1) + '%';
+    headerProgressLabel.style.color = isGreen ? '#22c55e' : 'var(--color-text)';
 }
 
 // === Real-time sync from Firestore ===
