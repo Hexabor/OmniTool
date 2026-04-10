@@ -463,6 +463,17 @@ function loadCSV(text, name, savedStatuses) {
     const groups = groupByDestination(expanded);
     const totalItems = expanded.length;
 
+    // Measure dropbox width before hiding, constrain file info to same width
+    if (!uploadZone.hidden) {
+        const dropW = uploadZone.offsetWidth;
+        if (dropW > 0) {
+            fileBarInfo.style.maxWidth = dropW + 'px';
+            uploadZone._measuredWidth = dropW;
+        }
+    } else if (uploadZone._measuredWidth) {
+        fileBarInfo.style.maxWidth = uploadZone._measuredWidth + 'px';
+    }
+
     // Update UI
     uploadZone.hidden = true;
     fileBarInfo.hidden = false;
