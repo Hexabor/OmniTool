@@ -17,6 +17,36 @@
     padding: 0.6rem 1.2rem;
 }
 
+.btn-accent {
+    background: var(--color-primary);
+    color: white;
+    border: 2px solid var(--color-primary);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.btn-accent:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-square {
+    flex-direction: column;
+    padding: 0.65rem 1.5rem;
+    gap: 0.2rem;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.file-bar-separator {
+    width: 1px;
+    height: 28px;
+    background: var(--color-border);
+    margin: 0 0.4rem;
+}
+
 /* === Upload Zone === */
 .upload-zone {
     display: flex;
@@ -475,6 +505,168 @@
     color: var(--color-text-light);
 }
 
+/* === Checker Panel === */
+.checker-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 500;
+    justify-content: center;
+    align-items: center;
+}
+
+.checker-overlay.open { display: flex; }
+
+.checker-panel {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    width: 780px;
+    max-width: 92vw;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.checker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.checker-header h2 { font-size: 1rem; font-weight: 700; }
+
+.checker-close {
+    background: none; border: none;
+    color: var(--color-text-light); cursor: pointer;
+    padding: 0.25rem; border-radius: var(--radius-sm);
+}
+
+.checker-close:hover { background: var(--color-border-light); color: var(--color-text); }
+
+.checker-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+}
+
+/* Checker summary stats */
+.chk-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+}
+
+.chk-stat {
+    text-align: center;
+    padding: 0.6rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.chk-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.chk-stat-label {
+    font-size: 0.68rem;
+    color: var(--color-text-light);
+    margin-top: 0.15rem;
+}
+
+.chk-stat-green .chk-stat-value { color: var(--color-success); }
+.chk-stat-blue .chk-stat-value { color: var(--color-primary); }
+.chk-stat-yellow .chk-stat-value { color: var(--color-warning); }
+.chk-stat-red .chk-stat-value { color: var(--color-danger); }
+
+/* Checker section */
+.chk-section {
+    margin-bottom: 1rem;
+}
+
+.chk-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-lighter);
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chk-section-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--color-border-light);
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+}
+
+.chk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.chk-table th {
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-light);
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.chk-table td {
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+}
+
+.chk-table .chk-boxid {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.7rem;
+    color: var(--color-text-light);
+}
+
+.chk-similar {
+    font-size: 0.68rem;
+    color: var(--color-warning);
+    font-style: italic;
+}
+
+.chk-type-badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.chk-type-wrong {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #fdba74;
+}
+
+.chk-type-ok {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
 /* === Summary Panel === */
 .summary-overlay {
     display: none;
@@ -681,6 +873,7 @@
     .store-gate,
     .settings-overlay,
     .summary-overlay,
+    .checker-overlay,
     .upload-zone,
     .file-bar,
     .page-header,

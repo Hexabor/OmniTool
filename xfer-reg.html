@@ -101,6 +101,22 @@
         </div>
     </div>
 
+    <!-- Checker Panel -->
+    <div class="checker-overlay" id="checkerOverlay">
+        <div class="checker-panel">
+            <div class="checker-header">
+                <h2>Comprobador de envíos</h2>
+                <button class="checker-close" id="checkerClose">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="checker-body" id="checkerBody"></div>
+        </div>
+    </div>
+
     <!-- Summary Panel -->
     <div class="summary-overlay" id="summaryOverlay">
         <div class="summary-panel">
@@ -132,13 +148,6 @@
                 <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
                 <polyline points="7 23 3 19 7 15"/>
                 <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-            </svg>
-        </a>
-        <a href="#" class="sidebar-item" id="btnSummary" title="Resumen Xfer">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"/>
-                <line x1="12" y1="20" x2="12" y2="4"/>
-                <line x1="6" y1="20" x2="6" y2="14"/>
             </svg>
         </a>
         <a href="#" class="sidebar-item disabled" title="Procurement">
@@ -216,15 +225,32 @@
 
             <!-- Buttons pushed to the right -->
             <div class="file-bar-actions" id="fileBarActions" hidden>
-                <button class="btn btn-primary btn-tall" id="btnPrint" onclick="window.print()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <button class="btn btn-accent btn-square" id="btnSummary">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Análisis
+                </button>
+                <button class="btn btn-accent btn-square" id="btnChecker">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    Comprobador
+                    <input type="file" id="checkerInput" accept=".csv" hidden>
+                </button>
+                <div class="file-bar-separator"></div>
+                <button class="btn btn-secondary btn-sm" id="btnPrint" onclick="window.print()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="6 9 6 2 18 2 18 9"/>
                         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                         <rect x="6" y="14" width="12" height="8"/>
                     </svg>
                     Imprimir
                 </button>
-                <button class="btn btn-secondary btn-tall" id="btnClear">Limpiar</button>
+                <button class="btn btn-secondary btn-sm" id="btnClear">Limpiar</button>
             </div>
         </div>
 

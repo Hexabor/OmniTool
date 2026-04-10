@@ -544,6 +544,295 @@ if (getStoreCode()) {
 }
 window.addEventListener('storeReady', startRealtimeSync);
 
+// === Checker ===
+const checkerOverlay = document.getElementById('checkerOverlay');
+const checkerBody = document.getElementById('checkerBody');
+const checkerClose = document.getElementById('checkerClose');
+const btnChecker = document.getElementById('btnChecker');
+const checkerInput = document.getElementById('checkerInput');
+
+if (btnChecker && checkerInput) {
+    btnChecker.addEventListener('click', () => checkerInput.click());
+    btnChecker.addEventListener('dragover', (e) => { e.preventDefault(); btnChecker.classList.add('drag-over'); });
+    btnChecker.addEventListener('dragleave', () => btnChecker.classList.remove('drag-over'));
+    btnChecker.addEventListener('drop', (e) => {
+        e.preventDefault();
+        btnChecker.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.csv')) processChecker(file);
+    });
+    checkerInput.addEventListener('change', () => {
+        if (checkerInput.files[0]) processChecker(checkerInput.files[0]);
+        checkerInput.value = '';
+    });
+}
+
+if (checkerClose) {
+    checkerClose.addEventListener('click', () => checkerOverlay.classList.remove('open'));
+}
+if (checkerOverlay) {
+    checkerOverlay.addEventListener('click', (e) => {
+        if (e.target === checkerOverlay) checkerOverlay.classList.remove('open');
+    });
+}
+
+function processChecker(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => runChecker(e.target.result);
+    reader.readAsText(file, 'UTF-8');
+}
+
+// Normalize store names to handle mojibake encoding
+function normStore(name) {
+    let s = (name || '').trim();
+    // Fix common UTF-8 mojibake (double-encoded)
+    s = s.replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
+         .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã±/g, 'ñ')
+         .replace(/Ã¼/g, 'ü').replace(/Ã /g, 'à').replace(/Â­/g, '')
+         .replace(/Âª/g, 'ª').replace(/Â /g, ' ');
+    // Strip accents for comparison
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+// Strip trailing condition letter (A/B/C) from Box ID for similarity matching
+function baseBoxId(id) {
+    const s = (id || '').trim();
+    if (/[ABC]$/i.test(s) && s.length > 3) return s.slice(0, -1);
+    return s;
+}
+
+function runChecker(stockCSV) {
+    if (!_lastCSV) {
+        if (checkerBody) checkerBody.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--color-text-lighter)">Primero carga un archivo Xfer Reg</p>';
+        checkerOverlay.classList.add('open');
+        return;
+    }
+
+    // 1. Parse both CSVs
+    const xferRows = parseCSV(_lastCSV);
+    const xferExpanded = expandRows(xferRows);
+    const stockRows = parseCSV(stockCSV);
+
+    // Expand stock rows by QTY too
+    const stockExpanded = [];
+    for (const row of stockRows) {
+        const qty = parseInt(row['QTY'], 10) || 1;
+        for (let i = 0; i < qty; i++) {
+            stockExpanded.push({ ...row, QTY: '1' });
+        }
+    }
+
+    // 2. Filter stock to Out transfers only
+    const myStore = normStore(getStoreCode());
+    const stockOuts = stockExpanded.filter(r =>
+        normStore(r['Source Store']) === myStore &&
+        (r['Stock Transfer Type'] || '').toLowerCase().includes('out')
+    );
+
+    // 3. Read current statuses from DOM
+    const allBlocks = classifyItems(xferExpanded,
+        xferExpanded.reduce((s, r) => s + (parseFloat(r['Unit Cost Price']) || 0), 0));
+    const xferItems = [];
+    for (const block of allBlocks) {
+        if (block.items.length === 0) continue;
+        const destGroups = groupByDestination(block.items);
+        for (const group of destGroups) {
+            for (let i = 0; i < group.items.length; i++) {
+                const item = group.items[i];
+                const key = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+                const sel = tableOutput.querySelector(`.status-select[data-key="${CSS.escape(key)}"]`);
+                xferItems.push({
+                    boxId: (item['BoxID'] || '').trim(),
+                    boxName: item['Box Name'] || '',
+                    destination: (item['Destination'] || '').trim(),
+                    cost: parseFloat(item['Unit Cost Price']) || 0,
+                    status: sel ? sel.value : ''
+                });
+            }
+        }
+    }
+
+    // 4. Build matching pools (group stock by normalized dest + boxId)
+    // For each xfer item, consume one matching stock row
+    const stockPool = stockOuts.map(r => ({
+        boxId: (r['Box ID'] || '').trim(),
+        boxName: r['Box Name'] || '',
+        destination: (r['Destination Store'] || '').trim(),
+        type: (r['Stock Transfer Type'] || '').trim(),
+        cost: parseFloat(r['Unit Cost Value']) || 0,
+        used: false
+    }));
+
+    const XFER_TYPE = 'XFER Regular Transfer Out';
+    const DISCOUNT_STATUSES = ['Printed cover', 'Vendido en tienda', 'Ya enviado (RMA...)', 'No shipeable'];
+
+    const matched = [];       // Correct: boxId + dest + XFER type
+    const wrongType = [];     // boxId + dest match but wrong type
+    const justified = [];     // Not sent but has a justified status
+    const missing = [];       // Not sent, no justified status
+    const reviewing = [];     // Status is REVISAR (treated as no status)
+
+    for (const xItem of xferItems) {
+        const xDest = normStore(xItem.destination);
+        const xBox = xItem.boxId;
+
+        // Try exact match with correct type first
+        let found = stockPool.find(s =>
+            !s.used && s.boxId === xBox && normStore(s.destination) === xDest && s.type === XFER_TYPE
+        );
+
+        if (found) {
+            found.used = true;
+            matched.push({ xfer: xItem, stock: found });
+            continue;
+        }
+
+        // Try exact match with wrong type
+        found = stockPool.find(s =>
+            !s.used && s.boxId === xBox && normStore(s.destination) === xDest && s.type !== XFER_TYPE
+        );
+
+        if (found) {
+            found.used = true;
+            wrongType.push({ xfer: xItem, stock: found });
+            continue;
+        }
+
+        // Not found in stock — check status
+        if (DISCOUNT_STATUSES.includes(xItem.status)) {
+            justified.push(xItem);
+        } else if (xItem.status === 'REVISAR') {
+            missing.push(xItem); // REVISAR = no status, still missing
+        } else {
+            missing.push(xItem);
+        }
+    }
+
+    // 5. Find similar items for missing ones
+    for (const m of missing) {
+        const mDest = normStore(m.destination);
+        const mBase = baseBoxId(m.boxId);
+
+        // Look for unused stock item to same dest with similar boxId
+        const similar = stockPool.find(s =>
+            !s.used && normStore(s.destination) === mDest &&
+            s.boxId !== m.boxId && baseBoxId(s.boxId) === mBase
+        );
+        m._similar = similar || null;
+    }
+
+    // 6. Extra sends: stock items not matched to any xfer item
+    const extras = stockPool.filter(s => !s.used);
+
+    // 7. Compute stats (only XFER type counts for %)
+    const totalXfer = xferItems.length;
+    const totalJustified = justified.length;
+    const effective = totalXfer - totalJustified;
+    const correctCount = matched.length;
+    const correctPct = effective > 0 ? (correctCount / effective) * 100 : 0;
+
+    // 8. Render
+    let html = `
+        <div class="chk-stats">
+            <div class="chk-stat chk-stat-green">
+                <div class="chk-stat-value">${correctPct.toFixed(1)}%</div>
+                <div class="chk-stat-label">Enviado XFER</div>
+            </div>
+            <div class="chk-stat chk-stat-blue">
+                <div class="chk-stat-value">${correctCount}/${effective}</div>
+                <div class="chk-stat-label">Items correctos</div>
+            </div>
+            <div class="chk-stat chk-stat-yellow">
+                <div class="chk-stat-value">${wrongType.length}</div>
+                <div class="chk-stat-label">Tipo incorrecto</div>
+            </div>
+            <div class="chk-stat chk-stat-red">
+                <div class="chk-stat-value">${missing.length}</div>
+                <div class="chk-stat-label">Faltan por enviar</div>
+            </div>
+        </div>
+    `;
+
+    // Wrong type section
+    if (wrongType.length > 0) {
+        html += `<div class="chk-section">
+            <div class="chk-section-title">Enviados con tipo incorrecto <span class="chk-section-count">${wrongType.length}</span></div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Tipo usado</th></tr></thead><tbody>`;
+        for (const w of wrongType) {
+            html += `<tr>
+                <td>${w.xfer.boxName}</td>
+                <td>${w.xfer.destination}</td>
+                <td><span class="chk-type-badge chk-type-wrong">${w.stock.type}</span></td>
+            </tr>`;
+        }
+        html += '</tbody></table></div>';
+    }
+
+    // Justified section
+    if (justified.length > 0) {
+        html += `<div class="chk-section">
+            <div class="chk-section-title">Justificados por estado <span class="chk-section-count">${justified.length}</span></div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th></tr></thead><tbody>`;
+        for (const j of justified) {
+            html += `<tr>
+                <td>${j.boxName}</td>
+                <td>${j.destination}</td>
+                <td>${j.status}</td>
+            </tr>`;
+        }
+        html += '</tbody></table></div>';
+    }
+
+    // Missing section
+    if (missing.length > 0) {
+        html += `<div class="chk-section">
+            <div class="chk-section-title">Pendientes de enviar <span class="chk-section-count">${missing.length}</span></div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Posible sustituto</th></tr></thead><tbody>`;
+        for (const m of missing) {
+            const sim = m._similar
+                ? `<span class="chk-similar">${m._similar.boxName} (${m._similar.boxId})</span>`
+                : '—';
+            html += `<tr>
+                <td>${m.boxName}</td>
+                <td class="chk-boxid">${m.boxId}</td>
+                <td>${m.destination}</td>
+                <td>${sim}</td>
+            </tr>`;
+        }
+        html += '</tbody></table></div>';
+    }
+
+    // Extras section
+    if (extras.length > 0) {
+        html += `<div class="chk-section">
+            <div class="chk-section-title">Envíos no solicitados <span class="chk-section-count">${extras.length}</span></div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Tipo</th></tr></thead><tbody>`;
+        for (const e of extras) {
+            const typeClass = e.type === XFER_TYPE ? 'chk-type-ok' : 'chk-type-wrong';
+            html += `<tr>
+                <td>${e.boxName}</td>
+                <td class="chk-boxid">${e.boxId}</td>
+                <td>${e.destination}</td>
+                <td><span class="chk-type-badge ${typeClass}">${e.type}</span></td>
+            </tr>`;
+        }
+        html += '</tbody></table></div>';
+    }
+
+    if (matched.length > 0) {
+        html += `<div class="chk-section">
+            <div class="chk-section-title">Enviados correctamente <span class="chk-section-count">${matched.length}</span></div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th></tr></thead><tbody>`;
+        for (const m of matched) {
+            html += `<tr><td>${m.xfer.boxName}</td><td>${m.xfer.destination}</td></tr>`;
+        }
+        html += '</tbody></table></div>';
+    }
+
+    checkerBody.innerHTML = html;
+    checkerOverlay.classList.add('open');
+}
+
 // === Summary panel ===
 const summaryOverlay = document.getElementById('summaryOverlay');
 const summaryBody = document.getElementById('summaryBody');

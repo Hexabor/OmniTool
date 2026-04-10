@@ -1,8 +1,21 @@
 const CHANGELOG = [
     {
         date: '10/04/2026',
-        version: 'v0.5',
+        version: 'v0.6',
         tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Xfer Reg — Comprobador de envíos: cruza Stock Transfers con Xfer Reg' },
+            { type: 'new', text: 'Comprobador — % real de envíos XFER Regular Transfer Out' },
+            { type: 'new', text: 'Comprobador — detecta envíos con tipo incorrecto (S/R, RMA, etc.)' },
+            { type: 'new', text: 'Comprobador — items justificados por estado (Printed cover, Vendido, etc.)' },
+            { type: 'new', text: 'Comprobador — items pendientes con detección de sustitutos similares' },
+            { type: 'new', text: 'Comprobador — envíos no solicitados (artículos extra)' },
+            { type: 'new', text: 'Comprobador — manejo de encoding mojibake en nombres de tienda' },
+        ]
+    },
+    {
+        date: '10/04/2026',
+        version: 'v0.5',
         entries: [
             { type: 'new', text: 'Xfer Reg — panel de Resumen con desglose por estado, valor efectivo, barra de progreso y alertas' },
             { type: 'new', text: 'Xfer Reg — el resumen se actualiza en tiempo real al cambiar estados' },
