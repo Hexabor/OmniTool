@@ -601,6 +601,11 @@ function baseBoxId(id) {
     return s;
 }
 
+function statusBadge(status) {
+    if (!status) return '<span style="color:var(--color-text-lighter)">—</span>';
+    return `<span class="chk-status-badge" data-status="${status}">${status}</span>`;
+}
+
 function runChecker(stockCSV) {
     if (!_lastCSV) {
         if (checkerBody) checkerBody.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--color-text-lighter)">Primero carga un archivo Xfer Reg</p>';
@@ -803,7 +808,7 @@ function runChecker(stockCSV) {
             html += `<tr>
                 <td>${w.xfer.boxName}</td>
                 <td>${w.xfer.destination}</td>
-                <td>${w.xfer.status || '—'}</td>
+                <td>${statusBadge(w.xfer.status)}</td>
                 <td><span class="chk-type-badge chk-type-wrong">${w.stock.type}</span></td>
             </tr>`;
         }
@@ -819,7 +824,7 @@ function runChecker(stockCSV) {
             html += `<tr>
                 <td>${j.boxName}</td>
                 <td>${j.destination}</td>
-                <td>${j.status}</td>
+                <td>${statusBadge(j.status)}</td>
             </tr>`;
         }
         html += '</tbody></table></div>';
@@ -841,7 +846,7 @@ function runChecker(stockCSV) {
                 <td>${m.boxName}</td>
                 <td class="chk-boxid">${m.boxId}</td>
                 <td>${m.destination}</td>
-                <td>${m.status || '—'}</td>
+                <td>${statusBadge(m.status)}</td>
                 <td class="s-pct">${penPct.toFixed(2)}%</td>
                 <td>${sim}</td>
             </tr>`;
@@ -883,7 +888,7 @@ function runChecker(stockCSV) {
             <div class="chk-section-title">Enviados correctamente <span class="chk-section-count">${matched.length}</span></div>
             <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th></tr></thead><tbody>`;
         for (const m of matched) {
-            html += `<tr><td>${m.xfer.boxName}</td><td>${m.xfer.destination}</td><td>${m.xfer.status || '—'}</td></tr>`;
+            html += `<tr><td>${m.xfer.boxName}</td><td>${m.xfer.destination}</td><td>${statusBadge(m.xfer.status)}</td></tr>`;
         }
         html += '</tbody></table></div>';
     }
