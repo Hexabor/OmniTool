@@ -798,11 +798,12 @@ function runChecker(stockCSV) {
     if (wrongType.length > 0) {
         html += `<div class="chk-section">
             <div class="chk-section-title">Enviados con tipo incorrecto <span class="chk-section-count">${wrongType.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Tipo usado</th></tr></thead><tbody>`;
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th><th>Tipo usado</th></tr></thead><tbody>`;
         for (const w of wrongType) {
             html += `<tr>
                 <td>${w.xfer.boxName}</td>
                 <td>${w.xfer.destination}</td>
+                <td>${w.xfer.status || '—'}</td>
                 <td><span class="chk-type-badge chk-type-wrong">${w.stock.type}</span></td>
             </tr>`;
         }
@@ -828,7 +829,7 @@ function runChecker(stockCSV) {
     if (missing.length > 0) {
         html += `<div class="chk-section">
             <div class="chk-section-title">Pendientes de enviar <span class="chk-section-count">${missing.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Penaliza</th><th>Posible sustituto</th></tr></thead><tbody>`;
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Estado</th><th>Penaliza</th><th>Posible sustituto</th></tr></thead><tbody>`;
         for (const m of missing) {
             const penPct = effectiveCost > 0 ? (m.cost / effectiveCost) * 100 : 0;
             let sim = '—';
@@ -840,6 +841,7 @@ function runChecker(stockCSV) {
                 <td>${m.boxName}</td>
                 <td class="chk-boxid">${m.boxId}</td>
                 <td>${m.destination}</td>
+                <td>${m.status || '—'}</td>
                 <td class="s-pct">${penPct.toFixed(2)}%</td>
                 <td>${sim}</td>
             </tr>`;
@@ -879,9 +881,9 @@ function runChecker(stockCSV) {
     if (matched.length > 0) {
         html += `<div class="chk-section">
             <div class="chk-section-title">Enviados correctamente <span class="chk-section-count">${matched.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th></tr></thead><tbody>`;
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th></tr></thead><tbody>`;
         for (const m of matched) {
-            html += `<tr><td>${m.xfer.boxName}</td><td>${m.xfer.destination}</td></tr>`;
+            html += `<tr><td>${m.xfer.boxName}</td><td>${m.xfer.destination}</td><td>${m.xfer.status || '—'}</td></tr>`;
         }
         html += '</tbody></table></div>';
     }
