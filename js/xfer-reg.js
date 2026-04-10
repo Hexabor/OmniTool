@@ -32,6 +32,9 @@ const fileName = document.getElementById('fileName');
 const fileCount = document.getElementById('fileCount');
 const btnClear = document.getElementById('btnClear');
 const tableOutput = document.getElementById('tableOutput');
+const headerProgress = document.getElementById('headerProgress');
+const headerProgressFill = document.getElementById('headerProgressFill');
+const headerProgressLabel = document.getElementById('headerProgressLabel');
 
 const STATUS_OPTIONS = [
     '',
@@ -77,6 +80,7 @@ btnClear.addEventListener('click', () => {
     uploadZone.hidden = false;
     fileBarInfo.hidden = true;
     fileBarActions.hidden = true;
+    if (headerProgress) headerProgress.hidden = true;
     fileName.textContent = '';
     fileCount.textContent = '';
     tableOutput.innerHTML = '';
@@ -387,7 +391,7 @@ function renderTable(groups, totalItems, savedStatuses) {
         select.addEventListener('change', () => {
             select.setAttribute('data-status', select.value);
             saveState();
-            // Auto-update summary if open
+            updateHeaderProgress();
             if (summaryOverlay && summaryOverlay.classList.contains('open')) {
                 renderSummary();
             }
@@ -463,10 +467,12 @@ function loadCSV(text, name, savedStatuses) {
     uploadZone.hidden = true;
     fileBarInfo.hidden = false;
     fileBarActions.hidden = false;
+    if (headerProgress) headerProgress.hidden = false;
     fileName.textContent = name;
     fileCount.textContent = `· ${totalItems} items · ${groups.length} destinos`;
 
     renderTable(groups, totalItems, savedStatuses);
+    updateHeaderProgress();
     if (!savedStatuses) saveState(); // only save on new upload, not on restore
 }
 
@@ -493,6 +499,38 @@ function fitTableToContainer() {
 }
 
 window.addEventListener('resize', fitTableToContainer);
+
+// === Header progress bar ===
+function updateHeaderProgress() {
+    if (!headerProgressFill || !headerProgressLabel || !_lastCSV) return;
+
+    const DISCOUNT = ['Printed cover', 'Vendido en tienda', 'Ya enviado (RMA...)', 'No shipeable'];
+    let totalCost = 0, discountCost = 0, coveredCost = 0;
+
+    tableOutput.querySelectorAll('.status-select').forEach(sel => {
+        // Get cost from the same row
+        const row = sel.closest('tr');
+        if (!row) return;
+        const costTd = row.querySelector('.col-cost');
+        const cost = costTd ? parseFloat(costTd.textContent) || 0 : 0;
+        totalCost += cost;
+
+        const status = sel.value;
+        if (DISCOUNT.includes(status)) {
+            discountCost += cost;
+        } else if (status === 'Enviado') {
+            coveredCost += cost;
+        }
+    });
+
+    const effective = totalCost - discountCost;
+    const pct = effective > 0 ? (coveredCost / effective) * 100 : 0;
+
+    headerProgressFill.style.width = Math.min(pct, 100) + '%';
+    headerProgressFill.className = 'header-progress-fill ' +
+        (pct >= 95 ? 'pct-green' : pct >= 85 ? 'pct-yellow' : 'pct-red');
+    headerProgressLabel.textContent = pct.toFixed(1) + '%';
+}
 
 // === Real-time sync from Firestore ===
 let _unsubscribe = null;
@@ -527,6 +565,7 @@ function startRealtimeSync() {
                 uploadZone.hidden = false;
                 fileBarInfo.hidden = true;
                 fileBarActions.hidden = true;
+                if (headerProgress) headerProgress.hidden = true;
                 tableOutput.innerHTML = '';
                 tableOutput.style.height = '';
                 _lastCSV = null;

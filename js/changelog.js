@@ -1,8 +1,18 @@
 const CHANGELOG = [
     {
         date: '10/04/2026',
-        version: 'v0.6',
+        version: 'v0.7',
         tag: 'ÚLTIMA',
+        entries: [
+            { type: 'ui', text: 'Título del módulo activo centrado en la barra superior' },
+            { type: 'new', text: 'Barra de progreso de fulfilment en el header del módulo Xfer Reg — se actualiza en tiempo real' },
+            { type: 'ui', text: 'Header reestructurado: dropbox e info a la izquierda, progreso en el centro, botones a la derecha' },
+            { type: 'ui', text: 'Botones Análisis y Comprobador del mismo tamaño' },
+        ]
+    },
+    {
+        date: '10/04/2026',
+        version: 'v0.6',
         entries: [
             { type: 'new', text: 'Xfer Reg — Comprobador de envíos: cruza Stock Transfers con Xfer Reg' },
             { type: 'new', text: 'Comprobador — % real de envíos XFER Regular Transfer Out' },

@@ -44,6 +44,7 @@
             <span class="topbar-title">OmniTool</span>
             <button class="btn-changelog" id="btnChangelog">Novedades</button>
         </div>
+        <span class="topbar-module">Xfer Reg</span>
         <div class="topbar-right">
             <span class="topbar-store">CeX Store</span>
         </div>
@@ -192,41 +193,44 @@
     <!-- Main content -->
     <main class="content">
         <div class="page-header" id="fileBar">
+            <!-- Left: dropbox / file info stacked -->
             <div class="page-header-left">
-                <h1>Xfer Reg</h1>
-                <p class="page-subtitle">Gestión de transferencias entre tiendas</p>
+                <div class="upload-zone" id="uploadZone">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span class="upload-text-wrap">
+                        <span class="upload-text">Arrastra CSV aquí o haz clic para seleccionar</span>
+                        <span class="upload-hint">ES Regular Transfers_Transfer Regular Out_Table.csv</span>
+                    </span>
+                    <input type="file" id="fileInput" accept=".csv" hidden>
+                </div>
+                <div class="file-bar-info" id="fileBarInfo" hidden>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span class="file-bar-info-text">
+                        <span id="fileName"></span>
+                        <span class="file-bar-count" id="fileCount"></span>
+                    </span>
+                </div>
             </div>
 
-            <!-- Upload zone (hidden when file loaded) -->
-            <div class="upload-zone" id="uploadZone">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="17 8 12 3 7 8"/>
-                    <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-                <span class="upload-text-wrap">
-                    <span class="upload-text">Arrastra CSV aquí o haz clic para seleccionar</span>
-                    <span class="upload-hint">ES Regular Transfers_Transfer Regular Out_Table.csv</span>
-                </span>
-                <input type="file" id="fileInput" accept=".csv" hidden>
+            <!-- Center: fulfilment progress bar (hidden until file loaded) -->
+            <div class="header-progress" id="headerProgress" hidden>
+                <div class="header-progress-bar">
+                    <div class="header-progress-fill" id="headerProgressFill"></div>
+                </div>
+                <div class="header-progress-label" id="headerProgressLabel">0%</div>
             </div>
 
-            <!-- File info (hidden until file loaded) -->
-            <div class="file-bar-info" id="fileBarInfo" hidden>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <span class="file-bar-info-text">
-                    <span id="fileName"></span>
-                    <span class="file-bar-count" id="fileCount"></span>
-                </span>
-            </div>
-
-            <!-- Buttons pushed to the right -->
+            <!-- Right: buttons -->
             <div class="file-bar-actions" id="fileBarActions" hidden>
                 <button class="btn btn-accent btn-square" id="btnSummary">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10"/>
                         <line x1="12" y1="20" x2="12" y2="4"/>
                         <line x1="6" y1="20" x2="6" y2="14"/>
@@ -234,7 +238,7 @@
                     Análisis
                 </button>
                 <button class="btn btn-accent btn-square" id="btnChecker">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 11l3 3L22 4"/>
                         <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                     </svg>

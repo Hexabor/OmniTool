@@ -2,19 +2,58 @@
 .page-header {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
 }
 
 .page-header-left {
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+/* Inline fulfilment progress */
+.header-progress {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    padding: 0 1rem;
+}
+
+.header-progress-bar {
+    flex: 1;
+    height: 14px;
+    background: var(--color-border-light);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+}
+
+.header-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease, background 0.3s;
+    width: 0;
+}
+
+.header-progress-fill.pct-green { background: var(--color-success); }
+.header-progress-fill.pct-yellow { background: var(--color-warning); }
+.header-progress-fill.pct-red { background: var(--color-danger); }
+
+.header-progress-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 3.5rem;
+    text-align: right;
 }
 
 .file-bar-actions {
+    flex-shrink: 0;
     margin-left: auto;
-}
-
-.btn-tall {
-    padding: 0.6rem 1.2rem;
 }
 
 .btn-accent {
@@ -33,11 +72,14 @@
 
 .btn-square {
     flex-direction: column;
-    padding: 0.65rem 1.5rem;
+    padding: 0.6rem 0;
     gap: 0.2rem;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    width: 6.5rem;
+    text-align: center;
+    justify-content: center;
 }
 
 .file-bar-separator {
@@ -894,6 +936,7 @@
     .upload-zone,
     .file-bar,
     .page-header,
+    .header-progress,
     .col-status,
     .col-spacer,
     .jump-btn,
