@@ -528,9 +528,39 @@ function updateHeaderProgress() {
 
     const isGreen = pct >= 95;
     headerProgressFill.style.width = Math.min(pct, 100) + '%';
-    headerProgressFill.className = 'header-progress-fill ' + (isGreen ? 'pct-green' : 'pct-blue');
+
+    if (isGreen) {
+        headerProgressFill.style.background = '#22c55e';
+    } else {
+        // Blue gradient: very light at 0%, full primary at 94%
+        const t = Math.min(pct / 95, 1);
+        const lightness = Math.round(93 - t * 40); // 93% (very light) → 53% (saturated blue)
+        headerProgressFill.style.background = `hsl(217, 91%, ${lightness}%)`;
+    }
+    headerProgressFill.className = 'header-progress-fill';
+
+    // Phrase based on progress
+    let phrase = '';
+    if (pct >= 100)     phrase = 'Fulfilment perfecto';
+    else if (pct >= 95)  phrase = 'Casi redondo';
+    else if (pct >= 85)  phrase = 'En la recta final';
+    else if (pct >= 70)  phrase = 'Buen ritmo';
+    else if (pct >= 50)  phrase = 'Ya vamos pillando ritmo';
+    else if (pct >= 20)  phrase = 'Esto va tomando forma';
+    else if (pct > 0)    phrase = 'Esto acaba de comenzar';
+    else                 phrase = 'Sin envíos registrados';
+
     headerProgressLabel.textContent = pct.toFixed(1) + '%';
     headerProgressLabel.style.color = isGreen ? '#22c55e' : 'var(--color-text)';
+
+    // Update or create phrase element
+    let textEl = document.querySelector('.header-progress-text');
+    if (!textEl) {
+        textEl = document.createElement('div');
+        textEl.className = 'header-progress-text';
+        headerProgressLabel.parentElement.insertBefore(textEl, headerProgressLabel);
+    }
+    textEl.textContent = phrase;
 }
 
 // === Real-time sync from Firestore ===
