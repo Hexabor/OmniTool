@@ -764,6 +764,9 @@ function runChecker(stockCSV) {
 
     // 7. Compute stats (only XFER type counts for %)
     const totalXfer = xferItems.length;
+    const totalCostAll = xferItems.reduce((s, it) => s + it.cost, 0);
+    const justifiedCost = justified.reduce((s, it) => s + it.cost, 0);
+    const effectiveCost = totalCostAll - justifiedCost;
     const totalJustified = justified.length;
     const effective = totalXfer - totalJustified;
     const correctCount = matched.length;
@@ -825,8 +828,9 @@ function runChecker(stockCSV) {
     if (missing.length > 0) {
         html += `<div class="chk-section">
             <div class="chk-section-title">Pendientes de enviar <span class="chk-section-count">${missing.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Posible sustituto</th></tr></thead><tbody>`;
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Penaliza</th><th>Posible sustituto</th></tr></thead><tbody>`;
         for (const m of missing) {
+            const penPct = effectiveCost > 0 ? (m.cost / effectiveCost) * 100 : 0;
             let sim = '—';
             if (m._similar) {
                 const pct = m._similar._matchScore ? `${Math.round(m._similar._matchScore * 100)}%` : 'ID';
@@ -836,18 +840,31 @@ function runChecker(stockCSV) {
                 <td>${m.boxName}</td>
                 <td class="chk-boxid">${m.boxId}</td>
                 <td>${m.destination}</td>
+                <td class="s-pct">${penPct.toFixed(2)}%</td>
                 <td>${sim}</td>
             </tr>`;
         }
         html += '</tbody></table></div>';
     }
 
-    // Extras section
+    // Extras section — collapse Transfer Order Number rows
     if (extras.length > 0) {
+        const txOrders = extras.filter(e => e.boxName === 'Transfer Order Number');
+        const realExtras = extras.filter(e => e.boxName !== 'Transfer Order Number');
+        const extraCount = realExtras.length + (txOrders.length > 0 ? 1 : 0);
+
         html += `<div class="chk-section">
             <div class="chk-section-title">Envíos no solicitados <span class="chk-section-count">${extras.length}</span></div>
             <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Tipo</th></tr></thead><tbody>`;
-        for (const e of extras) {
+        if (txOrders.length > 0) {
+            html += `<tr style="opacity:0.5">
+                <td>Transfer Order Number</td>
+                <td class="chk-boxid">×${txOrders.length}</td>
+                <td>—</td>
+                <td><span class="chk-type-badge chk-type-wrong">Services</span></td>
+            </tr>`;
+        }
+        for (const e of realExtras) {
             const typeClass = e.type === XFER_TYPE ? 'chk-type-ok' : 'chk-type-wrong';
             html += `<tr>
                 <td>${e.boxName}</td>
