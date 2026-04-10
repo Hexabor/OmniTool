@@ -542,9 +542,9 @@ function updateHeaderProgress() {
     // Phrase based on progress
     let phrase = '';
     if (pct >= 100)     phrase = 'Fulfilment perfecto';
-    else if (pct >= 95)  phrase = 'Casi redondo';
-    else if (pct >= 85)  phrase = 'En la recta final';
-    else if (pct >= 70)  phrase = 'Buen ritmo';
+    else if (pct >= 95)  phrase = 'Casi perfecto';
+    else if (pct >= 80)  phrase = 'Buen ritmo';
+    else if (pct >= 70)  phrase = 'En la recta final';
     else if (pct >= 50)  phrase = 'Ya vamos pillando ritmo';
     else if (pct >= 20)  phrase = 'Esto va tomando forma';
     else if (pct > 0)    phrase = 'Esto acaba de comenzar';
