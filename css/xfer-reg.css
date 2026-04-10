@@ -7,11 +7,26 @@
 }
 
 .page-header-left {
-    flex-shrink: 1;
-    min-width: 0;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+}
+
+.file-bar-info {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.file-bar-info-text {
+    min-width: 0;
+}
+
+.file-bar-info-text span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
 }
 
 /* Inline fulfilment progress */
