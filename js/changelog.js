@@ -12,6 +12,7 @@ const CHANGELOG = [
             { type: 'new', text: 'Enlace a Looker Studio en tooltip de Revisión' },
             { type: 'ui', text: 'Columna Unit Cost oculta (pantalla e impresión)' },
             { type: 'ui', text: 'Botones con tamaño uniforme, layout responsive con wrap' },
+            { type: 'ui', text: 'Header sticky: barra de progreso y botones fijos al hacer scroll' },
             { type: 'fix', text: 'Reducido padding superior del contenido' },
         ]
     },

@@ -4,6 +4,11 @@
     align-items: center;
     gap: 0.5rem;
     flex-wrap: wrap;
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 90;
+    background: var(--color-bg);
+    padding: 0.5rem 0;
 }
 
 /* Upload zone: two-face element (drop mode / file-loaded mode) */
@@ -296,7 +301,7 @@
     cursor: pointer;
     transition: all 0.15s;
     min-width: 0;
-    flex: 1 1 0;
+    flex: 0 1 auto;
 }
 
 .upload-zone svg {
