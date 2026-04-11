@@ -14,6 +14,7 @@ const CHANGELOG = [
             { type: 'ui', text: 'Botones con tamaño uniforme, layout responsive con wrap' },
             { type: 'ui', text: 'Header sticky: barra de progreso y botones fijos al hacer scroll' },
             { type: 'fix', text: 'Reducido padding superior del contenido' },
+            { type: 'ui', text: 'Home: módulos deshabilitados muestran solo "Próximamente" como subtítulo' },
         ]
     },
     {
