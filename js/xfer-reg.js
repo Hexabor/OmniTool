@@ -549,7 +549,7 @@ function loadCSV(text, name, savedStatuses) {
     uploadZone.classList.add('has-file');
     fileBarActions.hidden = false;
     fileName.textContent = name;
-    fileCount.textContent = `· ${totalItems} items · ${groups.length} destinos`;
+    fileCount.textContent = `${totalItems} items · ${groups.length} destinos`;
 
     renderTable(groups, totalItems, savedStatuses);
     updateHeaderProgress();
