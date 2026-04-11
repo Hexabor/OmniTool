@@ -1,8 +1,23 @@
 const CHANGELOG = [
     {
+        date: '11/04/2026',
+        version: 'v0.8',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'ui', text: 'Dropbox y barra de progreso integrados en un único marco' },
+            { type: 'ui', text: 'Dropbox se transforma al cargar archivo (Clark Kent / Superman)' },
+            { type: 'ui', text: 'Botones renombrados: Resumen, Revisión, Imprimir, Ordenar' },
+            { type: 'new', text: 'Botón Ordenar: alterna entre vista por Secciones (C/H/S) y por Tiendas' },
+            { type: 'new', text: 'Tooltips de ayuda en botones Resumen y Revisión (hover sobre ?)' },
+            { type: 'new', text: 'Enlace a Looker Studio en tooltip de Revisión' },
+            { type: 'ui', text: 'Columna Unit Cost oculta (pantalla e impresión)' },
+            { type: 'ui', text: 'Botones con tamaño uniforme, layout responsive con wrap' },
+            { type: 'fix', text: 'Reducido padding superior del contenido' },
+        ]
+    },
+    {
         date: '10/04/2026',
         version: 'v0.7',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'ui', text: 'Título del módulo activo centrado en la barra superior' },
             { type: 'new', text: 'Barra de progreso de fulfilment en el header del módulo Xfer Reg — se actualiza en tiempo real' },

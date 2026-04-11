@@ -26,7 +26,6 @@ let _lastFileName = null;
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
 const fileBar = document.getElementById('fileBar');
-const fileBarInfo = document.getElementById('fileBarInfo');
 const fileBarActions = document.getElementById('fileBarActions');
 const fileName = document.getElementById('fileName');
 const fileCount = document.getElementById('fileCount');
@@ -35,6 +34,9 @@ const tableOutput = document.getElementById('tableOutput');
 const headerProgress = document.getElementById('headerProgress');
 const headerProgressFill = document.getElementById('headerProgressFill');
 const headerProgressLabel = document.getElementById('headerProgressLabel');
+const viewToggle = document.getElementById('viewToggle');
+const switchLabelSections = document.getElementById('switchLabelSections');
+const switchLabelStores = document.getElementById('switchLabelStores');
 
 const STATUS_OPTIONS = [
     '',
@@ -47,12 +49,47 @@ const STATUS_OPTIONS = [
     'REVISAR'
 ];
 
+// === Help tooltips on buttons (hover) ===
+document.querySelectorAll('.btn-help').forEach(help => {
+    let tip = null;
+
+    help.addEventListener('mouseenter', () => {
+        if (tip) return;
+        tip = document.createElement('div');
+        tip.className = 'btn-help-tooltip';
+        tip.textContent = help.dataset.help;
+        if (help.dataset.helpLink) {
+            const a = document.createElement('a');
+            a.href = help.dataset.helpLink;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            tip.appendChild(document.createTextNode(' '));
+            a.textContent = help.dataset.helpLinkText || 'Enlace';
+            a.className = 'btn-help-link';
+            tip.appendChild(a);
+        }
+        help.parentElement.appendChild(tip);
+    });
+
+    const close = () => { if (tip) { tip.remove(); tip = null; } };
+    help.addEventListener('mouseleave', (e) => {
+        if (tip && e.relatedTarget && tip.contains(e.relatedTarget)) return;
+        close();
+    });
+    help.parentElement.addEventListener('mouseleave', close);
+
+    // Prevent button action when hovering/clicking help
+    help.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
+});
+
 // === Upload handling ===
-uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('click', () => {
+    if (!uploadZone.classList.contains('has-file')) fileInput.click();
+});
 
 uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    uploadZone.classList.add('drag-over');
+    if (!uploadZone.classList.contains('has-file')) uploadZone.classList.add('drag-over');
 });
 
 uploadZone.addEventListener('dragleave', () => {
@@ -62,6 +99,7 @@ uploadZone.addEventListener('dragleave', () => {
 uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadZone.classList.remove('drag-over');
+    if (uploadZone.classList.contains('has-file')) return;
     const file = e.dataTransfer.files[0];
     if (file && file.name.endsWith('.csv')) {
         processFile(file);
@@ -77,12 +115,15 @@ fileInput.addEventListener('change', () => {
 btnClear.addEventListener('click', () => {
     if (!confirm('¿Borrar el archivo cargado y todos los estados?')) return;
     if (!confirm('Esta acción no se puede deshacer. ¿Confirmar?')) return;
-    uploadZone.hidden = false;
-    fileBarInfo.hidden = true;
+    uploadZone.classList.remove('has-file');
     fileBarActions.hidden = true;
-    if (headerProgress) headerProgress.hidden = true;
     fileName.textContent = '';
     fileCount.textContent = '';
+    // Reset progress display
+    if (headerProgressFill) headerProgressFill.style.width = '0';
+    if (headerProgressLabel) headerProgressLabel.textContent = '0%';
+    const phraseEl = document.querySelector('.header-progress-text');
+    if (phraseEl) phraseEl.remove();
     tableOutput.innerHTML = '';
     tableOutput.style.height = '';
     fileInput.value = '';
@@ -90,6 +131,30 @@ btnClear.addEventListener('click', () => {
     _lastFileName = null;
     _ignorNextSnapshot = true;
     deleteModuleData(MODULE_ID).catch(e => console.error('Clear failed:', e));
+});
+
+// === View toggle (Secciones / Tiendas) ===
+viewToggle.addEventListener('change', () => {
+    const isStores = viewToggle.checked;
+    switchLabelSections.classList.toggle('sort-opt-active', !isStores);
+    switchLabelStores.classList.toggle('sort-opt-active', isStores);
+
+    if (!_lastCSV) return;
+
+    // Collect current statuses before re-render
+    const currentStatuses = {};
+    tableOutput.querySelectorAll('.status-select').forEach(sel => {
+        const key = sel.getAttribute('data-key');
+        if (key && sel.value) currentStatuses[key] = sel.value;
+    });
+
+    const rows = parseCSV(_lastCSV);
+    const expanded = expandRows(rows);
+    const groups = groupByDestination(expanded);
+    const totalItems = expanded.length;
+
+    renderTable(groups, totalItems, currentStatuses);
+    updateHeaderProgress();
 });
 
 // === CSV parsing ===
@@ -218,7 +283,8 @@ function classifyItems(expanded, totalCost) {
 }
 
 // === Render table ===
-function renderTable(groups, totalItems, savedStatuses) {
+function renderTable(groups, totalItems, savedStatuses, mode) {
+    if (!mode) mode = viewToggle && viewToggle.checked ? 'stores' : 'sections';
     savedStatuses = savedStatuses || {};
     const allItems = groups.flatMap(g => g.items);
     const totalCost = allItems.reduce((s, item) => s + (parseFloat(item['Unit Cost Price']) || 0), 0);
@@ -274,105 +340,121 @@ function renderTable(groups, totalItems, savedStatuses) {
 
     let html = `<table class="xfer-table">`;
 
-    let firstBlock = true;
-
-    for (const block of blocks) {
-        if (block.items.length === 0) continue;
-
-        const destGroups = groupByDestination(block.items);
-
-        const blockPct = block.items.reduce((s, item) => {
+    // Helper to render item rows for a destination group
+    function renderDestRows(group, gIdx, jumpBtns, idPrefix) {
+        const destPct = group.items.reduce((s, item) => {
             const cost = parseFloat(item['Unit Cost Price']) || 0;
             return s + (totalCost > 0 ? (cost / totalCost) * 100 : 0);
         }, 0);
 
-        // Block header + col headers in their own tbody
-        html += `<tbody class="block-thead">
-            ${!firstBlock ? `<tr class="block-spacer"><td colspan="${COLS}"></td></tr>` : ''}
-            <tr class="block-header-row block-header-${block.icon}">
+        let h = `<tbody class="dest-group">
+            ${gIdx > 0 ? `<tr class="destination-spacer"><td colspan="${COLS}"></td></tr>` : ''}
+            <tr class="destination-header" id="${idPrefix}${group.destination.replace(/[^a-zA-Z0-9]/g, '_')}">
                 <td colspan="${COLS}">
-                    <span class="block-label">${block.label}</span>
-                    <span class="block-count">${block.items.length} items</span>
-                    <span class="block-pct">${blockPct.toFixed(1)}%</span>
+                    ${group.destination}
+                    <span class="dest-separator">—</span>
+                    <span class="dest-count">${group.items.length} items</span>
+                    <span class="dest-separator">—</span>
+                    <span class="dest-pct">${destPct.toFixed(2)}%</span>
+                    ${jumpBtns || ''}
                 </td>
-            </tr>
+            </tr>`;
+
+        for (let i = 0; i < group.items.length; i++) {
+            const item = group.items[i];
+            const cost = parseFloat(item['Unit Cost Price']) || 0;
+            const pct = totalCost > 0 ? ((cost / totalCost) * 100) : 0;
+
+            let pctClass = '';
+            if (pct >= 2) pctClass = 'pct-tier-3';
+            else if (pct >= 1) pctClass = 'pct-tier-2';
+            else if (pct >= 0.5) pctClass = 'pct-tier-1';
+
+            const posClass = (i === 0 ? ' dest-first' : '') +
+                             (i === group.items.length - 1 ? ' dest-last' : '');
+
+            const rowKey = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+
+            h += `<tr class="${pctClass}${posClass}">
+                <td class="col-spacer"></td>
+                <td class="col-check"><input type="checkbox"></td>
+                <td class="col-status"><select class="status-select" data-key="${rowKey.replace(/"/g, '&quot;')}">${statusOptions}</select></td>
+                <td>${group.destination}</td>
+                <td class="col-boxid">${item['BoxID'] || ''}</td>
+                <td>${item['Box Name'] || ''}</td>
+                <td>${item['Box Category'] || ''}</td>
+                <td class="col-cost">${cost.toFixed(2)} €</td>
+                <td class="col-pct">${pct.toFixed(2)}%</td>
+                <td class="col-notes"></td>
+                <td class="col-spacer"></td>
+            </tr>`;
+        }
+
+        h += '</tbody>';
+        return h;
+    }
+
+    if (mode === 'stores') {
+        // Flat view: all items grouped by destination, sorted by cost desc
+        html += `<tbody class="block-thead">
             ${colHeaders}
         </tbody>`;
 
-        firstBlock = false;
+        groups.forEach((group, gIdx) => {
+            html += renderDestRows(group, gIdx, '', 'dest-all-');
+        });
+    } else {
+        // Sections view: Críticos / Hardware / Software
+        let firstBlock = true;
 
-        destGroups.forEach((group, gIdx) => {
-            const destPct = group.items.reduce((s, item) => {
+        for (const block of blocks) {
+            if (block.items.length === 0) continue;
+
+            const destGroups = groupByDestination(block.items);
+
+            const blockPct = block.items.reduce((s, item) => {
                 const cost = parseFloat(item['Unit Cost Price']) || 0;
                 return s + (totalCost > 0 ? (cost / totalCost) * 100 : 0);
             }, 0);
 
-            const otherBlocks = (destBlockMap[group.destination] || [])
-                .filter(icon => icon !== block.icon);
-            const jumpBtns = otherBlocks.map(icon => {
-                const key = `${icon}|${group.destination}`;
-                const items = destBlockItems[key] || [];
-                const itemCount = items.length;
-                const grpPct = items.reduce((s, it) => {
-                    const c = parseFloat(it['Unit Cost Price']) || 0;
-                    return s + (totalCost > 0 ? (c / totalCost) * 100 : 0);
-                }, 0);
-                const rows = items.map(it => {
-                    const c = parseFloat(it['Unit Cost Price']) || 0;
-                    const p = totalCost > 0 ? (c / totalCost) * 100 : 0;
-                    const name = (it['Box Name'] || '—').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-                    return `${name}\t${p.toFixed(2)}%`;
-                });
-                const tipData = `${itemCount}\t${grpPct.toFixed(2)}\t${rows.join('\n')}`;
-                return `<a href="#${destId(icon, group.destination)}" class="jump-btn ${BLOCK_CSS[icon]}" data-tip="${tipData.replace(/"/g, '&quot;')}">${BLOCK_LABELS[icon]}</a>`;
-            }).join('');
-
-            // Each destination in its own tbody for page-break control
-            html += `<tbody class="dest-group">
-                ${gIdx > 0 ? `<tr class="destination-spacer"><td colspan="${COLS}"></td></tr>` : ''}
-                <tr class="destination-header" id="${destId(block.icon, group.destination)}">
+            html += `<tbody class="block-thead">
+                ${!firstBlock ? `<tr class="block-spacer"><td colspan="${COLS}"></td></tr>` : ''}
+                <tr class="block-header-row block-header-${block.icon}">
                     <td colspan="${COLS}">
-                        ${group.destination}
-                        <span class="dest-separator">—</span>
-                        <span class="dest-count">${group.items.length} items</span>
-                        <span class="dest-separator">—</span>
-                        <span class="dest-pct">${destPct.toFixed(2)}%</span>
-                        ${jumpBtns}
+                        <span class="block-label">${block.label}</span>
+                        <span class="block-count">${block.items.length} items</span>
+                        <span class="block-pct">${blockPct.toFixed(1)}%</span>
                     </td>
-                </tr>`;
+                </tr>
+                ${colHeaders}
+            </tbody>`;
 
-            for (let i = 0; i < group.items.length; i++) {
-                const item = group.items[i];
-                const cost = parseFloat(item['Unit Cost Price']) || 0;
-                const pct = totalCost > 0 ? ((cost / totalCost) * 100) : 0;
+            firstBlock = false;
 
-                let pctClass = '';
-                if (pct >= 2) pctClass = 'pct-tier-3';
-                else if (pct >= 1) pctClass = 'pct-tier-2';
-                else if (pct >= 0.5) pctClass = 'pct-tier-1';
+            destGroups.forEach((group, gIdx) => {
+                const otherBlocks = (destBlockMap[group.destination] || [])
+                    .filter(icon => icon !== block.icon);
+                const jumpBtns = otherBlocks.map(icon => {
+                    const key = `${icon}|${group.destination}`;
+                    const items = destBlockItems[key] || [];
+                    const itemCount = items.length;
+                    const grpPct = items.reduce((s, it) => {
+                        const c = parseFloat(it['Unit Cost Price']) || 0;
+                        return s + (totalCost > 0 ? (c / totalCost) * 100 : 0);
+                    }, 0);
+                    const rows = items.map(it => {
+                        const c = parseFloat(it['Unit Cost Price']) || 0;
+                        const p = totalCost > 0 ? (c / totalCost) * 100 : 0;
+                        const name = (it['Box Name'] || '—').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+                        return `${name}\t${p.toFixed(2)}%`;
+                    });
+                    const tipData = `${itemCount}\t${grpPct.toFixed(2)}\t${rows.join('\n')}`;
+                    return `<a href="#${destId(icon, group.destination)}" class="jump-btn ${BLOCK_CSS[icon]}" data-tip="${tipData.replace(/"/g, '&quot;')}">${BLOCK_LABELS[icon]}</a>`;
+                }).join('');
 
-                const posClass = (i === 0 ? ' dest-first' : '') +
-                                 (i === group.items.length - 1 ? ' dest-last' : '');
-
-                const rowKey = `${group.destination}|${item['BoxID'] || ''}|${i}`;
-
-                html += `<tr class="${pctClass}${posClass}">
-                    <td class="col-spacer"></td>
-                    <td class="col-check"><input type="checkbox"></td>
-                    <td class="col-status"><select class="status-select" data-key="${rowKey.replace(/"/g, '&quot;')}">${statusOptions}</select></td>
-                    <td>${group.destination}</td>
-                    <td class="col-boxid">${item['BoxID'] || ''}</td>
-                    <td>${item['Box Name'] || ''}</td>
-                    <td>${item['Box Category'] || ''}</td>
-                    <td class="col-cost">${cost.toFixed(2)} €</td>
-                    <td class="col-pct">${pct.toFixed(2)}%</td>
-                    <td class="col-notes"></td>
-                    <td class="col-spacer"></td>
-                </tr>`;
-            }
-
-            html += '</tbody>';
-        });
+                html += renderDestRows(group, gIdx, jumpBtns, `dest-${ICON_SLUG[block.icon]}-`);
+            });
+        }
     }
 
     html += '</table>';
@@ -463,22 +545,9 @@ function loadCSV(text, name, savedStatuses) {
     const groups = groupByDestination(expanded);
     const totalItems = expanded.length;
 
-    // Measure dropbox width before hiding, constrain file info to same width
-    if (!uploadZone.hidden) {
-        const dropW = uploadZone.offsetWidth;
-        if (dropW > 0) {
-            fileBarInfo.style.maxWidth = dropW + 'px';
-            uploadZone._measuredWidth = dropW;
-        }
-    } else if (uploadZone._measuredWidth) {
-        fileBarInfo.style.maxWidth = uploadZone._measuredWidth + 'px';
-    }
-
-    // Update UI
-    uploadZone.hidden = true;
-    fileBarInfo.hidden = false;
+    // Update UI — transform the upload zone into file-info mode
+    uploadZone.classList.add('has-file');
     fileBarActions.hidden = false;
-    if (headerProgress) headerProgress.hidden = false;
     fileName.textContent = name;
     fileCount.textContent = `· ${totalItems} items · ${groups.length} destinos`;
 
@@ -565,12 +634,12 @@ function updateHeaderProgress() {
     headerProgressLabel.textContent = pct.toFixed(1) + '%';
     headerProgressLabel.style.color = isGreen ? '#22c55e' : 'var(--color-text)';
 
-    // Update or create phrase element
+    // Update or create phrase element inside progress-info
     let textEl = document.querySelector('.header-progress-text');
     if (!textEl) {
         textEl = document.createElement('div');
         textEl.className = 'header-progress-text';
-        headerProgressLabel.parentElement.insertBefore(textEl, headerProgressLabel);
+        headerProgressLabel.parentElement.appendChild(textEl);
     }
     textEl.textContent = phrase;
 }
@@ -605,10 +674,12 @@ function startRealtimeSync() {
         } else if (!data || !data.csv) {
             // Remote cleared — reset UI if we had data loaded
             if (_lastCSV) {
-                uploadZone.hidden = false;
-                fileBarInfo.hidden = true;
+                uploadZone.classList.remove('has-file');
                 fileBarActions.hidden = true;
-                if (headerProgress) headerProgress.hidden = true;
+                if (headerProgressFill) headerProgressFill.style.width = '0';
+                if (headerProgressLabel) headerProgressLabel.textContent = '0%';
+                const pEl = document.querySelector('.header-progress-text');
+                if (pEl) pEl.remove();
                 tableOutput.innerHTML = '';
                 tableOutput.style.height = '';
                 _lastCSV = null;

@@ -166,7 +166,7 @@ body {
 .content {
     margin-top: var(--topbar-h);
     margin-left: var(--sidebar-w);
-    padding: 2rem;
+    padding: 0.8rem 2rem 2rem;
     min-height: calc(100vh - var(--topbar-h));
 }
 

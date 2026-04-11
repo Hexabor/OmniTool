@@ -193,67 +193,80 @@
     <!-- Main content -->
     <main class="content">
         <div class="page-header" id="fileBar">
-            <!-- Left: dropbox / file info stacked -->
-            <div class="page-header-left">
-                <div class="upload-zone" id="uploadZone">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    <span class="upload-text-wrap">
-                        <span class="upload-text">Arrastra CSV aquí o haz clic para seleccionar</span>
-                        <span class="upload-hint">ES Regular Transfers_Transfer Regular Out_Table.csv</span>
-                    </span>
-                    <input type="file" id="fileInput" accept=".csv" hidden>
+            <!-- Progress frame (always visible) with integrated dropbox -->
+            <div class="header-progress" id="headerProgress">
+                <div class="header-progress-top">
+                    <!-- Left: dropbox (Clark Kent / Superman) -->
+                    <div class="upload-zone" id="uploadZone">
+                        <svg class="upload-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <svg class="file-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span class="upload-text-wrap">
+                            <span class="upload-text">Arrastra CSV aquí o haz clic</span>
+                            <span class="upload-hint">Transfer Regular Out (.csv)</span>
+                            <span class="file-name" id="fileName"></span>
+                            <span class="file-bar-count" id="fileCount"></span>
+                        </span>
+                        <input type="file" id="fileInput" accept=".csv" hidden>
+                    </div>
+                    <!-- Right (~3/4): progress info -->
+                    <div class="header-progress-info">
+                        <div class="header-progress-label" id="headerProgressLabel">0%</div>
+                    </div>
                 </div>
-                <div class="file-bar-info" id="fileBarInfo" hidden>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    <span class="file-bar-info-text">
-                        <span id="fileName"></span>
-                        <span class="file-bar-count" id="fileCount"></span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Center: fulfilment progress bar (hidden until file loaded) -->
-            <div class="header-progress" id="headerProgress" hidden>
                 <div class="header-progress-bar">
                     <div class="header-progress-fill" id="headerProgressFill"></div>
                 </div>
-                <div class="header-progress-label" id="headerProgressLabel">0%</div>
             </div>
 
             <!-- Right: buttons -->
             <div class="file-bar-actions" id="fileBarActions" hidden>
-                <button class="btn btn-accent btn-square" id="btnSummary">
+                <button class="btn btn-accent btn-square" id="btnPrint" onclick="window.print()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"/>
-                        <line x1="12" y1="20" x2="12" y2="4"/>
-                        <line x1="6" y1="20" x2="6" y2="14"/>
-                    </svg>
-                    Análisis
-                </button>
-                <button class="btn btn-accent btn-square" id="btnChecker">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 11l3 3L22 4"/>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                    </svg>
-                    Comprobador
-                    <input type="file" id="checkerInput" accept=".csv" hidden>
-                </button>
-                <div class="file-bar-separator"></div>
-                <button class="btn btn-secondary btn-sm" id="btnPrint" onclick="window.print()">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="6 9 6 2 18 2 18 9"/>
                         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
                         <rect x="6" y="14" width="12" height="8"/>
                     </svg>
                     Imprimir
                 </button>
+                <button class="btn btn-accent btn-square" id="btnSummary">
+                    <span class="btn-help" data-help="Muestra un resumen del estado que se ha indicado para cada envío. Es importante contrastarlo con el Xfer realmente realizado, mediante el botón de REVISIÓN. Te recomiendo hacerlo con margen para posibles rectificaciones.">?</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Resumen
+                </button>
+                <button class="btn btn-accent btn-square" id="btnChecker">
+                    <span class="btn-help" data-help="Compara la lista de xfer out declarado con un CSV de Stock Transfers." data-help-link="https://lookerstudio.google.com/reporting/c317b5a3-dd21-4a33-b3ee-9372f773e7d3/page/p_yr616xri2c?s=t3JYTMlJT2E" data-help-link-text="Descárgalo aquí">?</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    Revisión
+                    <input type="file" id="checkerInput" accept=".csv" hidden>
+                </button>
+                <label class="btn btn-accent btn-square btn-sort" for="viewToggle">
+                    <span class="sort-inner">
+                        <span class="sort-labels">
+                            <span class="sort-opt sort-opt-active" id="switchLabelSections">Secciones</span>
+                            <span class="sort-opt" id="switchLabelStores">Tiendas</span>
+                        </span>
+                        <span class="switch-track-v">
+                            <input type="checkbox" id="viewToggle">
+                            <span class="switch-thumb-v"></span>
+                        </span>
+                    </span>
+                    Ordenar
+                </label>
+                <div class="file-bar-separator"></div>
                 <button class="btn btn-secondary btn-sm" id="btnClear">Limpiar</button>
             </div>
         </div>
