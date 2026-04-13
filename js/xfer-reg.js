@@ -70,6 +70,7 @@ document.querySelectorAll('.btn-help').forEach(help => {
             a.className = 'btn-help-link';
             tip.appendChild(a);
         }
+        tip.addEventListener('click', (ev) => ev.stopPropagation());
         help.parentElement.appendChild(tip);
     }
 
