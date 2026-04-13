@@ -52,8 +52,10 @@ const STATUS_OPTIONS = [
 // === Help tooltips on buttons (hover) ===
 document.querySelectorAll('.btn-help').forEach(help => {
     let tip = null;
+    let pinned = false;
+    let autoCloseTimer = null;
 
-    help.addEventListener('mouseenter', () => {
+    function openTip() {
         if (tip) return;
         tip = document.createElement('div');
         tip.className = 'btn-help-tooltip';
@@ -69,17 +71,30 @@ document.querySelectorAll('.btn-help').forEach(help => {
             tip.appendChild(a);
         }
         help.parentElement.appendChild(tip);
-    });
+    }
 
-    const close = () => { if (tip) { tip.remove(); tip = null; } };
+    function close() {
+        if (tip) { tip.remove(); tip = null; }
+        pinned = false;
+        if (autoCloseTimer) { clearTimeout(autoCloseTimer); autoCloseTimer = null; }
+    }
+
+    help.addEventListener('mouseenter', () => { if (!pinned) openTip(); });
     help.addEventListener('mouseleave', (e) => {
+        if (pinned) return;
         if (tip && e.relatedTarget && tip.contains(e.relatedTarget)) return;
         close();
     });
-    help.parentElement.addEventListener('mouseleave', close);
+    help.parentElement.addEventListener('mouseleave', () => { if (!pinned) close(); });
 
-    // Prevent button action when hovering/clicking help
-    help.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
+    help.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (pinned) { close(); return; }
+        if (!tip) openTip();
+        pinned = true;
+        autoCloseTimer = setTimeout(close, 5000);
+    });
 });
 
 // === Upload handling ===
