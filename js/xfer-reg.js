@@ -9,7 +9,7 @@ function saveState() {
         const statuses = {};
         tableOutput.querySelectorAll('.status-select').forEach(sel => {
             const key = sel.getAttribute('data-key');
-            if (key && sel.value) statuses[key] = sel.value;
+            if (key) statuses[key] = sel.value;
         });
         saveModuleData(MODULE_ID, {
             csv: _lastCSV || null,
@@ -1126,7 +1126,8 @@ function renderSummary() {
         const count = items.length;
         const cost = items.reduce((s, it) => s + it._cost, 0);
         const pct = totalCost > 0 ? (cost / totalCost) * 100 : 0;
-        return { status, count, cost, pct };
+        const boxIds = items.map(it => it['BoxID'] || '').filter(Boolean);
+        return { status, count, cost, pct, boxIds };
     });
 
     const totalDiscountCount = discountRows.reduce((s, r) => s + r.count, 0);
@@ -1169,6 +1170,9 @@ function renderSummary() {
                     <td class="s-count">${r.count}</td>
                     <td class="s-cost">${r.cost.toFixed(2)} €</td>
                     <td class="s-pct">${r.pct.toFixed(2)}%</td>
+                    <td class="s-copy">${r.count > 0 ? `<button class="btn-copy-ids" data-ids="${r.boxIds.join('\n').replace(/"/g, '&quot;')}" title="Copiar BoxIDs">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>` : ''}</td>
                 </tr>
             `).join('')}
             <tr class="s-total-row">
@@ -1176,6 +1180,7 @@ function renderSummary() {
                 <td class="s-count">${totalDiscountCount}</td>
                 <td class="s-cost">${totalDiscountCost.toFixed(2)} €</td>
                 <td class="s-pct">${totalDiscountPct.toFixed(2)}%</td>
+                <td class="s-copy"></td>
             </tr>
         </table>
 
@@ -1204,3 +1209,15 @@ function renderSummary() {
         `}
     `;
 }
+
+// === Copy BoxIDs buttons (summary panel) ===
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-copy-ids');
+    if (!btn) return;
+    const ids = btn.dataset.ids;
+    if (!ids) return;
+    navigator.clipboard.writeText(ids).then(() => {
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
+    });
+});

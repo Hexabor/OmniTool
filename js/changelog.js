@@ -15,6 +15,8 @@ const CHANGELOG = [
             { type: 'ui', text: 'Header sticky: barra de progreso y botones fijos al hacer scroll' },
             { type: 'fix', text: 'Reducido padding superior del contenido' },
             { type: 'ui', text: 'Home: módulos deshabilitados muestran solo "Próximamente" como subtítulo' },
+            { type: 'fix', text: 'Estado de línea puede revertirse a vacío (—)' },
+            { type: 'new', text: 'Resumen: botón para copiar BoxIDs por estado de descuento' },
         ]
     },
     {

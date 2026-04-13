@@ -1104,6 +1104,37 @@
     border: 1px solid #86efac;
 }
 
+/* Copy BoxIDs button */
+.btn-copy-ids {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 0.15rem;
+    cursor: pointer;
+    color: var(--color-text-lighter);
+    transition: all 0.15s;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+}
+
+.btn-copy-ids:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-copy-ids.copied {
+    color: #22c55e;
+    border-color: #22c55e;
+}
+
+.s-copy {
+    width: 1.5rem;
+    text-align: center;
+}
+
 /* === Responsive header === */
 @media (max-width: 600px) {
     .file-bar-separator { display: none; }
