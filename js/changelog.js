@@ -17,6 +17,7 @@ const CHANGELOG = [
             { type: 'ui', text: 'Home: módulos deshabilitados muestran solo "Próximamente" como subtítulo' },
             { type: 'fix', text: 'Estado de línea puede revertirse a vacío (—)' },
             { type: 'new', text: 'Resumen: botón para copiar BoxIDs por estado de descuento' },
+            { type: 'fix', text: 'Tooltip de Revisión: enlace a Looker Studio clicable (pin con click)' },
         ]
     },
     {
