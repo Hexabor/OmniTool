@@ -35,8 +35,11 @@ const headerProgress = document.getElementById('headerProgress');
 const headerProgressFill = document.getElementById('headerProgressFill');
 const headerProgressLabel = document.getElementById('headerProgressLabel');
 const viewToggle = document.getElementById('viewToggle');
-const switchLabelSections = document.getElementById('switchLabelSections');
-const switchLabelStores = document.getElementById('switchLabelStores');
+const VIEW_MODES = ['sections', 'stores', 'status'];
+
+function getViewMode() {
+    return VIEW_MODES[parseInt(viewToggle.dataset.mode) || 0];
+}
 
 const STATUS_OPTIONS = [
     '',
@@ -193,11 +196,16 @@ restoreInput.addEventListener('change', () => {
     restoreInput.value = '';
 });
 
-// === View toggle (Secciones / Tiendas) ===
-viewToggle.addEventListener('change', () => {
-    const isStores = viewToggle.checked;
-    switchLabelSections.classList.toggle('sort-opt-active', !isStores);
-    switchLabelStores.classList.toggle('sort-opt-active', isStores);
+// === View toggle (Secciones / Tiendas / Estado) ===
+viewToggle.addEventListener('click', () => {
+    const current = parseInt(viewToggle.dataset.mode) || 0;
+    const next = (current + 1) % VIEW_MODES.length;
+    viewToggle.dataset.mode = next;
+
+    // Update active label
+    viewToggle.querySelectorAll('.sort-opt').forEach(el => {
+        el.classList.toggle('sort-opt-active', parseInt(el.dataset.mode) === next);
+    });
 
     if (!_lastCSV) return;
 
@@ -344,7 +352,7 @@ function classifyItems(expanded, totalCost) {
 
 // === Render table ===
 function renderTable(groups, totalItems, savedStatuses, mode) {
-    if (!mode) mode = viewToggle && viewToggle.checked ? 'stores' : 'sections';
+    if (!mode) mode = getViewMode();
     savedStatuses = savedStatuses || {};
     const allItems = groups.flatMap(g => g.items);
     const totalCost = allItems.reduce((s, item) => s + (parseFloat(item['Unit Cost Price']) || 0), 0);
@@ -454,7 +462,101 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
         return h;
     }
 
-    if (mode === 'stores') {
+    if (mode === 'status') {
+        // Status view: grouped by status, collapsed, internally sorted by destination
+        const STATUS_ORDER = ['', 'Enviado', 'Vendido en tienda', 'Ya enviado (RMA...)',
+            'Printed cover', 'Buscando no encontrado', 'No shipeable', 'REVISAR'];
+        const STATUS_LABELS = { '': 'Sin estado' };
+
+        // Assign status to each item
+        const itemsWithStatus = [];
+        for (const block of blocks) {
+            if (block.items.length === 0) continue;
+            const destGroups = groupByDestination(block.items);
+            for (const group of destGroups) {
+                for (let i = 0; i < group.items.length; i++) {
+                    const item = group.items[i];
+                    const rowKey = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+                    itemsWithStatus.push({ item, status: savedStatuses[rowKey] || '', rowKey });
+                }
+            }
+        }
+
+        // Group by status
+        const statusGroups = {};
+        for (const entry of itemsWithStatus) {
+            const s = entry.status;
+            if (!statusGroups[s]) statusGroups[s] = [];
+            statusGroups[s].push(entry);
+        }
+
+        // Sort groups by STATUS_ORDER
+        const sortedStatuses = STATUS_ORDER.filter(s => statusGroups[s] && statusGroups[s].length > 0);
+        // Add any unexpected statuses at the end
+        for (const s of Object.keys(statusGroups)) {
+            if (!sortedStatuses.includes(s)) sortedStatuses.push(s);
+        }
+
+        html += `<tbody class="block-thead">${colHeaders}</tbody>`;
+
+        for (const status of sortedStatuses) {
+            const entries = statusGroups[status];
+            const label = STATUS_LABELS[status] || status;
+            const groupCost = entries.reduce((s, e) => s + (parseFloat(e.item['Unit Cost Price']) || 0), 0);
+            const groupPct = totalCost > 0 ? (groupCost / totalCost) * 100 : 0;
+            const groupId = `status-group-${status.replace(/[^a-zA-Z0-9]/g, '_') || 'empty'}`;
+
+            html += `<tbody class="dest-group">
+                <tr class="destination-header" style="cursor:pointer"
+                    onclick="document.querySelectorAll('.${groupId}').forEach(r=>r.hidden=!r.hidden);this.querySelector('.chk-expand-arrow').classList.toggle('open')">
+                    <td colspan="${COLS}">
+                        <span class="chk-expand-arrow">&#9654;</span>
+                        ${label}
+                        <span class="dest-separator">—</span>
+                        <span class="dest-count">${entries.length} items</span>
+                        <span class="dest-separator">—</span>
+                        <span class="dest-pct">${groupPct.toFixed(2)}%</span>
+                    </td>
+                </tr>`;
+
+            // Sort entries by destination then cost desc
+            entries.sort((a, b) => {
+                const da = (a.item['Destination'] || '').localeCompare(b.item['Destination'] || '');
+                if (da !== 0) return da;
+                return (parseFloat(b.item['Unit Cost Price']) || 0) - (parseFloat(a.item['Unit Cost Price']) || 0);
+            });
+
+            for (let i = 0; i < entries.length; i++) {
+                const { item, rowKey } = entries[i];
+                const cost = parseFloat(item['Unit Cost Price']) || 0;
+                const pct = totalCost > 0 ? ((cost / totalCost) * 100) : 0;
+
+                let pctClass = '';
+                if (pct >= 2) pctClass = 'pct-tier-3';
+                else if (pct >= 1) pctClass = 'pct-tier-2';
+                else if (pct >= 0.5) pctClass = 'pct-tier-1';
+
+                const posClass = (i === 0 ? ' dest-first' : '') +
+                                 (i === entries.length - 1 ? ' dest-last' : '');
+
+                html += `<tr class="${pctClass}${posClass} ${groupId}" hidden>
+                    <td class="col-spacer"></td>
+                    <td class="col-check"><input type="checkbox"></td>
+                    <td class="col-status"><select class="status-select" data-key="${rowKey.replace(/"/g, '&quot;')}">${statusOptions}</select></td>
+                    <td>${item['Destination'] || ''}</td>
+                    <td class="col-boxid">${item['BoxID'] || ''}</td>
+                    <td>${item['Box Name'] || ''}</td>
+                    <td>${item['Box Category'] || ''}</td>
+                    <td class="col-cost">${cost.toFixed(2)} €</td>
+                    <td class="col-pct">${pct.toFixed(2)}%</td>
+                    <td class="col-notes"></td>
+                    <td class="col-spacer"></td>
+                </tr>`;
+            }
+
+            html += '</tbody>';
+        }
+    } else if (mode === 'stores') {
         // Flat view: all items grouped by destination, sorted by cost desc
         html += `<tbody class="block-thead">
             ${colHeaders}

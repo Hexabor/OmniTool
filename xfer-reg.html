@@ -253,19 +253,19 @@
                     Revisión
                     <input type="file" id="checkerInput" accept=".csv" hidden>
                 </button>
-                <label class="btn btn-accent btn-square btn-sort" for="viewToggle">
+                <div class="btn btn-accent btn-square btn-sort" id="viewToggle" data-mode="0">
                     <span class="sort-inner">
                         <span class="sort-labels">
-                            <span class="sort-opt sort-opt-active" id="switchLabelSections">Secciones</span>
-                            <span class="sort-opt" id="switchLabelStores">Tiendas</span>
+                            <span class="sort-opt sort-opt-active" data-mode="0">Secciones</span>
+                            <span class="sort-opt" data-mode="1">Tiendas</span>
+                            <span class="sort-opt" data-mode="2">Estado</span>
                         </span>
                         <span class="switch-track-v">
-                            <input type="checkbox" id="viewToggle">
                             <span class="switch-thumb-v"></span>
                         </span>
                     </span>
                     Ordenar
-                </label>
+                </div>
                 <div class="file-bar-separator"></div>
                 <button class="btn btn-secondary btn-sm" id="btnBackup" title="Descargar backup local">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

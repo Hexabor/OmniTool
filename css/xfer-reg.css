@@ -185,17 +185,10 @@
 .switch-track-v {
     position: relative;
     width: 10px;
-    height: 18px;
+    height: 26px;
     background: rgba(255, 255, 255, 0.3);
     border-radius: 999px;
     flex-shrink: 0;
-}
-
-.switch-track-v input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
 }
 
 .switch-thumb-v {
@@ -207,12 +200,13 @@
     height: 6px;
     background: #fff;
     border-radius: 50%;
-    transition: transform 0.2s;
+    transition: top 0.2s;
 }
 
-.switch-track-v input:checked ~ .switch-thumb-v {
-    transform: translateX(-50%) translateY(8px);
-}
+/* 3-position thumb */
+[data-mode="1"] .switch-thumb-v { top: 9px; }
+[data-mode="2"] .switch-thumb-v { top: 16px; }
+
 
 /* Help badge */
 .btn-help {
