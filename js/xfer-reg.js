@@ -350,6 +350,19 @@ function classifyItems(expanded, totalCost) {
     ];
 }
 
+// Build stable unique keys for a list of items (handles duplicates)
+function buildItemKeys(items) {
+    const map = new WeakMap();
+    const counts = {};
+    for (const item of items) {
+        const base = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+        const n = counts[base] || 0;
+        counts[base] = n + 1;
+        map.set(item, n === 0 ? base : `${base}|${n}`);
+    }
+    return (item) => map.get(item) || '';
+}
+
 // === Render table ===
 function renderTable(groups, totalItems, savedStatuses, mode) {
     if (!mode) mode = getViewMode();
@@ -358,6 +371,8 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
     const totalCost = allItems.reduce((s, item) => s + (parseFloat(item['Unit Cost Price']) || 0), 0);
 
     const blocks = classifyItems(allItems, totalCost);
+
+    const itemKey = buildItemKeys(allItems);
 
     const statusOptions = STATUS_OPTIONS
         .map(s => `<option value="${s}">${s || '—'}</option>`)
@@ -441,7 +456,7 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             const posClass = (i === 0 ? ' dest-first' : '') +
                              (i === group.items.length - 1 ? ' dest-last' : '');
 
-            const rowKey = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+            const rowKey = itemKey(item);
 
             h += `<tr class="${pctClass}${posClass}">
                 <td class="col-spacer"></td>
@@ -476,7 +491,7 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             for (const group of destGroups) {
                 for (let i = 0; i < group.items.length; i++) {
                     const item = group.items[i];
-                    const rowKey = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+                    const rowKey = itemKey(item);
                     itemsWithStatus.push({ item, status: savedStatuses[rowKey] || '', rowKey });
                 }
             }
@@ -713,6 +728,7 @@ function migrateStatusKeys(statuses, csvText) {
     const totalCost = expanded.reduce((s, r) => s + (parseFloat(r['Unit Cost Price']) || 0), 0);
     const blocks = classifyItems(expanded, totalCost);
 
+    const migItemKey = buildItemKeys(expanded);
     const oldToNew = {};
     for (const block of blocks) {
         if (block.items.length === 0) continue;
@@ -721,8 +737,7 @@ function migrateStatusKeys(statuses, csvText) {
             for (let i = 0; i < group.items.length; i++) {
                 const item = group.items[i];
                 const oldKey = `${group.destination}|${item['BoxID'] || ''}|${i}`;
-                const newKey = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
-                oldToNew[oldKey] = newKey;
+                oldToNew[oldKey] = migItemKey(item);
             }
         }
     }
@@ -992,6 +1007,7 @@ function runChecker(stockCSV) {
     // 3. Read current statuses from DOM
     const allBlocks = classifyItems(xferExpanded,
         xferExpanded.reduce((s, r) => s + (parseFloat(r['Unit Cost Price']) || 0), 0));
+    const chkItemKey = buildItemKeys(xferExpanded);
     const xferItems = [];
     for (const block of allBlocks) {
         if (block.items.length === 0) continue;
@@ -999,7 +1015,7 @@ function runChecker(stockCSV) {
         for (const group of destGroups) {
             for (let i = 0; i < group.items.length; i++) {
                 const item = group.items[i];
-                const key = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+                const key = chkItemKey(item);
                 const sel = tableOutput.querySelector(`.status-select[data-key="${CSS.escape(key)}"]`);
                 xferItems.push({
                     boxId: (item['BoxID'] || '').trim(),
@@ -1368,6 +1384,7 @@ function renderSummary() {
     const groups = groupByDestination(expanded);
     const allItemsWithStatus = [];
     const allBlocks = classifyItems(expanded, totalCost);
+    const sumItemKey = buildItemKeys(expanded);
 
     for (const block of allBlocks) {
         if (block.items.length === 0) continue;
@@ -1375,7 +1392,7 @@ function renderSummary() {
         for (const group of destGroups) {
             for (let i = 0; i < group.items.length; i++) {
                 const item = group.items[i];
-                const key = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+                const key = sumItemKey(item);
                 allItemsWithStatus.push({
                     ...item,
                     _status: statusMap[key] || '',
