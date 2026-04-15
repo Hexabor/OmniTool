@@ -149,6 +149,51 @@ btnClear.addEventListener('click', () => {
     deleteModuleData(MODULE_ID).catch(e => console.error('Clear failed:', e));
 });
 
+// === Local backup / restore ===
+document.getElementById('btnBackup').addEventListener('click', () => {
+    if (!_lastCSV) return;
+    const statuses = {};
+    tableOutput.querySelectorAll('.status-select').forEach(sel => {
+        const key = sel.getAttribute('data-key');
+        if (key) statuses[key] = sel.value;
+    });
+    const backup = {
+        version: 1,
+        date: new Date().toISOString(),
+        store: getStoreCode() || '',
+        fileName: _lastFileName,
+        csv: _lastCSV,
+        statuses
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `xfer-reg-backup_${(getStoreCode() || 'store').replace(/\s+/g, '-')}_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+});
+
+const restoreInput = document.getElementById('restoreInput');
+document.getElementById('btnRestore').addEventListener('click', () => restoreInput.click());
+restoreInput.addEventListener('change', () => {
+    const file = restoreInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const backup = JSON.parse(reader.result);
+            if (!backup.csv || !backup.fileName) throw new Error('Backup incompleto');
+            if (!confirm(`Restaurar backup de ${backup.store || '?'} (${backup.date?.slice(0, 10) || '?'})?\nEsto reemplazará los datos actuales.`)) return;
+            loadCSV(backup.csv, backup.fileName, backup.statuses || {});
+            saveState();
+        } catch (e) {
+            alert('Error al leer el backup: ' + e.message);
+        }
+    };
+    reader.readAsText(file);
+    restoreInput.value = '';
+});
+
 // === View toggle (Secciones / Tiendas) ===
 viewToggle.addEventListener('change', () => {
     const isStores = viewToggle.checked;
@@ -818,6 +863,7 @@ function runChecker(stockCSV) {
                 xferItems.push({
                     boxId: (item['BoxID'] || '').trim(),
                     boxName: item['Box Name'] || '',
+                    category: item['Box Category'] || '',
                     destination: (item['Destination'] || '').trim(),
                     cost: parseFloat(item['Unit Cost Price']) || 0,
                     status: sel ? sel.value : ''
@@ -945,17 +991,19 @@ function runChecker(stockCSV) {
     const effective = totalXfer - totalJustified;
     const correctCount = matched.length;
     const correctPct = effective > 0 ? (correctCount / effective) * 100 : 0;
+    const correctCost = matched.reduce((s, m) => s + m.xfer.cost, 0);
+    const correctCostPct = effectiveCost > 0 ? (correctCost / effectiveCost) * 100 : 0;
 
     // 8. Render
     let html = `
         <div class="chk-stats">
             <div class="chk-stat chk-stat-green">
-                <div class="chk-stat-value">${correctPct.toFixed(1)}%</div>
-                <div class="chk-stat-label">Enviado XFER</div>
+                <div class="chk-stat-value">${correctCostPct.toFixed(1)}%</div>
+                <div class="chk-stat-label">Enviado XFER (coste)</div>
             </div>
             <div class="chk-stat chk-stat-blue">
                 <div class="chk-stat-value">${correctCount}/${effective}</div>
-                <div class="chk-stat-label">Items correctos</div>
+                <div class="chk-stat-label">Items (${correctPct.toFixed(1)}%)</div>
             </div>
             <div class="chk-stat chk-stat-yellow">
                 <div class="chk-stat-value">${wrongType.length}</div>
@@ -972,13 +1020,15 @@ function runChecker(stockCSV) {
     if (wrongType.length > 0) {
         html += `<div class="chk-section">
             <div class="chk-section-title">Enviados con tipo incorrecto <span class="chk-section-count">${wrongType.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th><th>Tipo usado</th></tr></thead><tbody>`;
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th><th>Tipo usado</th><th>%</th></tr></thead><tbody>`;
         for (const w of wrongType) {
+            const pct = effectiveCost > 0 ? (w.xfer.cost / effectiveCost) * 100 : 0;
             html += `<tr>
                 <td>${w.xfer.boxName}</td>
                 <td>${w.xfer.destination}</td>
                 <td>${statusBadge(w.xfer.status)}</td>
                 <td><span class="chk-type-badge chk-type-wrong">${w.stock.type}</span></td>
+                <td class="s-pct">${pct.toFixed(2)}%</td>
             </tr>`;
         }
         html += '</tbody></table></div>';
@@ -988,12 +1038,14 @@ function runChecker(stockCSV) {
     if (justified.length > 0) {
         html += `<div class="chk-section">
             <div class="chk-section-title">Justificados por estado <span class="chk-section-count">${justified.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th></tr></thead><tbody>`;
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th><th>%</th></tr></thead><tbody>`;
         for (const j of justified) {
+            const pct = totalCostAll > 0 ? (j.cost / totalCostAll) * 100 : 0;
             html += `<tr>
                 <td>${j.boxName}</td>
                 <td>${j.destination}</td>
                 <td>${statusBadge(j.status)}</td>
+                <td class="s-pct">${pct.toFixed(2)}%</td>
             </tr>`;
         }
         html += '</tbody></table></div>';
@@ -1023,32 +1075,64 @@ function runChecker(stockCSV) {
         html += '</tbody></table></div>';
     }
 
-    // Extras section — collapse Transfer Order Number rows
+    // Extras section — collapse non-XFER types into summary rows
     if (extras.length > 0) {
-        const txOrders = extras.filter(e => e.boxName === 'Transfer Order Number');
-        const realExtras = extras.filter(e => e.boxName !== 'Transfer Order Number');
-        const extraCount = realExtras.length + (txOrders.length > 0 ? 1 : 0);
+        // Separate XFER Regular Transfer Out extras from other types
+        const xferExtras = extras.filter(e => e.type === XFER_TYPE);
+        const otherExtras = extras.filter(e => e.type !== XFER_TYPE);
+
+        // Group other types
+        const otherByType = {};
+        for (const e of otherExtras) {
+            const key = e.type || 'Sin tipo';
+            if (!otherByType[key]) otherByType[key] = [];
+            otherByType[key].push(e);
+        }
 
         html += `<div class="chk-section">
             <div class="chk-section-title">Envíos no solicitados <span class="chk-section-count">${extras.length}</span></div>
             <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Tipo</th></tr></thead><tbody>`;
-        if (txOrders.length > 0) {
-            html += `<tr style="opacity:0.5">
-                <td>Transfer Order Number</td>
-                <td class="chk-boxid">×${txOrders.length}</td>
-                <td>—</td>
-                <td><span class="chk-type-badge chk-type-wrong">Services</span></td>
-            </tr>`;
-        }
-        for (const e of realExtras) {
-            const typeClass = e.type === XFER_TYPE ? 'chk-type-ok' : 'chk-type-wrong';
+
+        // Show individual XFER extras (these are relevant)
+        for (const e of xferExtras) {
             html += `<tr>
                 <td>${e.boxName}</td>
                 <td class="chk-boxid">${e.boxId}</td>
                 <td>${e.destination}</td>
-                <td><span class="chk-type-badge ${typeClass}">${e.type}</span></td>
+                <td><span class="chk-type-badge chk-type-ok">${e.type}</span></td>
             </tr>`;
         }
+
+        // Collapse other types — expandable or summary depending on type
+        const EXPANDABLE_TYPES = ['RMA Stock Out'];
+        for (const [type, items] of Object.entries(otherByType)) {
+            const expandable = EXPANDABLE_TYPES.some(t => type.includes(t));
+            if (expandable) {
+                const groupId = `chk-group-${type.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                html += `<tr style="opacity:0.6;cursor:pointer" onclick="document.querySelectorAll('.${groupId}').forEach(r=>r.hidden=!r.hidden);this.querySelector('.chk-expand-arrow').classList.toggle('open')">
+                    <td><span class="chk-expand-arrow">&#9654;</span> ${items.length} items</td>
+                    <td class="chk-boxid">—</td>
+                    <td>—</td>
+                    <td><span class="chk-type-badge chk-type-wrong">${type}</span></td>
+                </tr>`;
+                for (const e of items) {
+                    html += `<tr class="${groupId}" hidden style="opacity:0.6">
+                        <td>${e.boxName}</td>
+                        <td class="chk-boxid">${e.boxId}</td>
+                        <td>${e.destination}</td>
+                        <td><span class="chk-type-badge chk-type-wrong">${type}</span></td>
+                    </tr>`;
+                }
+            } else {
+                html += `<tr style="opacity:0.4">
+                    <td>${items.length} items</td>
+                    <td class="chk-boxid">—</td>
+                    <td>—</td>
+                    <td><span class="chk-type-badge chk-type-wrong">${type}</span></td>
+                </tr>`;
+            }
+        }
+
         html += '</tbody></table></div>';
     }
 
@@ -1062,7 +1146,36 @@ function runChecker(stockCSV) {
         html += '</tbody></table></div>';
     }
 
+    // Add print button for "Buscando no encontrado" in missing
+    const searchingMissing = missing.filter(m => m.status === 'Buscando no encontrado');
+    if (searchingMissing.length > 0) {
+        html += `<div class="chk-section">
+            <div class="summary-alert summary-alert-warn">
+                Buscando no encontrado: ${searchingMissing.length} items
+                <button class="btn-print-searching" title="Imprimir lista">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect x="6" y="14" width="12" height="8"/>
+                    </svg>
+                </button>
+            </div>
+        </div>`;
+    }
+
     checkerBody.innerHTML = html;
+
+    // Bind print button in checker
+    const chkPrintBtn = checkerBody.querySelector('.btn-print-searching');
+    if (chkPrintBtn) {
+        const searchData = searchingMissing.map(m => ({
+            boxId: m.boxId, name: m.boxName, dest: m.destination,
+            category: m.category || '',
+            pct: effectiveCost > 0 ? (m.cost / effectiveCost) * 100 : 0
+        }));
+        chkPrintBtn.addEventListener('click', () => printSearchingList(searchData, getStoreCode()));
+    }
+
     checkerOverlay.classList.add('open');
 }
 
@@ -1217,6 +1330,13 @@ function renderSummary() {
         ${searchingCount > 0 ? `
             <div class="summary-alert summary-alert-warn">
                 Buscando no encontrado: ${searchingCount} items · ${searchingCost.toFixed(2)} € · ${searchingPct.toFixed(2)}%
+                <button class="btn-print-searching" title="Imprimir lista">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect x="6" y="14" width="12" height="8"/>
+                    </svg>
+                </button>
             </div>
         ` : `
             <div class="summary-alert summary-alert-ok">
@@ -1224,6 +1344,46 @@ function renderSummary() {
             </div>
         `}
     `;
+
+    // Bind print button for searching items
+    const printBtn = summaryBody.querySelector('.btn-print-searching');
+    if (printBtn) {
+        const effCost = effectiveCost;
+        const searchData = searchingItems.map(it => ({
+            boxId: it['BoxID'] || '',
+            name: it['Box Name'] || '',
+            dest: it['Destination'] || '',
+            category: it['Box Category'] || '',
+            pct: effCost > 0 ? (it._cost / effCost) * 100 : 0
+        }));
+        printBtn.addEventListener('click', () => printSearchingList(searchData, getStoreCode()));
+    }
+}
+
+// === Print "Buscando no encontrado" list ===
+function printSearchingList(items, store) {
+    const totalPct = items.reduce((s, it) => s + (it.pct || 0), 0);
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><title>Buscando no encontrado</title>
+        <style>
+            body { font-family: Arial, sans-serif; font-size: 9pt; margin: 1cm; }
+            h2 { font-size: 12pt; margin-bottom: 0.3cm; }
+            .meta { font-size: 8pt; color: #666; margin-bottom: 0.5cm; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ccc; padding: 3px 6px; text-align: left; }
+            th { background: #f0f0f0; font-size: 8pt; }
+            .pct { text-align: right; }
+            .total { font-weight: bold; border-top: 2px solid #333; }
+            @media print { @page { size: landscape; margin: 0.5cm; } }
+        </style></head><body>
+        <h2>Buscando no encontrado — ${store}</h2>
+        <div class="meta">${items.length} items · ${totalPct.toFixed(2)}% del fulfilment · ${new Date().toLocaleDateString('es-ES')}</div>
+        <table><thead><tr><th>Destino</th><th>Box ID</th><th>Box Name</th><th>Categoría</th><th class="pct">%</th></tr></thead><tbody>
+        ${items.map(it => `<tr><td>${it.dest}</td><td>${it.boxId}</td><td>${it.name}</td><td>${it.category}</td><td class="pct">${(it.pct || 0).toFixed(2)}%</td></tr>`).join('')}
+        <tr class="total"><td colspan="4">Total</td><td class="pct">${totalPct.toFixed(2)}%</td></tr>
+        </tbody></table></body></html>`);
+    win.document.close();
+    win.print();
 }
 
 // === Copy BoxIDs buttons (summary panel) ===

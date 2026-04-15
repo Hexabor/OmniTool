@@ -1104,6 +1104,39 @@
     border: 1px solid #86efac;
 }
 
+/* Expandable group arrow */
+.chk-expand-arrow {
+    display: inline-block;
+    font-size: 0.6rem;
+    transition: transform 0.2s;
+    margin-right: 0.2rem;
+}
+
+.chk-expand-arrow.open {
+    transform: rotate(90deg);
+}
+
+/* Print searching list button */
+.btn-print-searching {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    padding: 0.15rem;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+}
+
+.btn-print-searching:hover {
+    opacity: 1;
+}
+
 /* Copy BoxIDs button */
 .btn-copy-ids {
     display: inline-flex;

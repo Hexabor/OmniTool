@@ -18,6 +18,11 @@ const CHANGELOG = [
             { type: 'fix', text: 'Estado de línea puede revertirse a vacío (—)' },
             { type: 'new', text: 'Resumen: botón para copiar BoxIDs por estado de descuento' },
             { type: 'fix', text: 'Tooltip de Revisión: enlace a Looker Studio clicable (pin con click)' },
+            { type: 'new', text: 'Backup local: descarga y restaura el estado completo como JSON' },
+            { type: 'new', text: 'Revisión: % de coste en todas las tablas (tipo incorrecto, justificados, pendientes)' },
+            { type: 'new', text: 'Revisión: envíos no solicitados agrupados por tipo, RMA Stock Out expandible' },
+            { type: 'ui', text: 'Revisión: "Enviado XFER" ahora muestra % por coste descontando justificados' },
+            { type: 'new', text: 'Imprimir "Buscando no encontrado" desde Resumen y Revisión (con categoría y %)' },
         ]
     },
     {
