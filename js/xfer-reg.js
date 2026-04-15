@@ -198,15 +198,14 @@ restoreInput.addEventListener('change', () => {
 });
 
 // === View toggle (Secciones / Tiendas / Estado) ===
+const VIEW_LABELS = ['Secciones', 'Tiendas', 'Estado'];
 viewToggle.addEventListener('click', () => {
     const current = parseInt(viewToggle.dataset.mode) || 0;
     const next = (current + 1) % VIEW_MODES.length;
     viewToggle.dataset.mode = next;
 
-    // Update active label
-    viewToggle.querySelectorAll('.sort-opt').forEach(el => {
-        el.classList.toggle('sort-opt-active', parseInt(el.dataset.mode) === next);
-    });
+    // Update button label
+    viewToggle.querySelector('.sort-label').textContent = VIEW_LABELS[next];
 
     if (!_lastCSV) return;
 
@@ -224,6 +223,148 @@ viewToggle.addEventListener('click', () => {
 
     renderTable(groups, totalItems, currentStatuses);
     updateHeaderProgress();
+});
+
+// === Archive (Archivar / Recuperar) ===
+function getWeekLabel() {
+    const now = new Date();
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    const days = Math.floor((now - jan1) / 86400000);
+    const week = Math.ceil((days + jan1.getDay() + 1) / 7);
+    return `WK${String(week).padStart(2, '0')} ${now.getFullYear()}`;
+}
+
+document.getElementById('btnArchive').addEventListener('click', async () => {
+    if (!_lastCSV) { alert('No hay datos para archivar.'); return; }
+
+    const defaultLabel = `Xfer Reg ${getWeekLabel()}`;
+    const label = prompt('Nombre del archivo:', defaultLabel);
+    if (!label) return;
+    const archiveId = label.replace(/[^a-zA-Z0-9]/g, '-');
+
+    // Collect current statuses
+    const statuses = {};
+    tableOutput.querySelectorAll('.status-select').forEach(sel => {
+        const key = sel.getAttribute('data-key');
+        if (key) statuses[key] = sel.value;
+    });
+
+    // Compute summary stats
+    const expanded = expandRows(parseCSV(_lastCSV));
+    const totalCost = expanded.reduce((s, r) => s + (parseFloat(r['Unit Cost Price']) || 0), 0);
+    const totalItems = expanded.length;
+    const groups = groupByDestination(expanded);
+
+    const DISCOUNT = ['Printed cover', 'Vendido en tienda', 'Ya enviado (RMA...)', 'No shipeable'];
+    let discountCost = 0, coveredCost = 0;
+    tableOutput.querySelectorAll('.status-select').forEach(sel => {
+        const row = sel.closest('tr');
+        if (!row) return;
+        const costTd = row.querySelector('.col-cost');
+        const cost = costTd ? parseFloat(costTd.textContent) || 0 : 0;
+        const status = sel.value;
+        if (DISCOUNT.includes(status)) discountCost += cost;
+        else if (status === 'Enviado') coveredCost += cost;
+    });
+    const effectiveCost = totalCost - discountCost;
+    const pct = effectiveCost > 0 ? (coveredCost / effectiveCost) * 100 : 0;
+
+    if (!confirm(`Archivar como "${label}"?\n${totalItems} items · ${groups.length} destinos · ${pct.toFixed(1)}% fulfilment`)) return;
+
+    try {
+        await saveArchive(MODULE_ID, archiveId, {
+            label,
+            csv: _lastCSV,
+            fileName: _lastFileName,
+            statuses,
+            stats: { totalItems, destinations: groups.length, pct: Math.round(pct * 10) / 10 }
+        });
+        alert(`Archivado: ${label}`);
+    } catch (e) {
+        alert('Error al archivar: ' + e.message);
+    }
+});
+
+// Archive list overlay
+const archiveOverlay = document.getElementById('archiveOverlay');
+const archiveBody = document.getElementById('archiveBody');
+const archiveClose = document.getElementById('archiveClose');
+
+archiveClose.addEventListener('click', () => archiveOverlay.classList.remove('open'));
+archiveOverlay.addEventListener('click', (e) => {
+    if (e.target === archiveOverlay) archiveOverlay.classList.remove('open');
+});
+
+document.getElementById('btnArchiveList').addEventListener('click', async () => {
+    archiveBody.innerHTML = '<p style="text-align:center;padding:2rem 0;color:var(--color-text-lighter)">Cargando...</p>';
+    archiveOverlay.classList.add('open');
+
+    try {
+        const archives = await listArchives(MODULE_ID);
+        if (archives.length === 0) {
+            archiveBody.innerHTML = '<p style="text-align:center;padding:2rem 0;color:var(--color-text-lighter)">No hay archivos guardados</p>';
+            return;
+        }
+
+        let html = '<div class="archive-list">';
+        for (const a of archives) {
+            const date = a.archivedAt ? new Date(a.archivedAt.seconds * 1000).toLocaleDateString('es-ES') : '—';
+            const stats = a.stats || {};
+            html += `<div class="archive-item" data-id="${a.id}">
+                <div class="archive-info">
+                    <div class="archive-label">${a.label || a.id}</div>
+                    <div class="archive-meta">${date} · ${stats.totalItems || '?'} items · ${stats.destinations || '?'} destinos · ${stats.pct ?? '?'}%</div>
+                </div>
+                <div class="archive-actions">
+                    <button class="btn btn-secondary btn-sm archive-load" data-id="${a.id}">Recuperar</button>
+                    <button class="btn btn-danger btn-sm archive-delete" data-id="${a.id}" title="Eliminar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>`;
+        }
+        html += '</div>';
+        archiveBody.innerHTML = html;
+
+        // Bind load buttons
+        archiveBody.querySelectorAll('.archive-load').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                try {
+                    const data = await loadArchive(MODULE_ID, id);
+                    if (!data || !data.csv) { alert('Archivo vacío o corrupto.'); return; }
+                    _initialLoadDone = true;
+                    loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {});
+                    archiveOverlay.classList.remove('open');
+                } catch (e) {
+                    alert('Error al recuperar: ' + e.message);
+                }
+            });
+        });
+
+        // Bind delete buttons
+        archiveBody.querySelectorAll('.archive-delete').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const item = archives.find(a => a.id === id);
+                if (!confirm(`¿Eliminar "${item?.label || id}" del archivo?`)) return;
+                try {
+                    await deleteArchive(MODULE_ID, id);
+                    btn.closest('.archive-item').remove();
+                    if (archiveBody.querySelectorAll('.archive-item').length === 0) {
+                        archiveBody.innerHTML = '<p style="text-align:center;padding:2rem 0;color:var(--color-text-lighter)">No hay archivos guardados</p>';
+                    }
+                } catch (e) {
+                    alert('Error al eliminar: ' + e.message);
+                }
+            });
+        });
+    } catch (e) {
+        archiveBody.innerHTML = `<p style="color:red;padding:1rem">Error: ${e.message}</p>`;
+    }
 });
 
 // === CSV parsing ===

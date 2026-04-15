@@ -15,6 +15,10 @@ const CHANGELOG = [
             { type: 'ui', text: 'Vista Estado: tiendas ordenadas por peso (mayor coste primero)' },
             { type: 'ui', text: 'Impresión en vista Estado: solo el grupo desplegado, con cabecera' },
             { type: 'fix', text: 'Grupos de estado ya no se colapsan solos (snapshot Firestore controlado)' },
+            { type: 'new', text: 'Archivo semanal: archivar xfer con nombre editable (ej: "Xfer Reg WK15 2026")' },
+            { type: 'new', text: 'Panel de Archivo: recuperar o eliminar xfers archivados con resumen de stats' },
+            { type: 'ui', text: 'Botón Ordenar: switch horizontal de 3 posiciones, nombre dinámico' },
+            { type: 'ui', text: 'Botones Archivar/Archivo apilados en azul junto a la botonera principal' },
         ]
     },
     {

@@ -254,35 +254,50 @@
                     <input type="file" id="checkerInput" accept=".csv" hidden>
                 </button>
                 <div class="btn btn-accent btn-square btn-sort" id="viewToggle" data-mode="0">
-                    <span class="sort-inner">
-                        <span class="sort-labels">
-                            <span class="sort-opt sort-opt-active" data-mode="0">Secciones</span>
-                            <span class="sort-opt" data-mode="1">Tiendas</span>
-                            <span class="sort-opt" data-mode="2">Estado</span>
-                        </span>
-                        <span class="switch-track-v">
-                            <span class="switch-thumb-v"></span>
-                        </span>
+                    <span class="switch-track-h">
+                        <span class="switch-thumb-h"></span>
                     </span>
-                    Ordenar
+                    <span class="sort-label">Secciones</span>
+                </div>
+                <div class="btn-stack btn-stack-accent">
+                    <button class="btn btn-accent btn-sm" id="btnArchive">Archivar</button>
+                    <button class="btn btn-accent btn-sm" id="btnArchiveList">Archivo</button>
                 </div>
                 <div class="file-bar-separator"></div>
-                <button class="btn btn-secondary btn-sm" id="btnBackup" title="Descargar backup local">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                </button>
-                <button class="btn btn-secondary btn-sm" id="btnRestore" title="Restaurar backup local">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    <input type="file" id="restoreInput" accept=".json" hidden>
-                </button>
                 <button class="btn btn-secondary btn-sm" id="btnClear">Limpiar</button>
+                <div class="btn-stack">
+                    <button class="btn btn-secondary btn-sm" id="btnBackup" title="Descargar backup local">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="btnRestore" title="Restaurar backup local">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <input type="file" id="restoreInput" accept=".json" hidden>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive overlay -->
+        <div class="checker-overlay" id="archiveOverlay">
+            <div class="checker-panel">
+                <div class="checker-header">
+                    <h2>Archivo de Xfer Reg</h2>
+                    <button class="checker-close" id="archiveClose">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="checker-body" id="archiveBody"></div>
             </div>
         </div>
 

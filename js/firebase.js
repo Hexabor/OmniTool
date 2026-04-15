@@ -53,6 +53,40 @@ async function deleteModuleData(module) {
     await ref.delete();
 }
 
+// === Archive helpers ===
+function archiveCollectionRef(module) {
+    const ref = storeDocRef(module);
+    if (!ref) return null;
+    return ref.collection('archives');
+}
+
+async function saveArchive(module, archiveId, data) {
+    const col = archiveCollectionRef(module);
+    if (!col) return;
+    data.archivedAt = firebase.firestore.FieldValue.serverTimestamp();
+    await col.doc(archiveId).set(data);
+}
+
+async function loadArchive(module, archiveId) {
+    const col = archiveCollectionRef(module);
+    if (!col) return null;
+    const snap = await col.doc(archiveId).get();
+    return snap.exists ? snap.data() : null;
+}
+
+async function listArchives(module) {
+    const col = archiveCollectionRef(module);
+    if (!col) return [];
+    const snap = await col.orderBy('archivedAt', 'desc').get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function deleteArchive(module, archiveId) {
+    const col = archiveCollectionRef(module);
+    if (!col) return;
+    await col.doc(archiveId).delete();
+}
+
 async function deleteAllStoreData() {
     const code = getStoreCode();
     if (!code) return;
