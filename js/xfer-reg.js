@@ -185,7 +185,6 @@ restoreInput.addEventListener('change', () => {
             if (!backup.csv || !backup.fileName) throw new Error('Backup incompleto');
             if (!confirm(`Restaurar backup de ${backup.store || '?'} (${backup.date?.slice(0, 10) || '?'})?\nEsto reemplazará los datos actuales.`)) return;
             loadCSV(backup.csv, backup.fileName, backup.statuses || {});
-            saveState();
         } catch (e) {
             alert('Error al leer el backup: ' + e.message);
         }
@@ -206,7 +205,7 @@ viewToggle.addEventListener('change', () => {
     const currentStatuses = {};
     tableOutput.querySelectorAll('.status-select').forEach(sel => {
         const key = sel.getAttribute('data-key');
-        if (key && sel.value) currentStatuses[key] = sel.value;
+        if (key) currentStatuses[key] = sel.value;
     });
 
     const rows = parseCSV(_lastCSV);
@@ -434,7 +433,7 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             const posClass = (i === 0 ? ' dest-first' : '') +
                              (i === group.items.length - 1 ? ' dest-last' : '');
 
-            const rowKey = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+            const rowKey = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
 
             h += `<tr class="${pctClass}${posClass}">
                 <td class="col-spacer"></td>
@@ -597,9 +596,48 @@ function processFile(file) {
     reader.readAsText(file, 'UTF-8');
 }
 
+// Migrate old key format (destination|BoxID|index) to new (Destination|BoxID|Box Name)
+function migrateStatusKeys(statuses, csvText) {
+    if (!statuses || Object.keys(statuses).length === 0) return statuses;
+
+    // Detect: old format has numeric last segment
+    const firstKey = Object.keys(statuses)[0];
+    const lastPart = firstKey.split('|').pop();
+    if (isNaN(parseInt(lastPart))) return statuses; // Already new format
+
+    // Rebuild old keys from CSV to create mapping
+    const rows = parseCSV(csvText);
+    const expanded = expandRows(rows);
+    const totalCost = expanded.reduce((s, r) => s + (parseFloat(r['Unit Cost Price']) || 0), 0);
+    const blocks = classifyItems(expanded, totalCost);
+
+    const oldToNew = {};
+    for (const block of blocks) {
+        if (block.items.length === 0) continue;
+        const destGroups = groupByDestination(block.items);
+        for (const group of destGroups) {
+            for (let i = 0; i < group.items.length; i++) {
+                const item = group.items[i];
+                const oldKey = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+                const newKey = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
+                oldToNew[oldKey] = newKey;
+            }
+        }
+    }
+
+    const migrated = {};
+    for (const [key, value] of Object.entries(statuses)) {
+        if (value) migrated[oldToNew[key] || key] = value;
+    }
+    return migrated;
+}
+
 function loadCSV(text, name, savedStatuses) {
     _lastCSV = text;
     _lastFileName = name;
+
+    // Migrate old-format keys if needed
+    if (savedStatuses) savedStatuses = migrateStatusKeys(savedStatuses, text);
 
     const rows = parseCSV(text);
     const expanded = expandRows(rows);
@@ -615,6 +653,7 @@ function loadCSV(text, name, savedStatuses) {
     renderTable(groups, totalItems, savedStatuses);
     updateHeaderProgress();
     if (!savedStatuses) saveState(); // only save on new upload, not on restore
+    else saveState(); // Re-save with migrated keys
 }
 
 // === Responsive table scaling ===
@@ -858,7 +897,7 @@ function runChecker(stockCSV) {
         for (const group of destGroups) {
             for (let i = 0; i < group.items.length; i++) {
                 const item = group.items[i];
-                const key = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+                const key = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
                 const sel = tableOutput.querySelector(`.status-select[data-key="${CSS.escape(key)}"]`);
                 xferItems.push({
                     boxId: (item['BoxID'] || '').trim(),
@@ -1234,7 +1273,7 @@ function renderSummary() {
         for (const group of destGroups) {
             for (let i = 0; i < group.items.length; i++) {
                 const item = group.items[i];
-                const key = `${group.destination}|${item['BoxID'] || ''}|${i}`;
+                const key = `${item['Destination'] || ''}|${item['BoxID'] || ''}|${item['Box Name'] || ''}`;
                 allItemsWithStatus.push({
                     ...item,
                     _status: statusMap[key] || '',
