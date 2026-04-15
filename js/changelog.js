@@ -19,6 +19,7 @@ const CHANGELOG = [
             { type: 'new', text: 'Panel de Archivo: recuperar o eliminar xfers archivados con resumen de stats' },
             { type: 'ui', text: 'Botón Ordenar: switch horizontal de 3 posiciones, nombre dinámico' },
             { type: 'ui', text: 'Botones Archivar/Archivo apilados en azul junto a la botonera principal' },
+            { type: 'ui', text: 'Eliminar archivo protegido: doble confirmación + contraseña de tienda' },
         ]
     },
     {

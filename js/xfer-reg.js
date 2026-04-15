@@ -350,8 +350,16 @@ document.getElementById('btnArchiveList').addEventListener('click', async () => 
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.id;
                 const item = archives.find(a => a.id === id);
-                if (!confirm(`¿Eliminar "${item?.label || id}" del archivo?`)) return;
+                if (!confirm(`¿Eliminar "${item?.label || id}" del archivo?\nEsta acción no se puede deshacer.`)) return;
+                if (!confirm(`¿Estás seguro? Se perderá toda la información de este xfer.`)) return;
+                const pwd = prompt('Introduce la contraseña de la tienda para confirmar:');
+                if (!pwd) return;
                 try {
+                    const storeDoc = await db.collection('stores').doc(getStoreCode()).get();
+                    if (storeDoc.exists && storeDoc.data().password && storeDoc.data().password !== pwd) {
+                        alert('Contraseña incorrecta.');
+                        return;
+                    }
                     await deleteArchive(MODULE_ID, id);
                     btn.closest('.archive-item').remove();
                     if (archiveBody.querySelectorAll('.archive-item').length === 0) {
@@ -1006,8 +1014,8 @@ function updateHeaderProgress() {
     let phrase = '';
     if (pct >= 100)     phrase = 'Fulfilment perfecto';
     else if (pct >= 95)  phrase = 'Casi perfecto';
-    else if (pct >= 80)  phrase = 'Buen ritmo';
-    else if (pct >= 70)  phrase = 'En la recta final';
+    else if (pct >= 80)  phrase = 'En la recta final';
+    else if (pct >= 70)  phrase = 'Buen ritmo';
     else if (pct >= 50)  phrase = 'Ya vamos pillando ritmo';
     else if (pct >= 35)  phrase = 'Esto va tomando forma';
     else if (pct >= 20)  phrase = 'Paso a paso';
