@@ -522,8 +522,8 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             const groupId = `status-group-${status.replace(/[^a-zA-Z0-9]/g, '_') || 'empty'}`;
 
             html += `<tbody class="dest-group">
-                <tr class="destination-header" style="cursor:pointer"
-                    onclick="document.querySelectorAll('.${groupId}').forEach(r=>r.hidden=!r.hidden);this.querySelector('.chk-expand-arrow').classList.toggle('open')">
+                <tr class="destination-header status-toggle" style="cursor:pointer"
+                    data-group="${groupId}">
                     <td colspan="${COLS}">
                         <span class="chk-expand-arrow">&#9654;</span>
                         ${label}
@@ -654,6 +654,16 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             if (summaryOverlay && summaryOverlay.classList.contains('open')) {
                 renderSummary();
             }
+        });
+    });
+
+    // Status-mode group toggles
+    tableOutput.querySelectorAll('.status-toggle').forEach(tr => {
+        tr.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const groupId = tr.dataset.group;
+            document.querySelectorAll('.' + groupId).forEach(r => r.hidden = !r.hidden);
+            tr.querySelector('.chk-expand-arrow').classList.toggle('open');
         });
     });
 
