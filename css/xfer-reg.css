@@ -1186,8 +1186,33 @@
     .col-status,
     .col-spacer,
     .jump-btn,
-    .destination-header,
+    .destination-header:not(.status-toggle),
     .destination-spacer {
+        display: none !important;
+    }
+
+    /* In status mode, only show header of expanded group */
+    .status-group {
+        display: none !important;
+    }
+
+    .status-group.open {
+        display: table-row-group !important;
+    }
+
+    .status-group.open .status-toggle {
+        display: table-row !important;
+    }
+
+    .status-group.open .status-toggle td {
+        font-weight: 700;
+        font-size: 9pt;
+        padding: 0.3cm 0.15cm;
+        border-bottom: 1.5pt solid #000;
+        background: none !important;
+    }
+
+    .chk-expand-arrow {
         display: none !important;
     }
 

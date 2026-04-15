@@ -187,6 +187,7 @@ restoreInput.addEventListener('change', () => {
             const backup = JSON.parse(reader.result);
             if (!backup.csv || !backup.fileName) throw new Error('Backup incompleto');
             if (!confirm(`Restaurar backup de ${backup.store || '?'} (${backup.date?.slice(0, 10) || '?'})?\nEsto reemplazará los datos actuales.`)) return;
+            _initialLoadDone = true;
             loadCSV(backup.csv, backup.fileName, backup.statuses || {});
         } catch (e) {
             alert('Error al leer el backup: ' + e.message);
@@ -521,9 +522,8 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             const groupPct = totalCost > 0 ? (groupCost / totalCost) * 100 : 0;
             const groupId = `status-group-${status.replace(/[^a-zA-Z0-9]/g, '_') || 'empty'}`;
 
-            html += `<tbody class="dest-group">
-                <tr class="destination-header status-toggle" style="cursor:pointer"
-                    data-group="${groupId}">
+            html += `<tbody class="dest-group status-group">
+                <tr class="destination-header status-toggle" style="cursor:pointer">
                     <td colspan="${COLS}">
                         <span class="chk-expand-arrow">&#9654;</span>
                         ${label}
@@ -535,9 +535,16 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
                 </tr>`;
 
             // Sort entries by destination then cost desc
+            // Sort by destination cost (heaviest first), then by item cost desc
+            const destCosts = {};
+            for (const e of entries) {
+                const d = e.item['Destination'] || '';
+                destCosts[d] = (destCosts[d] || 0) + (parseFloat(e.item['Unit Cost Price']) || 0);
+            }
             entries.sort((a, b) => {
-                const da = (a.item['Destination'] || '').localeCompare(b.item['Destination'] || '');
-                if (da !== 0) return da;
+                const da = a.item['Destination'] || '';
+                const db = b.item['Destination'] || '';
+                if (da !== db) return (destCosts[db] || 0) - (destCosts[da] || 0);
                 return (parseFloat(b.item['Unit Cost Price']) || 0) - (parseFloat(a.item['Unit Cost Price']) || 0);
             });
 
@@ -554,7 +561,7 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
                 const posClass = (i === 0 ? ' dest-first' : '') +
                                  (i === entries.length - 1 ? ' dest-last' : '');
 
-                html += `<tr class="${pctClass}${posClass} ${groupId}" hidden>
+                html += `<tr class="${pctClass}${posClass} status-row" hidden>
                     <td class="col-spacer"></td>
                     <td class="col-check"><input type="checkbox"></td>
                     <td class="col-status"><select class="status-select" data-key="${rowKey.replace(/"/g, '&quot;')}">${statusOptions}</select></td>
@@ -657,13 +664,17 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
         });
     });
 
-    // Status-mode group toggles
+    // Status-mode group toggles — toggle sibling rows within same tbody
     tableOutput.querySelectorAll('.status-toggle').forEach(tr => {
         tr.addEventListener('click', (e) => {
             e.stopPropagation();
-            const groupId = tr.dataset.group;
-            document.querySelectorAll('.' + groupId).forEach(r => r.hidden = !r.hidden);
-            tr.querySelector('.chk-expand-arrow').classList.toggle('open');
+            e.preventDefault();
+            const tbody = tr.closest('tbody');
+            const rows = tbody.querySelectorAll('.status-row');
+            const opening = rows.length > 0 && rows[0].hidden;
+            rows.forEach(r => r.hidden = !opening);
+            tr.querySelector('.chk-expand-arrow').classList.toggle('open', opening);
+            tbody.classList.toggle('open', opening);
         });
     });
 
@@ -718,6 +729,7 @@ function processFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const text = e.target.result;
+        _initialLoadDone = true;
         loadCSV(text, file.name);
     };
     reader.readAsText(file, 'UTF-8');
@@ -764,7 +776,11 @@ function loadCSV(text, name, savedStatuses) {
     _lastFileName = name;
 
     // Migrate old-format keys if needed
-    if (savedStatuses) savedStatuses = migrateStatusKeys(savedStatuses, text);
+    let migrated = false;
+    if (savedStatuses) {
+        const result = migrateStatusKeys(savedStatuses, text);
+        if (result !== savedStatuses) { migrated = true; savedStatuses = result; }
+    }
 
     const rows = parseCSV(text);
     const expanded = expandRows(rows);
@@ -779,8 +795,7 @@ function loadCSV(text, name, savedStatuses) {
 
     renderTable(groups, totalItems, savedStatuses);
     updateHeaderProgress();
-    if (!savedStatuses) saveState(); // only save on new upload, not on restore
-    else saveState(); // Re-save with migrated keys
+    if (!savedStatuses || migrated) saveState();
 }
 
 // === Responsive table scaling ===
@@ -873,14 +888,10 @@ function updateHeaderProgress() {
 
 // === Real-time sync from Firestore ===
 let _unsubscribe = null;
-let _ignorNextSnapshot = false;
+let _initialLoadDone = false;
 
-// Flag to skip the snapshot triggered by our own save
+// After initial load, stop reacting to snapshots (we only write, never re-read)
 const _origSaveState = saveState;
-saveState = function () {
-    _ignorNextSnapshot = true;
-    _origSaveState();
-};
 
 function startRealtimeSync() {
     // Detach previous listener if any
@@ -890,13 +901,11 @@ function startRealtimeSync() {
     if (!ref) return;
 
     _unsubscribe = ref.onSnapshot(snap => {
-        if (_ignorNextSnapshot) {
-            _ignorNextSnapshot = false;
-            return;
-        }
+        if (_initialLoadDone) return;
 
         const data = snap.exists ? snap.data() : null;
         if (data && data.csv) {
+            _initialLoadDone = true;
             loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {});
         } else if (!data || !data.csv) {
             // Remote cleared — reset UI if we had data loaded

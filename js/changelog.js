@@ -1,8 +1,25 @@
 const CHANGELOG = [
     {
+        date: '14/04/2026',
+        version: 'v0.9',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Backup local: descarga y restaura el estado completo como JSON' },
+            { type: 'new', text: 'Revisión: % de coste en todas las tablas (tipo incorrecto, justificados, pendientes)' },
+            { type: 'new', text: 'Revisión: envíos no solicitados agrupados por tipo, RMA Stock Out expandible' },
+            { type: 'ui', text: 'Revisión: "Enviado XFER" ahora muestra % por coste descontando justificados' },
+            { type: 'new', text: 'Imprimir "Buscando no encontrado" desde Resumen y Revisión (con categoría y %)' },
+            { type: 'new', text: 'Ordenar: tercer modo "Estado" — agrupa por estado, colapsado, expandible' },
+            { type: 'fix', text: 'Keys de estado estables — los estados ya no bailan al cambiar de vista' },
+            { type: 'fix', text: 'Migración automática de estados guardados al nuevo formato de keys' },
+            { type: 'ui', text: 'Vista Estado: tiendas ordenadas por peso (mayor coste primero)' },
+            { type: 'ui', text: 'Impresión en vista Estado: solo el grupo desplegado, con cabecera' },
+            { type: 'fix', text: 'Grupos de estado ya no se colapsan solos (snapshot Firestore controlado)' },
+        ]
+    },
+    {
         date: '11/04/2026',
         version: 'v0.8',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'ui', text: 'Dropbox y barra de progreso integrados en un único marco' },
             { type: 'ui', text: 'Dropbox se transforma al cargar archivo (Clark Kent / Superman)' },
@@ -18,11 +35,6 @@ const CHANGELOG = [
             { type: 'fix', text: 'Estado de línea puede revertirse a vacío (—)' },
             { type: 'new', text: 'Resumen: botón para copiar BoxIDs por estado de descuento' },
             { type: 'fix', text: 'Tooltip de Revisión: enlace a Looker Studio clicable (pin con click)' },
-            { type: 'new', text: 'Backup local: descarga y restaura el estado completo como JSON' },
-            { type: 'new', text: 'Revisión: % de coste en todas las tablas (tipo incorrecto, justificados, pendientes)' },
-            { type: 'new', text: 'Revisión: envíos no solicitados agrupados por tipo, RMA Stock Out expandible' },
-            { type: 'ui', text: 'Revisión: "Enviado XFER" ahora muestra % por coste descontando justificados' },
-            { type: 'new', text: 'Imprimir "Buscando no encontrado" desde Resumen y Revisión (con categoría y %)' },
         ]
     },
     {
