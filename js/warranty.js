@@ -125,8 +125,8 @@ async function copyToClipboard(btn) {
 }
 
 // === Firestore ===
-async function load() {
-    const data = await loadModuleData(MODULE);
+async function load(opts) {
+    const data = await loadModuleData(MODULE, opts);
     _state.items = (data && Array.isArray(data.items)) ? data.items : [];
 }
 
@@ -145,8 +145,11 @@ async function refresh() {
     _refreshing = true;
     const btn = $('btnRefresh');
     if (btn) btn.classList.add('refreshing');
+    const t0 = Date.now();
     try {
-        await load();
+        // Force server-side fetch — otherwise Firestore may serve from its local cache
+        await load({ source: 'server' });
+        console.log(`[warranty] refresh OK · ${_state.items.length} items · ${Date.now() - t0}ms`);
         renderTable();
         if (_state.selectedId) {
             if (!getItem(_state.selectedId)) {
@@ -156,7 +159,7 @@ async function refresh() {
             }
         }
     } catch (e) {
-        console.error('Refresh error:', e);
+        console.error('[warranty] refresh error:', e);
     } finally {
         _refreshing = false;
         if (btn) btn.classList.remove('refreshing');

@@ -40,10 +40,10 @@ async function saveModuleData(module, data) {
     await ref.set(data, { merge: true });
 }
 
-async function loadModuleData(module) {
+async function loadModuleData(module, opts) {
     const ref = storeDocRef(module);
     if (!ref) return null;
-    const snap = await ref.get();
+    const snap = await ref.get(opts || {});
     return snap.exists ? snap.data() : null;
 }
 
