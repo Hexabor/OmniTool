@@ -308,7 +308,7 @@ document.getElementById('btnArchiveList').addEventListener('click', async () => 
 
         let html = '<div class="archive-list">';
         for (const a of archives) {
-            const date = a.archivedAt ? new Date(a.archivedAt.seconds * 1000).toLocaleDateString('es-ES') : '—';
+            const date = a.archivedAt ? new Date(a.archivedAt.seconds * 1000).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
             const stats = a.stats || {};
             html += `<div class="archive-item" data-id="${a.id}">
                 <div class="archive-info">
@@ -1703,7 +1703,7 @@ function printSearchingList(items, store) {
             @media print { @page { size: landscape; margin: 0.5cm; } }
         </style></head><body>
         <h2>Buscando no encontrado — ${store}</h2>
-        <div class="meta">${items.length} items · ${totalPct.toFixed(2)}% del fulfilment · ${new Date().toLocaleDateString('es-ES')}</div>
+        <div class="meta">${items.length} items · ${totalPct.toFixed(2)}% del fulfilment · ${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
         <table><thead><tr><th>Destino</th><th>Box ID</th><th>Box Name</th><th>Categoría</th><th class="pct">%</th></tr></thead><tbody>
         ${items.map(it => `<tr><td>${it.dest}</td><td>${it.boxId}</td><td>${it.name}</td><td>${it.category}</td><td class="pct">${(it.pct || 0).toFixed(2)}%</td></tr>`).join('')}
         <tr class="total"><td colspan="4">Total</td><td class="pct">${totalPct.toFixed(2)}%</td></tr>

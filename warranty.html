@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmniTool</title>
+    <title>Garantías — OmniTool</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/warranty.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 </head>
 <body>
 
@@ -43,7 +45,7 @@
             <span class="topbar-title">OmniTool</span>
             <button class="btn-changelog" id="btnChangelog">Novedades</button>
         </div>
-        <span class="topbar-module">Dashboard</span>
+        <span class="topbar-module">Garantías</span>
         <div class="topbar-right">
             <span class="topbar-store">CeX Store</span>
         </div>
@@ -103,7 +105,7 @@
 
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-item active" title="Home">
+        <a href="index.html" class="sidebar-item" title="Home">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
@@ -118,7 +120,7 @@
                 <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
             </svg>
         </a>
-        <a href="warranty.html" class="sidebar-item" title="Garantías">
+        <a href="warranty.html" class="sidebar-item active" title="Garantías">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
@@ -153,113 +155,141 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
+                </svg>
         </a>
     </nav>
 
     <!-- Main content -->
     <main class="content">
-        <div class="page-header">
-            <h1>Dashboard</h1>
-            <p class="page-subtitle">Selecciona una herramienta para comenzar</p>
+        <!-- Filter bar -->
+        <div class="warranty-bar">
+            <div class="warranty-filters" id="warrantyFilters">
+                <button class="wf-chip active" data-filter="all">Todos <span class="wf-count" data-count="all">0</span></button>
+                <button class="wf-chip wf-pedido" data-filter="pedido">Pedido <span class="wf-count" data-count="pedido">0</span></button>
+                <button class="wf-chip wf-recibido" data-filter="recibido">Recibido <span class="wf-count" data-count="recibido">0</span></button>
+                <button class="wf-chip wf-entregado" data-filter="entregado">Entregado <span class="wf-count" data-count="entregado">0</span></button>
+                <button class="wf-chip wf-cerrado" data-filter="cerrado">Cerrado <span class="wf-count" data-count="cerrado">0</span></button>
+                <button class="wf-chip wf-fallido" data-filter="fallido">Fallido <span class="wf-count" data-count="fallido">0</span></button>
+            </div>
+            <div class="warranty-actions">
+                <button class="layout-toggle" id="layoutToggle" title="Cambiar disposición del panel" aria-label="Cambiar disposición del panel"></button>
+                <input type="text" class="warranty-search" id="warrantySearch" placeholder="Buscar por UMID, Box ID, Box Name…">
+                <button class="btn btn-accent" id="btnNewWarranty">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Nueva garantía
+                </button>
+            </div>
         </div>
 
-        <div class="tools-grid">
-
-            <!-- Xfer Reg -->
-            <a href="xfer-reg.html" class="tool-card">
-                <div class="tool-card-icon icon-blue">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="17 1 21 5 17 9"/>
-                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-                        <polyline points="7 23 3 19 7 15"/>
-                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Xfer Reg</h3>
-                    <p>Gestión de transferencias entre tiendas</p>
-                </div>
-            </a>
-
-            <!-- Garantías -->
-            <a href="warranty.html" class="tool-card">
-                <div class="tool-card-icon icon-amber">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Garantías</h3>
-                    <p>Control de garantías pedidas a otras tiendas</p>
-                </div>
-            </a>
-
-            <!-- Procurement -->
-            <a href="#" class="tool-card disabled">
-                <div class="tool-card-icon icon-green">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                        <line x1="12" y1="22.08" x2="12" y2="12"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Procurement</h3>
-                    <p>Próximamente</p>
-                </div>
-            </a>
-
-            <!-- Abandoned 45 días -->
-            <a href="#" class="tool-card disabled">
-                <div class="tool-card-icon icon-red">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Abandoned 45 días</h3>
-                    <p>Próximamente</p>
-                </div>
-            </a>
-
-            <!-- Checklist -->
-            <a href="#" class="tool-card disabled">
-                <div class="tool-card-icon icon-purple">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 11l3 3L22 4"/>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Checklist</h3>
-                    <p>Próximamente</p>
-                </div>
-            </a>
-
-            <!-- Entrenamientos -->
-            <a href="#" class="tool-card disabled">
-                <div class="tool-card-icon icon-teal">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Entrenamientos</h3>
-                    <p>Próximamente</p>
-                </div>
-            </a>
-
+        <!-- Table output -->
+        <div id="warrantyTableWrap">
+            <table class="warranty-table" id="warrantyTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="status">Estado</th>
+                        <th class="sortable" data-sort="umid">UMID</th>
+                        <th class="sortable" data-sort="boxName">Box Name</th>
+                        <th class="sortable" data-sort="boxId">Box ID</th>
+                        <th class="sortable" data-sort="testOrder">Test Order</th>
+                        <th class="sortable" data-sort="sourceStore">Tienda origen</th>
+                        <th class="sortable" data-sort="requestDate">Pedido</th>
+                        <th class="sortable" data-sort="requestedBy">Por</th>
+                        <th class="sortable" data-sort="receivedDate">Recibido</th>
+                        <th class="sortable" data-sort="deliveredDate">Entregado</th>
+                        <th class="col-icon" title="Comentarios"></th>
+                        <th class="col-icon" title="Llamadas"></th>
+                    </tr>
+                </thead>
+                <tbody id="warrantyTbody"></tbody>
+            </table>
+            <div class="warranty-empty" id="warrantyEmpty" hidden>
+                <p>No hay garantías registradas todavía.</p>
+                <p class="warranty-empty-hint">Pulsa <strong>Nueva garantía</strong> para empezar.</p>
+            </div>
         </div>
     </main>
 
+    <!-- New / Edit Modal -->
+    <div class="warranty-modal-overlay" id="warrantyModalOverlay">
+        <div class="warranty-modal">
+            <div class="warranty-modal-header">
+                <h2 id="warrantyModalTitle">Nueva garantía</h2>
+                <button class="warranty-modal-close" id="warrantyModalClose">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form class="warranty-modal-body" id="warrantyForm">
+                <div class="wf-grid">
+                    <label class="wf-field">
+                        <span>UMID *</span>
+                        <input type="text" name="umid" required>
+                    </label>
+                    <label class="wf-field">
+                        <span>Tienda origen *</span>
+                        <select name="sourceStore" id="wfSourceStore" required>
+                            <option value="">— Seleccionar —</option>
+                        </select>
+                    </label>
+                    <label class="wf-field">
+                        <span>Box ID *</span>
+                        <input type="text" name="boxId" required>
+                    </label>
+                    <label class="wf-field">
+                        <span>Box Name *</span>
+                        <input type="text" name="boxName" required>
+                    </label>
+                    <label class="wf-field">
+                        <span>Fecha pedido *</span>
+                        <input type="date" name="requestDate" required>
+                    </label>
+                    <label class="wf-field">
+                        <span>Pedido por *</span>
+                        <input type="text" name="requestedBy" required>
+                    </label>
+                </div>
+                <div class="wf-divider"></div>
+                <label class="wf-check">
+                    <input type="checkbox" name="inStore" id="wfInStore">
+                    <span>El artículo defectuoso queda en tienda</span>
+                </label>
+                <label class="wf-field wf-test-order" id="wfTestOrderWrap" hidden>
+                    <span>Test Order (opcional)</span>
+                    <input type="text" name="testOrder">
+                </label>
+                <label class="wf-field">
+                    <span>Comentarios</span>
+                    <textarea name="comments" rows="2"></textarea>
+                </label>
+                <div class="wf-actions">
+                    <button type="button" class="btn btn-secondary" id="warrantyFormCancel">Cancelar</button>
+                    <button type="submit" class="btn btn-accent">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail side panel -->
+    <div class="warranty-detail-overlay" id="warrantyDetailOverlay">
+        <div class="warranty-detail" id="warrantyDetail">
+            <div class="wd-resize-handle" id="wdResizeHandle" title="Arrastra para ajustar el alto"></div>
+            <div class="wd-content" id="wdContent"></div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/stores.js"></script>
     <script src="js/changelog.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/warranty.js"></script>
 </body>
 </html>

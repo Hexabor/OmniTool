@@ -1,8 +1,36 @@
 const CHANGELOG = [
     {
+        date: '17/04/2026',
+        version: 'v1.0',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Garantías — nuevo módulo para llevar el control de cada cobertura' },
+            { type: 'new', text: 'Estados: Pedido → Recibido → Entregado → Cerrado, con Fallido como vía paralela' },
+            { type: 'new', text: 'Filtros por estado con conteos en vivo + búsqueda por UMID, Box ID o Box Name' },
+            { type: 'new', text: 'Tabla ordenable por cualquier columna (especial atención a fechas)' },
+            { type: 'new', text: 'Aviso visual: las garantías en estado Pedido con ≥ 7 días se resaltan en ámbar' },
+            { type: 'new', text: 'Panel lateral con acciones por estado (recibir, entregar, procesar RMA/RTO)' },
+            { type: 'new', text: 'Registro de llamadas al cliente con fecha/hora editable y resultado de contacto' },
+            { type: 'new', text: 'Garantías fallidas: botón "Generar nuevo intento" que enlaza con la original' },
+            { type: 'new', text: 'Tienda origen como dropdown con las 69 tiendas para futuras estadísticas' },
+            { type: 'ui', text: 'Botón Garantías colocado a la derecha de Xfer Reg en home y sidebar' },
+            { type: 'ui', text: 'Tabla optimizada para monitor vertical: UMID y Box ID son iconos de copiar al portapapeles' },
+            { type: 'new', text: 'Sección Defectuoso ampliada: descripción del defecto, fecha de venta, tipo (RMA Externa/Interna o RTO), tienda destino, investigado por' },
+            { type: 'ui', text: 'Acción "Cerrar caso" sustituye a "Procesar defectuoso", con fecha y responsable de cierre' },
+            { type: 'new', text: 'Inspector de garantía con dos disposiciones: lateral (monitor horizontal) o inferior (monitor vertical), recordada por navegador' },
+            { type: 'new', text: 'Panel inferior redimensionable: arrastra el borde superior para ajustar el alto (también se recuerda por ordenador)' },
+            { type: 'ui', text: 'Panel inferior en modo tarjetas: secciones distribuidas en columnas para aprovechar el ancho y reducir scroll' },
+            { type: 'ui', text: 'Formato de fechas unificado en DD/MM/AAAA y hora en 24h en toda la aplicación' },
+            { type: 'new', text: 'Calendarios en lunes-primero y formato 24h en Garantías (flatpickr con locale español, independiente del SO)' },
+            { type: 'fix', text: 'Panel inferior: la tarjeta en edición se expande al ancho completo y los inputs se adaptan sin desbordar' },
+            { type: 'ui', text: 'Al editar una tarjeta, ésta sube al top del panel para que el formulario quede siempre a la vista' },
+            { type: 'ui', text: 'Iconos de comentarios y llamadas unificados en SVG line-icon minimalista (ya no emojis)' },
+            { type: 'new', text: 'Botones de copiar UMID / Box ID se resaltan en rojo si falta uno de los dos en la línea' },
+        ]
+    },
+    {
         date: '14/04/2026',
         version: 'v0.9',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Backup local: descarga y restaura el estado completo como JSON' },
             { type: 'new', text: 'Revisión: % de coste en todas las tablas (tipo incorrecto, justificados, pendientes)' },

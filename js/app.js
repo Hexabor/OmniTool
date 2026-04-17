@@ -165,7 +165,7 @@ async function showAdminPanel() {
             html += '<table class="admin-table"><thead><tr><th>Tienda</th><th>Contraseña</th><th>Último acceso</th><th></th></tr></thead><tbody>';
             for (const s of registered) {
                 const lastStr = s.lastAccess
-                    ? s.lastAccess.toLocaleDateString('es-ES') + ' ' + s.lastAccess.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                    ? s.lastAccess.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + s.lastAccess.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })
                     : '—';
                 html += `<tr>
                     <td class="admin-store-name">${s.name}</td>
