@@ -175,7 +175,7 @@
     font-weight: 700;
 }
 
-/* === Layout toggle button === */
+/* === Action icon buttons (refresh, layout) === */
 .layout-toggle {
     display: inline-flex;
     align-items: center;
@@ -195,6 +195,16 @@
     border-color: var(--color-primary);
     color: var(--color-primary);
     background: var(--color-primary-light);
+}
+
+.layout-toggle.refreshing svg {
+    animation: wf-spin 0.8s linear infinite;
+    transform-origin: center;
+}
+
+@keyframes wf-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* === Layout: bottom (vertical monitor) === */

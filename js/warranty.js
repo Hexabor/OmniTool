@@ -134,6 +134,35 @@ async function persist() {
     await saveModuleData(MODULE, { items: _state.items });
 }
 
+// Pull fresh data from Firestore and re-render.
+// Guard: if the user is in the middle of editing a card (mini-form open),
+// we refresh the table and items state but DON'T re-render the detail panel,
+// so pending form values stay on screen. On save, getItem(id) finds the
+// refreshed item and Object.assign mutates only the fields the form touched.
+let _refreshing = false;
+async function refresh() {
+    if (_refreshing) return;
+    _refreshing = true;
+    const btn = $('btnRefresh');
+    if (btn) btn.classList.add('refreshing');
+    try {
+        await load();
+        renderTable();
+        if (_state.selectedId) {
+            if (!getItem(_state.selectedId)) {
+                closeDetail();
+            } else if (!_state.editMode) {
+                renderDetail();
+            }
+        }
+    } catch (e) {
+        console.error('Refresh error:', e);
+    } finally {
+        _refreshing = false;
+        if (btn) btn.classList.remove('refreshing');
+    }
+}
+
 // === Render ===
 function applyFilters() {
     const q = _state.search.trim().toLowerCase();
@@ -322,6 +351,8 @@ function openDetail(id) {
     renderDetail();
     $('warrantyDetailOverlay').classList.add('open');
     document.body.classList.add('detail-open');
+    // Background refresh so what you see is fresh from Firestore
+    refresh();
 }
 
 function closeDetail() {
@@ -1002,6 +1033,14 @@ function bindUI() {
 
     // Layout toggle
     $('layoutToggle').addEventListener('click', toggleLayout);
+
+    // Manual refresh
+    $('btnRefresh').addEventListener('click', refresh);
+
+    // Auto-refresh when tab regains focus / visibility
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && getStoreCode()) refresh();
+    });
 
     // Row click → detail (or copy if click was on a copy-btn)
     $('warrantyTbody').addEventListener('click', (e) => {

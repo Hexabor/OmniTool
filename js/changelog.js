@@ -26,6 +26,7 @@ const CHANGELOG = [
             { type: 'ui', text: 'Al editar una tarjeta, ésta sube al top del panel para que el formulario quede siempre a la vista' },
             { type: 'ui', text: 'Iconos de comentarios y llamadas unificados en SVG line-icon minimalista (ya no emojis)' },
             { type: 'new', text: 'Botones de copiar UMID / Box ID se resaltan en rojo si falta uno de los dos en la línea' },
+            { type: 'new', text: 'Sincronización entre dispositivos: los cambios de otros usuarios de la misma tienda se traen al volver a la pestaña, al abrir una garantía, o con el botón manual de refrescar' },
         ]
     },
     {
