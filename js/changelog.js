@@ -27,6 +27,13 @@ const CHANGELOG = [
             { type: 'ui', text: 'Iconos de comentarios y llamadas unificados en SVG line-icon minimalista (ya no emojis)' },
             { type: 'new', text: 'Botones de copiar UMID / Box ID se resaltan en rojo si falta uno de los dos en la línea' },
             { type: 'new', text: 'Sincronización entre dispositivos: los cambios de otros usuarios de la misma tienda se traen al volver a la pestaña, al abrir una garantía, o con el botón manual de refrescar' },
+            { type: 'new', text: 'Detección de conflictos al guardar: si otro navegador modificó la misma garantía mientras la estabas editando, saltan opciones para sobrescribir o descartar tus cambios' },
+            { type: 'ui', text: 'Tabla responsive: columnas se ocultan progresivamente en pantallas estrechas (Por, Test Order, Entregado, Recibido, y finalmente los iconos de copiar UMID/Box ID) — Tienda origen se mantiene el máximo posible' },
+            { type: 'new', text: 'Vista móvil: cada garantía se muestra como tarjeta de 3 líneas — Estado + Nombre + iconos arriba, Tienda origen en medio, y las tres fechas (Ped/Rec/Ent) etiquetadas abajo' },
+            { type: 'ui', text: 'Cerrado es ahora una categoría aparte: "Todos" muestra sólo casos activos, y los fallidos cuyo reintento acabó en Cerrado se agrupan con su caso cerrado' },
+            { type: 'ui', text: 'Chip "Cerrado" separado visualmente: movido al final con un separador, icono de archivador delante para reforzar que es el histórico' },
+            { type: 'ui', text: 'Nombre del producto (Box Name) ahora puede ir en varias líneas si es largo, sin forzar scroll horizontal' },
+            { type: 'ui', text: 'Barra de filtros/búsqueda se adapta: búsqueda se expande y los botones bajan a una segunda fila en monitores verticales' },
         ]
     },
     {

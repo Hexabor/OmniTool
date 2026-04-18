@@ -14,6 +14,7 @@ let _state = {
     sortDir: 'desc',
     selectedId: null,
     editMode: null,
+    editBaseline: null,
     layout: 'side',
 };
 
@@ -93,6 +94,26 @@ function daysSince(iso) {
     return Math.floor((Date.now() - d.getTime()) / 86400000);
 }
 
+// Follow the retry chain forward to the leaf (most recent attempt).
+// Only fallido items can spawn a retry (via retryOfId), so non-fallido items
+// are always leaves. Returns the leaf item.
+function getChainLeaf(item) {
+    let current = item;
+    const seen = new Set([current.id]);
+    while (true) {
+        const child = _state.items.find(x => x.retryOfId === current.id);
+        if (!child || seen.has(child.id)) return current;
+        seen.add(child.id);
+        current = child;
+    }
+}
+
+// A case is "resolved" when its chain leaf is cerrado. This means both the
+// cerrado item and any fallido ancestors belong to the resolved bucket.
+function isResolved(item) {
+    return getChainLeaf(item).status === 'cerrado';
+}
+
 function statusLabel(s) {
     return ({
         pedido: 'Pedido',
@@ -134,6 +155,99 @@ async function persist() {
     await saveModuleData(MODULE, { items: _state.items });
 }
 
+// === Conflict detection on save ===
+// Snapshot an item's updatedAt at the moment the user enters edit mode.
+// When they save, we refetch from server and compare — if it has changed,
+// someone else edited this warranty and we ask the user how to resolve.
+function captureEditBaseline() {
+    const it = getItem(_state.selectedId);
+    _state.editBaseline = it && it.updatedAt ? it.updatedAt : null;
+}
+
+function beginEdit(mode) {
+    captureEditBaseline();
+    _state.editMode = mode;
+    renderDetail();
+}
+
+function exitEdit() {
+    _state.editMode = null;
+    _state.editBaseline = null;
+}
+
+// Fetch server copy, detect conflict vs baseline, apply user's mutations, persist.
+// Returns true if the save went through, false if aborted (deleted / user cancelled).
+async function saveGuarded(mutate) {
+    const id = _state.selectedId;
+    if (!id) return false;
+
+    let fresh;
+    try {
+        fresh = await loadModuleData(MODULE, { source: 'server' });
+    } catch (e) {
+        console.error('[warranty] conflict-check fetch error:', e);
+        alert('Error de conexión. Intenta de nuevo.');
+        return false;
+    }
+    const freshItems = (fresh && Array.isArray(fresh.items)) ? fresh.items : [];
+    const freshItem = freshItems.find(x => x.id === id);
+
+    if (!freshItem) {
+        alert('Esta garantía fue borrada desde otro dispositivo.');
+        _state.items = freshItems;
+        exitEdit();
+        closeDetail();
+        renderTable();
+        return false;
+    }
+
+    const baseline = _state.editBaseline;
+    if (freshItem.updatedAt && freshItem.updatedAt !== baseline) {
+        const when = fmtDateTime(freshItem.updatedAt);
+        const ok = confirm(
+            `Alguien modificó esta garantía el ${when}.\n\n` +
+            `Aceptar  →  sobrescribir con tus cambios\n` +
+            `Cancelar →  recargar y descartar tus cambios`
+        );
+        if (!ok) {
+            _state.items = freshItems;
+            exitEdit();
+            renderTable();
+            renderDetail();
+            return false;
+        }
+    }
+
+    // Replace local item with the fresh server version, then apply the user's
+    // mutations on top. This keeps fields the user didn't touch up-to-date.
+    const idx = _state.items.findIndex(x => x.id === id);
+    if (idx < 0) {
+        _state.items = freshItems;
+        renderTable();
+        return false;
+    }
+    _state.items[idx] = { ...freshItem };
+    const target = _state.items[idx];
+
+    try {
+        mutate(target);
+    } catch (e) {
+        console.error('[warranty] mutation error:', e);
+        return false;
+    }
+
+    target.updatedAt = new Date().toISOString();
+    await persist();
+    exitEdit();
+    renderTable();
+    renderDetail();
+    return true;
+}
+
+function touchUpdated(it) {
+    if (it) it.updatedAt = new Date().toISOString();
+}
+
 // Pull fresh data from Firestore and re-render.
 // Guard: if the user is in the middle of editing a card (mini-form open),
 // we refresh the table and items state but DON'T re-render the detail panel,
@@ -170,8 +284,18 @@ async function refresh() {
 function applyFilters() {
     const q = _state.search.trim().toLowerCase();
     let items = _state.items.slice();
-    if (_state.filter !== 'all') {
-        items = items.filter(it => it.status === _state.filter);
+    const f = _state.filter;
+    if (f === 'all') {
+        // Todos = activos (cadenas no resueltas — leaf no es cerrado)
+        items = items.filter(it => !isResolved(it));
+    } else if (f === 'cerrado') {
+        // Cerrado = cadenas resueltas (el cerrado + sus fallidos antecesores)
+        items = items.filter(it => isResolved(it));
+    } else if (f === 'fallido') {
+        // Sólo fallidos activos — si el chain ya acabó en cerrado, van a "Cerrado"
+        items = items.filter(it => it.status === 'fallido' && !isResolved(it));
+    } else {
+        items = items.filter(it => it.status === f);
     }
     if (q) {
         items = items.filter(it =>
@@ -194,8 +318,15 @@ function applyFilters() {
 }
 
 function updateCounts() {
-    const counts = { all: _state.items.length, pedido: 0, recibido: 0, entregado: 0, cerrado: 0, fallido: 0 };
-    _state.items.forEach(it => { counts[it.status] = (counts[it.status] || 0) + 1; });
+    const counts = { all: 0, pedido: 0, recibido: 0, entregado: 0, cerrado: 0, fallido: 0 };
+    _state.items.forEach(it => {
+        if (isResolved(it)) {
+            counts.cerrado++;
+        } else {
+            counts.all++;
+            counts[it.status] = (counts[it.status] || 0) + 1;
+        }
+    });
     document.querySelectorAll('.wf-count').forEach(el => {
         const k = el.getAttribute('data-count');
         el.textContent = counts[k] ?? 0;
@@ -325,14 +456,16 @@ async function handleFormSubmit(e) {
         comments: form.comments.value.trim(),
     };
 
+    const now = new Date().toISOString();
     if (editId) {
         const idx = _state.items.findIndex(it => it.id === editId);
-        if (idx >= 0) _state.items[idx] = { ..._state.items[idx], ...data };
+        if (idx >= 0) _state.items[idx] = { ..._state.items[idx], ...data, updatedAt: now };
     } else {
         const item = {
             id: uuid(),
             status: 'pedido',
-            createdAt: new Date().toISOString(),
+            createdAt: now,
+            updatedAt: now,
             calls: [],
             ...data,
         };
@@ -350,7 +483,7 @@ async function handleFormSubmit(e) {
 // === Detail panel ===
 function openDetail(id) {
     _state.selectedId = id;
-    _state.editMode = null;
+    exitEdit();
     renderDetail();
     $('warrantyDetailOverlay').classList.add('open');
     document.body.classList.add('detail-open');
@@ -360,7 +493,7 @@ function openDetail(id) {
 
 function closeDetail() {
     _state.selectedId = null;
-    _state.editMode = null;
+    exitEdit();
     $('warrantyDetailOverlay').classList.remove('open');
     document.body.classList.remove('detail-open');
 }
@@ -780,14 +913,13 @@ function bindDetailEvents(it) {
     wd.querySelectorAll('[data-edit]').forEach(btn => {
         if (btn.tagName !== 'BUTTON') return;
         btn.addEventListener('click', () => {
-            _state.editMode = btn.getAttribute('data-edit');
-            renderDetail();
+            beginEdit(btn.getAttribute('data-edit'));
         });
     });
 
     wd.querySelectorAll('[data-edit-cancel]').forEach(btn => {
         btn.addEventListener('click', () => {
-            _state.editMode = null;
+            exitEdit();
             renderDetail();
         });
     });
@@ -802,6 +934,7 @@ function bindDetailEvents(it) {
             const calls = it.calls || [];
             if (calls[i]) {
                 calls[i].success = !calls[i].success;
+                touchUpdated(it);
                 await persist();
                 renderTable();
                 renderDetail();
@@ -813,6 +946,7 @@ function bindDetailEvents(it) {
         btn.addEventListener('click', async () => {
             const i = parseInt(btn.getAttribute('data-call-del'));
             it.calls.splice(i, 1);
+            touchUpdated(it);
             await persist();
             renderTable();
             renderDetail();
@@ -824,6 +958,7 @@ function bindDetailEvents(it) {
             const i = parseInt(input.getAttribute('data-call-time'));
             if (it.calls[i]) {
                 it.calls[i].datetime = input.value;
+                touchUpdated(it);
                 await persist();
             }
         });
@@ -848,76 +983,103 @@ function getEditValues() {
 async function handleDetailAction(e, it) {
     const action = e.currentTarget.getAttribute('data-action');
 
-    if (action === 'mark-received') {
-        _state.editMode = 'receive';
-        renderDetail();
-        return;
-    }
-    if (action === 'save-received') {
-        const v = getEditValues();
-        it.receivedDate = v.receivedDate || todayISO();
-        it.receivedBy = (v.receivedBy || '').trim();
-        it.status = 'recibido';
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
-        return;
-    }
+    // === Edit-mode transitions (capture baseline for conflict detection) ===
+    if (action === 'mark-received')  { beginEdit('receive'); return; }
+    if (action === 'mark-delivered') { beginEdit('deliver'); return; }
+    if (action === 'close-case')     { beginEdit('close'); return; }
 
+    // === Prompt-based transitions ===
     if (action === 'mark-failed') {
+        captureEditBaseline();
         const reason = prompt('Motivo del fallo (la tienda origen no lo enviará, etc.):');
         if (!reason) return;
-        it.status = 'fallido';
-        it.failedReason = reason.trim();
-        it.failedDate = todayISO();
-        await persist(); renderTable(); renderDetail();
+        await saveGuarded(target => {
+            target.status = 'fallido';
+            target.failedReason = reason.trim();
+            target.failedDate = todayISO();
+        });
         return;
     }
 
-    if (action === 'mark-delivered') {
-        _state.editMode = 'deliver';
-        renderDetail();
+    // === Mini-form saves (with conflict detection) ===
+    if (action === 'save-received') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.receivedDate = v.receivedDate || todayISO();
+            target.receivedBy = (v.receivedBy || '').trim();
+            target.status = 'recibido';
+        });
         return;
     }
     if (action === 'save-delivered') {
         const v = getEditValues();
-        it.deliveredDate = v.deliveredDate || todayISO();
-        it.deliveredBy = (v.deliveredBy || '').trim();
-        it.status = 'entregado';
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
-        return;
-    }
-
-    if (action === 'close-case') {
-        _state.editMode = 'close';
-        renderDetail();
+        await saveGuarded(target => {
+            target.deliveredDate = v.deliveredDate || todayISO();
+            target.deliveredBy = (v.deliveredBy || '').trim();
+            target.status = 'entregado';
+        });
         return;
     }
     if (action === 'save-close') {
         const v = getEditValues();
-        it.closedDate = v.closedDate || todayISO();
-        it.closedBy = (v.closedBy || '').trim();
-        it.status = 'cerrado';
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
+        await saveGuarded(target => {
+            target.closedDate = v.closedDate || todayISO();
+            target.closedBy = (v.closedBy || '').trim();
+            target.status = 'cerrado';
+        });
         return;
     }
     if (action === 'save-defective') {
         const v = getEditValues();
-        it.inStore = !!v.inStore;
-        it.testOrder = it.inStore ? (v.testOrder || '').trim() : '';
-        it.saleDate = v.saleDate || '';
-        it.processingType = v.processingType || '';
-        it.processingStore = (v.processingStore || '').trim();
-        it.investigatedBy = (v.investigatedBy || '').trim();
-        it.defectDescription = (v.defectDescription || '').trim();
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
+        await saveGuarded(target => {
+            target.inStore = !!v.inStore;
+            target.testOrder = target.inStore ? (v.testOrder || '').trim() : '';
+            target.saleDate = v.saleDate || '';
+            target.processingType = v.processingType || '';
+            target.processingStore = (v.processingStore || '').trim();
+            target.investigatedBy = (v.investigatedBy || '').trim();
+            target.defectDescription = (v.defectDescription || '').trim();
+        });
+        return;
+    }
+    if (action === 'save-request') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.umid = (v.umid || '').trim();
+            target.sourceStore = v.sourceStore || '';
+            target.boxId = (v.boxId || '').trim();
+            target.boxName = (v.boxName || '').trim();
+            target.requestDate = v.requestDate || target.requestDate;
+            target.requestedBy = (v.requestedBy || '').trim();
+        });
+        return;
+    }
+    if (action === 'save-reception') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.receivedDate = v.receivedDate || target.receivedDate;
+            target.receivedBy = (v.receivedBy || '').trim();
+        });
+        return;
+    }
+    if (action === 'save-delivery') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.deliveredDate = v.deliveredDate || target.deliveredDate;
+            target.deliveredBy = (v.deliveredBy || '').trim();
+        });
+        return;
+    }
+    if (action === 'save-comments') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.comments = (v.comments || '').trim();
+        });
         return;
     }
 
+    // === Navigation / modal openers ===
     if (action === 'retry') {
-        // Open modal with prefill from this failed warranty
         openModal({
             umid: it.umid,
             boxId: it.boxId,
@@ -932,56 +1094,16 @@ async function handleDetailAction(e, it) {
         });
         return;
     }
-
     if (action === 'open-retry-of' && it.retryOfId) {
         openDetail(it.retryOfId);
         return;
     }
 
+    // === Instant mutations (append-only, low collision risk — no conflict check) ===
     if (action === 'add-call') {
         if (!it.calls) it.calls = [];
         it.calls.push({ datetime: nowLocalISO(), success: false });
-        await persist(); renderTable(); renderDetail();
-        return;
-    }
-
-    if (action === 'save-request') {
-        const v = getEditValues();
-        Object.assign(it, {
-            umid: (v.umid || '').trim(),
-            sourceStore: v.sourceStore || '',
-            boxId: (v.boxId || '').trim(),
-            boxName: (v.boxName || '').trim(),
-            requestDate: v.requestDate || it.requestDate,
-            requestedBy: (v.requestedBy || '').trim(),
-        });
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
-        return;
-    }
-
-    if (action === 'save-reception') {
-        const v = getEditValues();
-        it.receivedDate = v.receivedDate || it.receivedDate;
-        it.receivedBy = (v.receivedBy || '').trim();
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
-        return;
-    }
-
-    if (action === 'save-delivery') {
-        const v = getEditValues();
-        it.deliveredDate = v.deliveredDate || it.deliveredDate;
-        it.deliveredBy = (v.deliveredBy || '').trim();
-        _state.editMode = null;
-        await persist(); renderTable(); renderDetail();
-        return;
-    }
-
-    if (action === 'save-comments') {
-        const v = getEditValues();
-        it.comments = (v.comments || '').trim();
-        _state.editMode = null;
+        touchUpdated(it);
         await persist(); renderTable(); renderDetail();
         return;
     }
