@@ -8,6 +8,7 @@ const CHANGELOG = [
             { type: 'ui', text: 'Resumen: cifras de € (Ajustes, Neto, Neto acum Q, Neto acum año) ya no llevan color. Solo los % se pintan en rojo cuando se salen del rango (−0,40 % a +0,10 %)' },
             { type: 'fix', text: 'Análisis basado en "Adj Sale Val" en lugar de "Adj Cost Val": resumen, stats, filtros de € y resaltado de columna en el listado' },
             { type: 'ui', text: 'Rango tolerable (antes "rango aceptable"), aplicado tanto a ajustes anuales como trimestrales' },
+            { type: 'fix', text: 'Control de ajustes: al desmarcar una fila filtrada, el cambio no siempre se guardaba de verdad en Firestore. Ahora sí — también arregla el borrar ventas de una semana' },
         ]
     },
     {

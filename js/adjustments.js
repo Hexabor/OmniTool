@@ -217,11 +217,19 @@ async function load(opts) {
     _state.weeklySales = (data && data.weeklySales && typeof data.weeklySales === 'object') ? data.weeklySales : {};
 }
 
+// Write the whole module doc on every persist, bypassing the shared
+// saveModuleData helper (which uses merge:true). Merge preserves removed
+// keys inside maps, so unchecking a row would never actually delete its
+// entry in `filtered` — the flag kept resurrecting on reload. With a full
+// set() we send the authoritative state and Firestore stores exactly that.
 async function persist() {
-    await saveModuleData(MODULE, {
+    const ref = storeDocRef(MODULE);
+    if (!ref) return;
+    await ref.set({
         items: _state.items,
         filtered: _state.filtered,
         weeklySales: _state.weeklySales,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
 }
 
