@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '20/04/2026',
+        version: 'v1.1',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'fix', text: 'Revisión de Xfer Reg: las líneas justificadas como "Ya enviado (RMA…)" / "Vendido en tienda" / etc. ya no consumen el match XFER. Antes podían robarle el emparejamiento a una línea idéntica realmente enviada, dejándola como pendiente por error' },
+        ]
+    },
+    {
         date: '17/04/2026',
         version: 'v1.0',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Garantías — nuevo módulo para llevar el control de cada cobertura' },
             { type: 'new', text: 'Estados: Pedido → Recibido → Entregado → Cerrado, con Fallido como vía paralela' },

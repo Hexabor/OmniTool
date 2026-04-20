@@ -1218,6 +1218,14 @@ function runChecker(stockCSV) {
     const reviewing = [];     // Status is REVISAR (treated as no status)
 
     for (const xItem of xferItems) {
+        // Items the user has justified as not-XFER (RMA, Vendido en tienda, Printed cover,
+        // No shipeable) must NOT consume a stock match — otherwise an identical line that
+        // actually went out via XFER ends up orphaned and shown as pending.
+        if (DISCOUNT_STATUSES.includes(xItem.status)) {
+            justified.push(xItem);
+            continue;
+        }
+
         const xDest = normStore(xItem.destination);
         const xBox = xItem.boxId;
 
@@ -1243,14 +1251,8 @@ function runChecker(stockCSV) {
             continue;
         }
 
-        // Not found in stock — check status
-        if (DISCOUNT_STATUSES.includes(xItem.status)) {
-            justified.push(xItem);
-        } else if (xItem.status === 'REVISAR') {
-            missing.push(xItem); // REVISAR = no status, still missing
-        } else {
-            missing.push(xItem);
-        }
+        // Not found in stock — REVISAR or no status → missing
+        missing.push(xItem);
     }
 
     // 5. Find similar items for missing ones
