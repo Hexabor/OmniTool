@@ -254,6 +254,31 @@ body {
     color: #14b8a6;
 }
 
+.icon-indigo {
+    background: #eef2ff;
+    color: #6366f1;
+}
+
+/* === Home background watermark logo === */
+body.home-page::before {
+    content: '';
+    position: fixed;
+    left: calc(50% + var(--sidebar-w) / 2);
+    top: calc(50% + var(--topbar-h) / 2);
+    transform: translate(-50%, -50%);
+    width: min(60vw, 600px);
+    aspect-ratio: 1 / 1;
+    background-image: url('../assets/capitool-logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+}
+/* Keep content above the watermark */
+body.home-page .content { position: relative; z-index: 1; }
+
 /* Card: not implemented */
 .tool-card.disabled {
     opacity: 0.5;

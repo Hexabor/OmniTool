@@ -1,8 +1,56 @@
 const CHANGELOG = [
     {
+        date: '21/04/2026',
+        version: 'v1.5',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'fix', text: 'Resumen: el "Margen" pasa a ser por Quarter (se reinicia cada Q) y se renombra a "Margen Q €". Movido junto al grupo Q en el orden de columnas' },
+            { type: 'ui', text: 'Resumen: cifras de € (Ajustes, Neto, Neto acum Q, Neto acum año) ya no llevan color. Solo los % se pintan en rojo cuando se salen del rango (−0,40 % a +0,10 %)' },
+            { type: 'fix', text: 'Análisis basado en "Adj Sale Val" en lugar de "Adj Cost Val": resumen, stats, filtros de € y resaltado de columna en el listado' },
+            { type: 'ui', text: 'Rango tolerable (antes "rango aceptable"), aplicado tanto a ajustes anuales como trimestrales' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.4',
+        entries: [
+            { type: 'new', text: 'Control de ajustes — vistas separadas: pestañas "Resumen semanal" y "Listado completo". Los filtros viven con el listado; cada navegador recuerda en qué vista te quedaste' },
+            { type: 'new', text: 'Tres columnas nuevas anuales en el resumen: Neto acum año, Ventas acum año y % año (cuentan desde el inicio de WK1 del año, no desde el 1 de enero)' },
+            { type: 'new', text: 'Columna "Margen €": cuántos € de ajustes te quedan antes de salir del rango aceptable. Negativo y rojo = ya estás fuera' },
+            { type: 'ui', text: 'Regla del rango aceptable visible en la cabecera del resumen: −0,40 % a +0,10 % sobre ventas anuales. Cualquier % anual fuera del rango se pinta rojo' },
+            { type: 'ui', text: 'Las columnas anuales agrupadas con un fondo lavanda y separación visual del bloque trimestral' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.3',
+        entries: [
+            { type: 'ui', text: 'Logo de CapiTool de fondo en el home, centrado y al 15% de opacidad' },
+            { type: 'new', text: 'Control de ajustes — Resumen por semana con los cálculos que antes hacías a mano en tu hoja de cálculo' },
+            { type: 'new', text: 'Semanas según el calendario de la compañía (sábado a viernes): WK17 2026 = 18–24 abril, etc.' },
+            { type: 'new', text: 'Columnas: Q, Semana, Rango, Ajustes, Filtrados, Neto, Neto acum Q, Ventas WK, Ventas acum Q, % WK, % acum Q' },
+            { type: 'new', text: 'Introduce las ventas de cada semana haciendo clic directamente en la celda — se persisten en Firestore por tienda' },
+            { type: 'new', text: 'Aviso en banner ámbar listando las semanas que aún no tienen ventas introducidas' },
+            { type: 'ui', text: 'Porcentajes coloreados por umbral: < 1% verde, 1–3% ámbar, ≥ 3% rojo (se aplica al valor absoluto)' },
+            { type: 'ui', text: 'Filas separadoras por Quarter para ver de un vistazo el inicio de cada ciclo' },
+        ]
+    },
+    {
+        date: '20/04/2026',
+        version: 'v1.2',
+        entries: [
+            { type: 'ui', text: 'La aplicación se llama ahora CapiTool (antes OmniTool)' },
+            { type: 'new', text: 'Control de ajustes — nuevo módulo para analizar ajustes de inventario semana a semana' },
+            { type: 'new', text: 'Sube el CSV del Adjustment Report; cada nueva subida añade líneas y deduplica las ya conocidas, conservando los flags de "Filtrar"' },
+            { type: 'new', text: 'Tabla con las 18 columnas del reporte + columna "Filtrar": marca cualquier ajuste para excluirlo del análisis (ej. cambios de grado asumidos, reposiciones legítimas)' },
+            { type: 'new', text: 'Filtros por semana, mes, categoría, type, rango de € y búsqueda por Box Name / Box ID / Notas / Order Nº' },
+            { type: 'new', text: 'Vista alternativa "Solo filtrados" / "Sin filtrar" para revisar lo excluido o lo que penaliza, por separado' },
+            { type: 'new', text: 'Cabecera con el rango de fechas cubierto y contador total — sabes hasta dónde está actualizado de un vistazo' },
+        ]
+    },
+    {
         date: '20/04/2026',
         version: 'v1.1',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'fix', text: 'Revisión de Xfer Reg: las líneas justificadas como "Ya enviado (RMA…)" / "Vendido en tienda" / etc. ya no consumen el match XFER. Antes podían robarle el emparejamiento a una línea idéntica realmente enviada, dejándola como pendiente por error' },
         ]

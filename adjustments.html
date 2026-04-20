@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garantías — CapiTool</title>
+    <title>Control de ajustes — CapiTool</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/warranty.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="css/adjustments.css">
 </head>
 <body>
 
@@ -45,7 +44,7 @@
             <span class="topbar-title">CapiTool</span>
             <button class="btn-changelog" id="btnChangelog">Novedades</button>
         </div>
-        <span class="topbar-module">Garantías</span>
+        <span class="topbar-module">Control de ajustes</span>
         <div class="topbar-right">
             <span class="topbar-store">CeX Store</span>
         </div>
@@ -120,12 +119,12 @@
                 <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
             </svg>
         </a>
-        <a href="warranty.html" class="sidebar-item active" title="Garantías">
+        <a href="warranty.html" class="sidebar-item" title="Garantías">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
         </a>
-        <a href="adjustments.html" class="sidebar-item" title="Control de ajustes">
+        <a href="adjustments.html" class="sidebar-item active" title="Control de ajustes">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
                 <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
@@ -164,156 +163,191 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
+            </svg>
         </a>
     </nav>
 
     <!-- Main content -->
     <main class="content">
-        <!-- Filter bar -->
-        <div class="warranty-bar">
-            <div class="warranty-filters" id="warrantyFilters">
-                <button class="wf-chip active" data-filter="all">Todos <span class="wf-count" data-count="all">0</span></button>
-                <button class="wf-chip wf-pedido" data-filter="pedido">Pedido <span class="wf-count" data-count="pedido">0</span></button>
-                <button class="wf-chip wf-recibido" data-filter="recibido">Recibido <span class="wf-count" data-count="recibido">0</span></button>
-                <button class="wf-chip wf-entregado" data-filter="entregado">Entregado <span class="wf-count" data-count="entregado">0</span></button>
-                <button class="wf-chip wf-fallido" data-filter="fallido">Fallido <span class="wf-count" data-count="fallido">0</span></button>
-                <span class="wf-divider" aria-hidden="true"></span>
-                <button class="wf-chip wf-cerrado" data-filter="cerrado" title="Casos cerrados y sus fallidos históricos">
-                    <svg class="wf-chip-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 8v13H3V8"/>
-                        <path d="M1 3h22v5H1z"/>
-                        <line x1="10" y1="12" x2="14" y2="12"/>
-                    </svg>
-                    Cerrado <span class="wf-count" data-count="cerrado">0</span>
-                </button>
+        <!-- Header bar: upload + range + actions -->
+        <div class="adj-bar">
+            <div class="adj-upload" id="adjUploadZone">
+                <svg class="upload-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span class="upload-text-wrap">
+                    <span class="upload-text">Arrastra CSV aquí o haz clic</span>
+                    <span class="upload-hint">Adjustment Report (.csv) — añade y deduplica</span>
+                </span>
+                <input type="file" id="adjFileInput" accept=".csv" hidden>
             </div>
-            <div class="warranty-actions">
-                <button class="layout-toggle" id="btnRefresh" title="Traer cambios de otros usuarios" aria-label="Refrescar">
+
+            <div class="adj-range" id="adjRange">
+                <span class="adj-range-label">Cubre:</span>
+                <span class="adj-range-from" id="adjRangeFrom">—</span>
+                <span class="adj-range-sep">→</span>
+                <span class="adj-range-to" id="adjRangeTo">—</span>
+                <span class="adj-range-count" id="adjRangeCount">0 ajustes</span>
+            </div>
+
+            <div class="adj-actions">
+                <button class="adj-icon-btn" id="adjBtnRefresh" title="Refrescar desde Firestore">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"/>
                         <polyline points="1 20 1 14 7 14"/>
                         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
                     </svg>
                 </button>
-                <button class="layout-toggle" id="layoutToggle" title="Cambiar disposición del panel" aria-label="Cambiar disposición del panel"></button>
-                <input type="text" class="warranty-search" id="warrantySearch" placeholder="Buscar por UMID, Box ID, Box Name…">
-                <button class="btn btn-accent" id="btnNewWarranty">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"/>
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    Nueva garantía
-                </button>
             </div>
         </div>
 
+        <!-- View tabs (Resumen vs Listado) -->
+        <div class="adj-view-tabs" id="adjViewTabs" hidden>
+            <button class="adj-tab active" data-mainview="summary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                Resumen semanal
+            </button>
+            <button class="adj-tab" data-mainview="list">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+                Listado completo
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="adj-filters">
+            <input type="text" class="adj-search" id="adjSearch" placeholder="Buscar por Box Name, Box ID, Notas, Order Number…">
+            <select class="adj-filter-select" id="adjFilterWeek"><option value="">Todas las semanas</option></select>
+            <select class="adj-filter-select" id="adjFilterMonth"><option value="">Todos los meses</option></select>
+            <select class="adj-filter-select" id="adjFilterCategory"><option value="">Todas categorías</option></select>
+            <select class="adj-filter-select" id="adjFilterType"><option value="">Todos los types</option></select>
+            <label class="adj-filter-num">
+                <span>€ min</span><input type="number" id="adjFilterCostMin" step="0.01" placeholder="—">
+            </label>
+            <label class="adj-filter-num">
+                <span>€ max</span><input type="number" id="adjFilterCostMax" step="0.01" placeholder="—">
+            </label>
+            <div class="adj-view-toggle">
+                <button class="adj-toggle-btn active" data-view="all">Todos</button>
+                <button class="adj-toggle-btn" data-view="filtered">Solo filtrados</button>
+                <button class="adj-toggle-btn" data-view="unfiltered">Sin filtrar</button>
+            </div>
+            <button class="adj-icon-btn" id="adjBtnClearFilters" title="Limpiar todos los filtros">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Stats strip (live) -->
+        <div class="adj-stats" id="adjStats" hidden>
+            <div class="adj-stat">
+                <div class="adj-stat-label">Mostrados</div>
+                <div class="adj-stat-value" id="adjStatCount">0</div>
+            </div>
+            <div class="adj-stat">
+                <div class="adj-stat-label">Suma €</div>
+                <div class="adj-stat-value" id="adjStatSum">0,00</div>
+            </div>
+            <div class="adj-stat">
+                <div class="adj-stat-label">Filtrados</div>
+                <div class="adj-stat-value" id="adjStatFiltered">0</div>
+            </div>
+            <div class="adj-stat">
+                <div class="adj-stat-label">Filtrados €</div>
+                <div class="adj-stat-value" id="adjStatFilteredSum">0,00</div>
+            </div>
+        </div>
+
+        <!-- Weekly summary -->
+        <section class="adj-summary" id="adjSummary" hidden>
+            <div class="adj-summary-header">
+                <h3>Resumen por semana</h3>
+                <div class="adj-summary-meta">
+                    <span class="adj-rule-chip" title="Cualquier % anual o trimestral fuera de este rango se considera fallado">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Rango tolerable de ajustes (anuales y trimestrales): <strong>−0,40 %</strong> a <strong>+0,10 %</strong> sobre ventas
+                    </span>
+                </div>
+                <div class="adj-summary-hint">Clic en una celda de <strong>Ventas WK</strong> para introducir la facturación.</div>
+            </div>
+
+            <div class="adj-summary-alert" id="adjSalesAlert" hidden></div>
+
+            <div class="adj-summary-body" id="adjSummaryBody">
+                <table class="adj-summary-table" id="adjSummaryTable">
+                    <thead>
+                        <tr>
+                            <th>Q</th>
+                            <th>Sem.</th>
+                            <th>Rango</th>
+                            <th class="num">Ajustes</th>
+                            <th class="num">Filtrados</th>
+                            <th class="num">Neto</th>
+                            <th class="num">Ventas WK</th>
+                            <th class="num">% WK</th>
+                            <th class="num">Neto acum Q</th>
+                            <th class="num">Ventas acum Q</th>
+                            <th class="num">% acum Q</th>
+                            <th class="num">Margen Q €</th>
+                            <th class="num col-year-start">Neto acum año</th>
+                            <th class="num col-year">Ventas acum año</th>
+                            <th class="num col-year">% año</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adjSummaryTbody"></tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- Table output -->
-        <div id="warrantyTableWrap">
-            <table class="warranty-table" id="warrantyTable">
+        <div class="adj-table-wrap">
+            <table class="adj-table" id="adjTable">
                 <thead>
                     <tr>
-                        <th class="sortable" data-sort="status">Estado</th>
-                        <th class="sortable" data-sort="umid">UMID</th>
+                        <th class="col-filter" title="Marcar/desmarcar para excluir del análisis">Filtrar</th>
+                        <th class="sortable" data-sort="week">WK</th>
+                        <th class="sortable" data-sort="dateIso">Fecha</th>
+                        <th class="sortable" data-sort="branch">Tienda</th>
+                        <th class="sortable" data-sort="location">Ubicación</th>
+                        <th class="sortable" data-sort="category">Categoría</th>
                         <th class="sortable" data-sort="boxName">Box Name</th>
                         <th class="sortable" data-sort="boxId">Box ID</th>
-                        <th class="sortable" data-sort="testOrder">Test Order</th>
-                        <th class="sortable" data-sort="sourceStore">Tienda origen</th>
-                        <th class="sortable" data-sort="requestDate">Pedido</th>
-                        <th class="sortable" data-sort="requestedBy">Por</th>
-                        <th class="sortable" data-sort="receivedDate">Recibido</th>
-                        <th class="sortable" data-sort="deliveredDate">Entregado</th>
-                        <th class="col-icon" title="Comentarios"></th>
-                        <th class="col-icon" title="Llamadas"></th>
+                        <th class="sortable" data-sort="serial">Serial</th>
+                        <th class="sortable" data-sort="type">Type</th>
+                        <th class="sortable" data-sort="notes">Notas</th>
+                        <th class="sortable num" data-sort="unitPrice">P. unit.</th>
+                        <th class="sortable num" data-sort="unitCost">C. unit.</th>
+                        <th class="sortable" data-sort="orderNumber">Order Nº</th>
+                        <th class="sortable num" data-sort="fromQty">From</th>
+                        <th class="sortable num" data-sort="toQty">To</th>
+                        <th class="sortable num" data-sort="adjQty">Adj Qty</th>
+                        <th class="sortable num" data-sort="adjSaleVal">Adj Sale €</th>
+                        <th class="sortable num" data-sort="adjCostVal">Adj Cost €</th>
                     </tr>
                 </thead>
-                <tbody id="warrantyTbody"></tbody>
+                <tbody id="adjTbody"></tbody>
             </table>
-            <div class="warranty-empty" id="warrantyEmpty" hidden>
-                <p>No hay garantías registradas todavía.</p>
-                <p class="warranty-empty-hint">Pulsa <strong>Nueva garantía</strong> para empezar.</p>
+            <div class="adj-empty" id="adjEmpty">
+                <p>Aún no hay ajustes cargados.</p>
+                <p class="adj-empty-hint">Arrastra el CSV de Adjustment Report en la zona superior o haz clic.</p>
             </div>
         </div>
     </main>
 
-    <!-- New / Edit Modal -->
-    <div class="warranty-modal-overlay" id="warrantyModalOverlay">
-        <div class="warranty-modal">
-            <div class="warranty-modal-header">
-                <h2 id="warrantyModalTitle">Nueva garantía</h2>
-                <button class="warranty-modal-close" id="warrantyModalClose">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
-            </div>
-            <form class="warranty-modal-body" id="warrantyForm">
-                <div class="wf-grid">
-                    <label class="wf-field">
-                        <span>UMID *</span>
-                        <input type="text" name="umid" required>
-                    </label>
-                    <label class="wf-field">
-                        <span>Tienda origen *</span>
-                        <select name="sourceStore" id="wfSourceStore" required>
-                            <option value="">— Seleccionar —</option>
-                        </select>
-                    </label>
-                    <label class="wf-field">
-                        <span>Box ID *</span>
-                        <input type="text" name="boxId" required>
-                    </label>
-                    <label class="wf-field">
-                        <span>Box Name *</span>
-                        <input type="text" name="boxName" required>
-                    </label>
-                    <label class="wf-field">
-                        <span>Fecha pedido *</span>
-                        <input type="date" name="requestDate" required>
-                    </label>
-                    <label class="wf-field">
-                        <span>Pedido por *</span>
-                        <input type="text" name="requestedBy" required>
-                    </label>
-                </div>
-                <div class="wf-divider"></div>
-                <label class="wf-check">
-                    <input type="checkbox" name="inStore" id="wfInStore">
-                    <span>El artículo defectuoso queda en tienda</span>
-                </label>
-                <label class="wf-field wf-test-order" id="wfTestOrderWrap" hidden>
-                    <span>Test Order (opcional)</span>
-                    <input type="text" name="testOrder">
-                </label>
-                <label class="wf-field">
-                    <span>Comentarios</span>
-                    <textarea name="comments" rows="2"></textarea>
-                </label>
-                <div class="wf-actions">
-                    <button type="button" class="btn btn-secondary" id="warrantyFormCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-accent">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Detail side panel -->
-    <div class="warranty-detail-overlay" id="warrantyDetailOverlay">
-        <div class="warranty-detail" id="warrantyDetail">
-            <div class="wd-resize-handle" id="wdResizeHandle" title="Arrastra para ajustar el alto"></div>
-            <div class="wd-content" id="wdContent"></div>
-        </div>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/stores.js"></script>
     <script src="js/changelog.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/warranty.js"></script>
+    <script src="js/adjustments.js"></script>
 </body>
 </html>

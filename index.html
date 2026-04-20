@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmniTool</title>
+    <title>CapiTool</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
+<body class="home-page">
 
     <!-- Store selector -->
     <div class="store-gate" id="storeGate">
@@ -40,7 +40,7 @@
                     <line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
             </button>
-            <span class="topbar-title">OmniTool</span>
+            <span class="topbar-title">CapiTool</span>
             <button class="btn-changelog" id="btnChangelog">Novedades</button>
         </div>
         <span class="topbar-module">Dashboard</span>
@@ -123,6 +123,15 @@
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
         </a>
+        <a href="adjustments.html" class="sidebar-item" title="Control de ajustes">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                <path d="M7 21h10"/>
+                <path d="M12 3v18"/>
+                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+        </a>
         <a href="#" class="sidebar-item disabled" title="Procurement">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -192,6 +201,23 @@
                 <div class="tool-card-body">
                     <h3>Garantías</h3>
                     <p>Control de garantías pedidas a otras tiendas</p>
+                </div>
+            </a>
+
+            <!-- Control de ajustes -->
+            <a href="adjustments.html" class="tool-card">
+                <div class="tool-card-icon icon-indigo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                        <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+                        <path d="M7 21h10"/>
+                        <path d="M12 3v18"/>
+                        <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Control de ajustes</h3>
+                    <p>Análisis de ajustes de inventario por semana</p>
                 </div>
             </a>
 
