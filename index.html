@@ -110,17 +110,23 @@
             </svg>
         </a>
         <div class="sidebar-divider"></div>
+        <a href="checklist.html" class="sidebar-item" title="Checklist">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+        </a>
+        <a href="warranty.html" class="sidebar-item" title="Garantías">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+        </a>
         <a href="xfer-reg.html" class="sidebar-item" title="Xfer Reg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="17 1 21 5 17 9"/>
                 <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
                 <polyline points="7 23 3 19 7 15"/>
                 <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-            </svg>
-        </a>
-        <a href="warranty.html" class="sidebar-item" title="Garantías">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
         </a>
         <a href="adjustments.html" class="sidebar-item" title="Control de ajustes">
@@ -145,12 +151,6 @@
                 <polyline points="12 6 12 12 16 14"/>
             </svg>
         </a>
-        <a href="#" class="sidebar-item disabled" title="Checklist">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-            </svg>
-        </a>
         <a href="#" class="sidebar-item disabled" title="Entrenamientos">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
@@ -168,12 +168,38 @@
 
     <!-- Main content -->
     <main class="content">
-        <div class="page-header">
-            <h1>Dashboard</h1>
-            <p class="page-subtitle">Selecciona una herramienta para comenzar</p>
+        <div class="home-logo">
+            <img src="assets/capitool-logo.png" alt="CapiTool">
         </div>
 
         <div class="tools-grid">
+
+            <!-- Checklist -->
+            <a href="checklist.html" class="tool-card">
+                <div class="tool-card-icon icon-purple">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Checklist</h3>
+                    <p>Tareas de apertura de la tienda</p>
+                </div>
+            </a>
+
+            <!-- Garantías -->
+            <a href="warranty.html" class="tool-card">
+                <div class="tool-card-icon icon-amber">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div class="tool-card-body">
+                    <h3>Garantías</h3>
+                    <p>Control de garantías pedidas a otras tiendas</p>
+                </div>
+            </a>
 
             <!-- Xfer Reg -->
             <a href="xfer-reg.html" class="tool-card">
@@ -188,19 +214,6 @@
                 <div class="tool-card-body">
                     <h3>Xfer Reg</h3>
                     <p>Gestión de transferencias entre tiendas</p>
-                </div>
-            </a>
-
-            <!-- Garantías -->
-            <a href="warranty.html" class="tool-card">
-                <div class="tool-card-icon icon-amber">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Garantías</h3>
-                    <p>Control de garantías pedidas a otras tiendas</p>
                 </div>
             </a>
 
@@ -246,20 +259,6 @@
                 </div>
                 <div class="tool-card-body">
                     <h3>Abandoned 45 días</h3>
-                    <p>Próximamente</p>
-                </div>
-            </a>
-
-            <!-- Checklist -->
-            <a href="#" class="tool-card disabled">
-                <div class="tool-card-icon icon-purple">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 11l3 3L22 4"/>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                    </svg>
-                </div>
-                <div class="tool-card-body">
-                    <h3>Checklist</h3>
                     <p>Próximamente</p>
                 </div>
             </a>

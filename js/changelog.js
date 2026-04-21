@@ -1,13 +1,120 @@
 const CHANGELOG = [
     {
         date: '21/04/2026',
-        version: 'v1.5',
+        version: 'v2.5',
         tag: 'ÚLTIMA',
         entries: [
-            { type: 'fix', text: 'Resumen: el "Margen" pasa a ser por Quarter (se reinicia cada Q) y se renombra a "Margen Q €". Movido junto al grupo Q en el orden de columnas' },
-            { type: 'ui', text: 'Resumen: cifras de € (Ajustes, Neto, Neto acum Q, Neto acum año) ya no llevan color. Solo los % se pintan en rojo cuando se salen del rango (−0,40 % a +0,10 %)' },
-            { type: 'fix', text: 'Análisis basado en "Adj Sale Val" en lugar de "Adj Cost Val": resumen, stats, filtros de € y resaltado de columna en el listado' },
-            { type: 'ui', text: 'Rango tolerable (antes "rango aceptable"), aplicado tanto a ajustes anuales como trimestrales' },
+            { type: 'fix', text: 'Checklist (modo Editar): en monitor estrecho los botones de la barra ya no se salen por la derecha hacia la columna de Tareas persistentes — ahora envuelven a segunda fila dentro de la columna' },
+            { type: 'ui', text: 'Checklist: el botón "Iniciar nuevo día" se simplifica — ahora es un único botón con la fecha incorporada ("Iniciar miércoles, 22 de abril"), sin etiqueta separada debajo' },
+            { type: 'ui', text: 'Checklist: dentro del modo Editar se ocultan los botones "Histórico" e "Iniciar {fecha}" — no pintan nada mientras configuras la lista' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v2.4',
+        entries: [
+            { type: 'new', text: 'Checklist · Tareas persistentes: campo Prioridad debajo del desplegable. Rollup 001–100 (más alto = más prioritario). Colores graduales, de rosa pálido a rojo intenso según la prioridad, tanto en el select cerrado como en la lista desplegable. La lista se reordena sola; completadas al final' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v2.3',
+        entries: [
+            { type: 'ui', text: 'Checklist: reset automático a las 06:00 retirado. Ahora cada día se inicia manualmente con el botón "Iniciar nuevo día" — bajo el botón se ve qué día se iniciaría' },
+            { type: 'new', text: 'Checklist: al iniciar nuevo día, el contenido del día anterior se archiva al histórico (incluidas las tareas que se quedaron sin marcar)' },
+            { type: 'new', text: 'Checklist: columna derecha = Tareas persistentes. Se van añadiendo tareas que surgen durante el día, se marcan con su "hecho por" y no se reinician. Pensadas para recordar cosas sueltas del día a día' },
+            { type: 'ui', text: 'Checklist: el layout vuelve a ser 50/50 (izquierda diarias, derecha persistentes)' },
+            { type: 'new', text: 'Checklist · Histórico: entradas "sin marcar" en gris cuando una tarea diaria no se procesó antes de archivar el día' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v2.2',
+        entries: [
+            { type: 'new', text: 'Checklist (modo Editar): botón "+" a la derecha de cada tarea → "Añadir tarea siguiente". Hereda la hora de la tarea origen y se coloca justo a continuación, sin tocar el resto del orden' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v2.1',
+        entries: [
+            { type: 'new', text: 'Checklist: reset automático diario a las 06:00. Cada mañana la checklist queda limpia para el nuevo día y el trabajo del día anterior se archiva al histórico' },
+            { type: 'ui', text: 'Checklist: las marcas (hecho / saltado) ya no se escriben al histórico al vuelo — solo en el reset diario. El histórico queda más limpio (una entrada definitiva por día)' },
+            { type: 'ui', text: 'Checklist: el botón "Reiniciar marcas" se queda como uso de anomalía (p. ej. alguien empezó la lista por error). Doble confirmación antes de borrar, y aviso de que NO se archivará al histórico' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v2.0',
+        entries: [
+            { type: 'ui', text: 'Checklist: el modo Reordenar se convierte en un modo "Editar" completo. Con Editar activado puedes añadir, modificar, eliminar y reordenar tareas; fuera del modo la interfaz queda limpia, centrada solo en marcar quién hizo cada tarea' },
+            { type: 'new', text: 'Checklist: cada tarea puede llevar un enlace (URL + nombre visible). El nombre aparece como chip violeta junto al texto; clic y abre en una pestaña nueva' },
+            { type: 'ui', text: 'Checklist: layout a dos columnas — la lista ocupa la mitad izquierda, la derecha queda reservada para futuras cositas (animaciones, recompensas, gráficos…)' },
+            { type: 'ui', text: 'Checklist: el nombre de la tarea es opcional si añades un enlace — el enlace hace de nombre' },
+            { type: 'ui', text: 'Checklist: el espacio reservado de la derecha ahora es invisible (sin fondo ni borde) hasta que le demos contenido' },
+            { type: 'new', text: 'Checklist: opción "⏭ Saltar" en el desplegable — para tareas que no tocan hoy (p. ej. el formulario de festivos en días de diario). Cuenta como procesada' },
+            { type: 'ui', text: 'Checklist: los botones de editar y eliminar tarea sólo existen en la lista dentro de modo Editar; fuera de ese modo ya no están en el DOM' },
+            { type: 'ui', text: 'Checklist: Reiniciar marcas ahora también desmarca las tareas saltadas' },
+            { type: 'new', text: 'Checklist: cada tarea recuerda cuándo se marcó como hecha por última vez — un chip junto al nombre indica "hace N días"' },
+            { type: 'new', text: 'Checklist: en el modo Editar puedes asignar un umbral "días sin hacerla antes de crítica". Al superarlo, la tarea se pinta en rojo con aviso' },
+            { type: 'ui', text: 'Checklist: en modo uso, las tareas hechas o saltadas bajan automáticamente al final, quedando arriba las pendientes. Al reiniciar marcas vuelven al orden configurado. En modo Editar el orden real se mantiene para poder arrastrar' },
+            { type: 'ui', text: 'Checklist: separador fino entre el bloque de pendientes y el de procesadas para verlo de un vistazo' },
+            { type: 'ui', text: 'Checklist: las tareas hechas pasan a verde (antes lila); las saltadas siguen en gris' },
+            { type: 'new', text: 'Checklist: histórico de los últimos 14 días por checklist. Botón "Histórico" en la barra abre un modal con el detalle día a día — quién hizo cada tarea o si se saltó' },
+            { type: 'new', text: 'Checklist: desplegable en el histórico para filtrar por una tarea concreta (incluyendo tareas ya eliminadas que sigan apareciendo en el log)' },
+            { type: 'new', text: 'Checklist (modo Editar): botón "Ordenar por hora" que reordena la lista ascendentemente y reactiva la inserción automática por hora para las nuevas tareas' },
+            { type: 'fix', text: 'Checklist: al ordenar por hora, las tareas con la misma hora conservan el orden que tenían; ya no se reordenan alfabéticamente' },
+            { type: 'new', text: 'Checklist: tinte automático cuando se pasa la hora de una tarea pendiente — amarillo al instante, naranja a los 30 min, rojo tenue a la hora. Se actualiza sin recargar' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.9',
+        entries: [
+            { type: 'new', text: 'Checklist: modo "Reordenar" con arrastrar-y-soltar. Botón en la barra → los iconos de hecho-por y acciones se ocultan, aparece el handle y puedes cambiar el orden de las tareas a tu gusto' },
+            { type: 'ui', text: 'Checklist: el orden que establezcas manualmente se guarda y se respeta; las nuevas tareas siguen insertándose por hora hasta que reordenas (entonces se añaden al final)' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.8',
+        entries: [
+            { type: 'new', text: 'Checklist: varias listas con nombre (Apertura, Cierre, Limpieza…). Se cambia de checklist con el selector de arriba' },
+            { type: 'new', text: 'Checklist: botones para crear nueva checklist, renombrar la actual o eliminarla' },
+            { type: 'new', text: 'Checklist: configura el equipo de la tienda (botón "Equipo") — nombres de los miembros que marcarán las tareas' },
+            { type: 'ui', text: 'Checklist: el checkbox de tarea se sustituye por un desplegable "hecho por" con los miembros del equipo — así queda claro quién hizo qué' },
+            { type: 'fix', text: 'Checklist: el selector de hora ahora fuerza formato 24h (flatpickr con locale español), independiente del SO' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.7',
+        entries: [
+            { type: 'new', text: 'Checklist — nuevo módulo (Fase 1) para las tareas de apertura de la tienda' },
+            { type: 'new', text: 'Checklist: añade, edita o elimina tareas con hora aproximada (24h) y nombre libre' },
+            { type: 'new', text: 'Checklist: marca tareas como hechas con el checkbox; contador de progreso X/Y arriba que se pone verde al completar todo' },
+            { type: 'new', text: 'Checklist: botón "Reiniciar marcas" para desmarcar todas de golpe al empezar el día siguiente' },
+            { type: 'ui', text: 'Checklist: lista ordenada automáticamente por hora ascendente; persistencia por tienda en Firestore' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.6',
+        entries: [
+            { type: 'ui', text: 'Home sin título repetido "Dashboard" en el cuerpo — ya aparece en la barra superior' },
+            { type: 'ui', text: 'Home: las tarjetas de cada módulo ahora son rectángulos compactos de ancho fijo, centrados, que se adaptan al contenido (no se estiran por todo el ancho)' },
+            { type: 'ui', text: 'Home: logo de fondo reubicado al centro-inferior y algo más pequeño para que las tarjetas de arriba no lo tapen' },
+            { type: 'ui', text: 'Home: logo pasa a mostrarse completo y visible encima de las tarjetas, que ahora se organizan en exactamente 3 columnas centradas' },
+        ]
+    },
+    {
+        date: '21/04/2026',
+        version: 'v1.5',
+        entries: [
+            { type: 'fix', text: 'Control de ajustes · Resumen: el "Margen" pasa a ser por Quarter (se reinicia cada Q) y se renombra a "Margen Q €". Movido junto al grupo Q en el orden de columnas' },
+            { type: 'ui', text: 'Control de ajustes · Resumen: cifras de € (Ajustes, Neto, Neto acum Q, Neto acum año) ya no llevan color. Solo los % se pintan en rojo cuando se salen del rango (−0,40 % a +0,10 %)' },
+            { type: 'fix', text: 'Control de ajustes: análisis basado en "Adj Sale Val" en lugar de "Adj Cost Val" — resumen, stats, filtros de € y resaltado de columna en el listado' },
+            { type: 'ui', text: 'Control de ajustes: rango tolerable (antes "rango aceptable"), aplicado tanto a ajustes anuales como trimestrales' },
             { type: 'fix', text: 'Control de ajustes: al desmarcar una fila filtrada, el cambio no siempre se guardaba de verdad en Firestore. Ahora sí — también arregla el borrar ventas de una semana' },
         ]
     },
@@ -16,44 +123,44 @@ const CHANGELOG = [
         version: 'v1.4',
         entries: [
             { type: 'new', text: 'Control de ajustes — vistas separadas: pestañas "Resumen semanal" y "Listado completo". Los filtros viven con el listado; cada navegador recuerda en qué vista te quedaste' },
-            { type: 'new', text: 'Tres columnas nuevas anuales en el resumen: Neto acum año, Ventas acum año y % año (cuentan desde el inicio de WK1 del año, no desde el 1 de enero)' },
-            { type: 'new', text: 'Columna "Margen €": cuántos € de ajustes te quedan antes de salir del rango aceptable. Negativo y rojo = ya estás fuera' },
-            { type: 'ui', text: 'Regla del rango aceptable visible en la cabecera del resumen: −0,40 % a +0,10 % sobre ventas anuales. Cualquier % anual fuera del rango se pinta rojo' },
-            { type: 'ui', text: 'Las columnas anuales agrupadas con un fondo lavanda y separación visual del bloque trimestral' },
+            { type: 'new', text: 'Control de ajustes · Resumen: tres columnas nuevas anuales — Neto acum año, Ventas acum año y % año (cuentan desde el inicio de WK1 del año, no desde el 1 de enero)' },
+            { type: 'new', text: 'Control de ajustes · Resumen: columna "Margen €" — cuántos € de ajustes te quedan antes de salir del rango aceptable. Negativo y rojo = ya estás fuera' },
+            { type: 'ui', text: 'Control de ajustes · Resumen: regla del rango aceptable visible en la cabecera — −0,40 % a +0,10 % sobre ventas anuales. Cualquier % anual fuera del rango se pinta rojo' },
+            { type: 'ui', text: 'Control de ajustes · Resumen: columnas anuales agrupadas con un fondo lavanda y separación visual del bloque trimestral' },
         ]
     },
     {
         date: '21/04/2026',
         version: 'v1.3',
         entries: [
-            { type: 'ui', text: 'Logo de CapiTool de fondo en el home, centrado y al 15% de opacidad' },
+            { type: 'ui', text: 'Home: logo de CapiTool de fondo, centrado y al 15 % de opacidad' },
             { type: 'new', text: 'Control de ajustes — Resumen por semana con los cálculos que antes hacías a mano en tu hoja de cálculo' },
-            { type: 'new', text: 'Semanas según el calendario de la compañía (sábado a viernes): WK17 2026 = 18–24 abril, etc.' },
-            { type: 'new', text: 'Columnas: Q, Semana, Rango, Ajustes, Filtrados, Neto, Neto acum Q, Ventas WK, Ventas acum Q, % WK, % acum Q' },
-            { type: 'new', text: 'Introduce las ventas de cada semana haciendo clic directamente en la celda — se persisten en Firestore por tienda' },
-            { type: 'new', text: 'Aviso en banner ámbar listando las semanas que aún no tienen ventas introducidas' },
-            { type: 'ui', text: 'Porcentajes coloreados por umbral: < 1% verde, 1–3% ámbar, ≥ 3% rojo (se aplica al valor absoluto)' },
-            { type: 'ui', text: 'Filas separadoras por Quarter para ver de un vistazo el inicio de cada ciclo' },
+            { type: 'new', text: 'Control de ajustes: semanas según el calendario de la compañía (sábado a viernes) — WK17 2026 = 18–24 abril, etc.' },
+            { type: 'new', text: 'Control de ajustes · Resumen: columnas Q, Semana, Rango, Ajustes, Filtrados, Neto, Neto acum Q, Ventas WK, Ventas acum Q, % WK, % acum Q' },
+            { type: 'new', text: 'Control de ajustes · Resumen: introduce las ventas de cada semana haciendo clic directamente en la celda — se persisten en Firestore por tienda' },
+            { type: 'new', text: 'Control de ajustes · Resumen: aviso en banner ámbar listando las semanas que aún no tienen ventas introducidas' },
+            { type: 'ui', text: 'Control de ajustes · Resumen: porcentajes coloreados por umbral — < 1 % verde, 1–3 % ámbar, ≥ 3 % rojo (sobre el valor absoluto)' },
+            { type: 'ui', text: 'Control de ajustes · Resumen: filas separadoras por Quarter para ver de un vistazo el inicio de cada ciclo' },
         ]
     },
     {
         date: '20/04/2026',
         version: 'v1.2',
         entries: [
-            { type: 'ui', text: 'La aplicación se llama ahora CapiTool (antes OmniTool)' },
+            { type: 'ui', text: 'App: la aplicación se llama ahora CapiTool (antes OmniTool)' },
             { type: 'new', text: 'Control de ajustes — nuevo módulo para analizar ajustes de inventario semana a semana' },
-            { type: 'new', text: 'Sube el CSV del Adjustment Report; cada nueva subida añade líneas y deduplica las ya conocidas, conservando los flags de "Filtrar"' },
-            { type: 'new', text: 'Tabla con las 18 columnas del reporte + columna "Filtrar": marca cualquier ajuste para excluirlo del análisis (ej. cambios de grado asumidos, reposiciones legítimas)' },
-            { type: 'new', text: 'Filtros por semana, mes, categoría, type, rango de € y búsqueda por Box Name / Box ID / Notas / Order Nº' },
-            { type: 'new', text: 'Vista alternativa "Solo filtrados" / "Sin filtrar" para revisar lo excluido o lo que penaliza, por separado' },
-            { type: 'new', text: 'Cabecera con el rango de fechas cubierto y contador total — sabes hasta dónde está actualizado de un vistazo' },
+            { type: 'new', text: 'Control de ajustes: sube el CSV del Adjustment Report; cada nueva subida añade líneas y deduplica las ya conocidas, conservando los flags de "Filtrar"' },
+            { type: 'new', text: 'Control de ajustes: tabla con las 18 columnas del reporte + columna "Filtrar" — marca cualquier ajuste para excluirlo del análisis (p. ej. cambios de grado asumidos, reposiciones legítimas)' },
+            { type: 'new', text: 'Control de ajustes: filtros por semana, mes, categoría, type, rango de € y búsqueda por Box Name / Box ID / Notas / Order Nº' },
+            { type: 'new', text: 'Control de ajustes: vista alternativa "Solo filtrados" / "Sin filtrar" para revisar lo excluido o lo que penaliza, por separado' },
+            { type: 'new', text: 'Control de ajustes: cabecera con el rango de fechas cubierto y contador total — sabes hasta dónde está actualizado de un vistazo' },
         ]
     },
     {
         date: '20/04/2026',
         version: 'v1.1',
         entries: [
-            { type: 'fix', text: 'Revisión de Xfer Reg: las líneas justificadas como "Ya enviado (RMA…)" / "Vendido en tienda" / etc. ya no consumen el match XFER. Antes podían robarle el emparejamiento a una línea idéntica realmente enviada, dejándola como pendiente por error' },
+            { type: 'fix', text: 'Xfer Reg · Comprobador: las líneas justificadas como "Ya enviado (RMA…)" / "Vendido en tienda" / etc. ya no consumen el match XFER. Antes podían robarle el emparejamiento a una línea idéntica realmente enviada, dejándola como pendiente por error' },
         ]
     },
     {

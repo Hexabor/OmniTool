@@ -189,16 +189,17 @@ body {
 /* === Tools Grid === */
 .tools-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 240px));
     gap: 0.75rem;
+    justify-content: center;
 }
 
 /* === Tool Card === */
 .tool-card {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
@@ -206,6 +207,8 @@ body {
     color: inherit;
     transition: all 0.15s;
     cursor: pointer;
+    flex: 0 0 240px;
+    max-width: 100%;
 }
 
 .tool-card:hover {
@@ -218,11 +221,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
     flex-shrink: 0;
 }
+
+.tool-card-icon svg { width: 20px; height: 20px; }
 
 .icon-blue {
     background: #eff6ff;
@@ -259,25 +264,19 @@ body {
     color: #6366f1;
 }
 
-/* === Home background watermark logo === */
-body.home-page::before {
-    content: '';
-    position: fixed;
-    left: calc(50% + var(--sidebar-w) / 2);
-    top: calc(50% + var(--topbar-h) / 2);
-    transform: translate(-50%, -50%);
-    width: min(60vw, 600px);
-    aspect-ratio: 1 / 1;
-    background-image: url('../assets/capitool-logo.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.15;
-    pointer-events: none;
-    z-index: 0;
+/* === Home logo (displayed above the tool cards) === */
+.home-logo {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0 2rem;
 }
-/* Keep content above the watermark */
-body.home-page .content { position: relative; z-index: 1; }
+.home-logo img {
+    width: min(40vw, 280px);
+    height: auto;
+    display: block;
+    /* Hides the white background of the PNG so the logo blends with the page */
+    mix-blend-mode: multiply;
+}
 
 /* Card: not implemented */
 .tool-card.disabled {
@@ -307,17 +306,18 @@ body.home-page .content { position: relative; z-index: 1; }
     letter-spacing: 0.02em;
 }
 
+.tool-card-body { min-width: 0; }
 .tool-card-body h3 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--color-text);
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
 }
 
 .tool-card-body p {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     color: var(--color-text-light);
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 /* === Changelog Panel === */
@@ -757,12 +757,6 @@ body.home-page .content { position: relative; z-index: 1; }
 }
 
 /* === Responsive === */
-@media (max-width: 900px) {
-    .tools-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
 @media (max-width: 600px) {
     .sidebar-toggle {
         display: flex;
@@ -781,12 +775,9 @@ body.home-page .content { position: relative; z-index: 1; }
     }
 
     .tools-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
     }
-
     .tool-card {
-        flex-direction: column;
-        text-align: center;
-        padding: 1rem;
+        flex: 1 1 auto;
     }
 }
