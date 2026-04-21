@@ -53,18 +53,31 @@ function taskCreationDate(task) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function computeDaysSince(task) {
+// All date-math helpers take an optional `refDate` = the ISO of the checklist's
+// current cycle. Using cycleDate (not wall-clock today) means: until the user
+// presses "Iniciar {fecha}", the list is evaluated from the old cycle's frame
+// — so a task done yesterday in the unarchived cycle doesn't suddenly report
+// "hace 1 día" just because midnight crossed.
+function computeDaysSince(task, refDate) {
     const ref = task.lastDoneDate || taskCreationDate(task);
     if (!ref) return null;
-    const n = daysBetween(ref, todayISO());
+    const target = refDate || todayISO();
+    const n = daysBetween(ref, target);
     return n == null ? null : Math.max(0, n);
 }
 
-function isCritical(task) {
+function isCritical(task, refDate) {
+    // A task processed in the current cycle isn't critical — it's already done
+    // or explicitly skipped for this cycle.
+    if (task.doneBy || task.skipped) return false;
     const threshold = Number(task.criticalEveryDays);
     if (!threshold || threshold <= 0) return false;
-    const days = computeDaysSince(task);
-    return days != null && days >= threshold;
+    const days = computeDaysSince(task, refDate);
+    // Strictly greater than the threshold: "N días sin hacerla ANTES de
+    // crítica" means the alarm fires on day N+1 of inactivity. So a daily
+    // task (threshold 1) stays neutral on its normal cycle day and only
+    // flags red if actually skipped for 2+ days.
+    return days != null && days > threshold;
 }
 
 // Minutes past the task's scheduled HH:MM (negative = still upcoming).
@@ -81,9 +94,12 @@ function overdueMinutes(task) {
 
 // Only pending tasks get overdue tinting. Critical (by day-threshold) keeps
 // its own red styling so we don't stack two reds — skip the tint when critical.
-function overdueClass(task) {
+// Also skipped when cycleDate !== today: you're looking at a stale cycle, every
+// scheduled time has already passed and the list would be all red — noise.
+function overdueClass(task, refDate) {
     if (task.doneBy || task.skipped) return '';
-    if (isCritical(task)) return '';
+    if (isCritical(task, refDate)) return '';
+    if (refDate && refDate !== todayISO()) return '';
     const min = overdueMinutes(task);
     if (min == null || min < 0) return '';
     if (min >= 60) return 'overdue-red';
@@ -430,6 +446,11 @@ function renderTasks() {
 
     list.classList.toggle('edit-mode', _state.editMode);
 
+    // Frame everything against the active checklist's cycleDate, not wall-clock
+    // today. The list represents one cycle at a time; age/critical/overdue are
+    // only meaningful within that frame. See computeDaysSince / isCritical.
+    const refDate = active.cycleDate || todayISO();
+
     list.innerHTML = items.map((it, i) => {
         const isDone = !!it.doneBy;
         const isSkipped = !!it.skipped && !isDone;
@@ -440,18 +461,18 @@ function renderTasks() {
         const separator = (!_state.editMode && thisProcessed && !prevProcessed)
             ? '<div class="cl-separator" aria-hidden="true"></div>'
             : '';
-        const critical = isCritical(it);
+        const critical = isCritical(it, refDate);
         const rowState = [
             isDone ? 'done' : (isSkipped ? 'skipped' : ''),
             critical ? 'critical' : '',
-            overdueClass(it),
+            overdueClass(it, refDate),
         ].filter(Boolean).join(' ');
         const selValue = isDone ? it.doneBy : (isSkipped ? '__skip__' : '');
         const selectClass = isDone ? 'assigned' : (isSkipped ? 'skipped' : '');
         // Age chip: show when days-since is > 0 (hide "hace 0 días")
-        const daysSince = computeDaysSince(it);
+        const daysSince = computeDaysSince(it, refDate);
         const ageHtml = (daysSince != null && daysSince > 0) ? `
-            <span class="cl-age ${critical ? 'cl-age-critical' : ''}" title="Hace ${daysSince} día${daysSince === 1 ? '' : 's'} desde la última vez marcada como hecha${it.criticalEveryDays ? ' · crítica a los ' + it.criticalEveryDays + ' días' : ''}">
+            <span class="cl-age ${critical ? 'cl-age-critical' : ''}" title="Hace ${daysSince} día${daysSince === 1 ? '' : 's'} desde la última vez marcada como hecha${it.criticalEveryDays ? ' · crítica tras ' + it.criticalEveryDays + ' día' + (it.criticalEveryDays === 1 ? '' : 's') + ' sin hacer' : ''}">
                 ${critical ? '⚠ ' : ''}hace ${daysSince} ${daysSince === 1 ? 'día' : 'días'}
             </span>` : '';
         const selectedStaffExists = isDone && _state.staff.includes(it.doneBy);
@@ -703,8 +724,10 @@ async function setTaskState(taskId, rawValue) {
         it.skipped = false;
         it.doneBy = rawValue || '';
         // Last "done" date feeds the age chip + critical threshold.
-        // Reverting to "sin hacer" doesn't clear it (we keep the reference).
-        if (it.doneBy) it.lastDoneDate = todayISO();
+        // We store the cycleDate (not wall-clock today) so marking a task at
+        // 01:00 on day N+1 while cycleDate is still N logs it as day N — which
+        // matches what the history archive will record.
+        if (it.doneBy) it.lastDoneDate = active.cycleDate || todayISO();
     }
     // History is written only when the user presses "Iniciar nuevo día"
     // (see startNewDay). Marks stay ephemeral within the current cycle.
@@ -1161,12 +1184,13 @@ function bindUI() {
 function refreshOverdueStyles() {
     const active = getActiveChecklist();
     if (!active) return;
+    const refDate = active.cycleDate || todayISO();
     const OVERDUE_CLASSES = ['overdue-yellow', 'overdue-orange', 'overdue-red'];
     for (const it of active.items) {
         const row = document.querySelector(`.cl-task[data-id="${it.id}"]`);
         if (!row) continue;
         row.classList.remove(...OVERDUE_CLASSES);
-        const cls = overdueClass(it);
+        const cls = overdueClass(it, refDate);
         if (cls) row.classList.add(cls);
     }
 }

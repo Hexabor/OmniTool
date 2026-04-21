@@ -1,8 +1,18 @@
 const CHANGELOG = [
     {
+        date: '22/04/2026',
+        version: 'v0.8',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'fix', text: 'Checklist: tras cruzar medianoche, las tareas hechas el día anterior ya no se volvían visualmente "hace 1 día" ni "críticas" hasta que pulsabas "Iniciar {fecha}". El marco temporal ahora es el propio ciclo de la checklist (cycleDate), no el reloj de pared' },
+            { type: 'fix', text: 'Checklist: las tareas ya hechas o saltadas nunca se pintan como críticas (antes el rojo del "crítica" podía tapar el verde de "hecha" cuando tenían umbral bajo)' },
+            { type: 'fix', text: 'Checklist · Criticidad: "N días sin hacerla antes de crítica" ahora funciona como suena — la alerta roja salta solo tras más de N días sin marcarla. Una tarea diaria (umbral 1) ya no se pinta roja a la mañana siguiente de completarla' },
+            { type: 'ui', text: 'Checklist: fuera del ciclo de hoy (cuando aún no has pulsado "Iniciar {fecha}"), el tinte amarillo/naranja/rojo por hora vencida se desactiva — era ruido porque toda la lista quedaba en rojo' },
+        ]
+    },
+    {
         date: '21/04/2026',
         version: 'v0.7',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'fix', text: 'Checklist (modo Editar): en monitor estrecho los botones de la barra ya no se salen por la derecha hacia la columna de Tareas persistentes — ahora envuelven a segunda fila dentro de la columna' },
             { type: 'ui', text: 'Checklist: el botón "Iniciar nuevo día" se simplifica — ahora es un único botón con la fecha incorporada ("Iniciar miércoles, 22 de abril"), sin etiqueta separada debajo' },
