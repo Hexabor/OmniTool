@@ -4,6 +4,11 @@ const CHANGELOG = [
         version: 'v0.8',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'ui', text: 'App: escala global más compacta — root a 15 px (antes 16 px), paddings/tarjetas del home y logo reducidos. Todo el resto de la app escala con los rem' },
+            { type: 'ui', text: 'Checklist: tipografía y padding de los bloques de tarea reducidos ~25 % para un aire más minimalista' },
+            { type: 'ui', text: 'Checklist: el chip "hace N días" se achica y pasa a apilarse bajo la hora — las filas ya no se estiran por la píldora' },
+            { type: 'ui', text: 'Checklist · Tareas persistentes: misma pasada de reducción (card, header, nombre, "hecho por", rollup de prioridad, botón X)' },
+            { type: 'ui', text: 'Checklist: el chip "hace N días" solo aparece si la tarea tiene criticidad configurada Y lleva más de 1 día sin procesarse. Antes salía en todas las tareas — ruido innecesario en las cotidianas' },
             { type: 'fix', text: 'Checklist: tras cruzar medianoche, las tareas hechas el día anterior ya no se volvían visualmente "hace 1 día" ni "críticas" hasta que pulsabas "Iniciar {fecha}". El marco temporal ahora es el propio ciclo de la checklist (cycleDate), no el reloj de pared' },
             { type: 'fix', text: 'Checklist: las tareas ya hechas o saltadas nunca se pintan como críticas (antes el rojo del "crítica" podía tapar el verde de "hecha" cuando tenían umbral bajo)' },
             { type: 'fix', text: 'Checklist · Criticidad: "N días sin hacerla antes de crítica" ahora funciona como suena — la alerta roja salta solo tras más de N días sin marcarla. Una tarea diaria (umbral 1) ya no se pinta roja a la mañana siguiente de completarla' },

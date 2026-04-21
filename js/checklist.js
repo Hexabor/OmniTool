@@ -469,11 +469,15 @@ function renderTasks() {
         ].filter(Boolean).join(' ');
         const selValue = isDone ? it.doneBy : (isSkipped ? '__skip__' : '');
         const selectClass = isDone ? 'assigned' : (isSkipped ? 'skipped' : '');
-        // Age chip: show when days-since is > 0 (hide "hace 0 días")
+        // Age chip: only shown when the task has a criticality threshold
+        // configured AND it's been more than one day without being processed.
+        // Tasks without criticality don't get the chip at all — it was noise
+        // on lists where most items are just daily routine.
         const daysSince = computeDaysSince(it, refDate);
-        const ageHtml = (daysSince != null && daysSince > 0) ? `
-            <span class="cl-age ${critical ? 'cl-age-critical' : ''}" title="Hace ${daysSince} día${daysSince === 1 ? '' : 's'} desde la última vez marcada como hecha${it.criticalEveryDays ? ' · crítica tras ' + it.criticalEveryDays + ' día' + (it.criticalEveryDays === 1 ? '' : 's') + ' sin hacer' : ''}">
-                ${critical ? '⚠ ' : ''}hace ${daysSince} ${daysSince === 1 ? 'día' : 'días'}
+        const hasCriticality = Number(it.criticalEveryDays) > 0;
+        const ageHtml = (hasCriticality && daysSince != null && daysSince > 1) ? `
+            <span class="cl-age ${critical ? 'cl-age-critical' : ''}" title="Hace ${daysSince} días desde la última vez marcada como hecha · crítica tras ${it.criticalEveryDays} día${it.criticalEveryDays === 1 ? '' : 's'} sin hacer">
+                ${critical ? '⚠ ' : ''}hace ${daysSince} días
             </span>` : '';
         const selectedStaffExists = isDone && _state.staff.includes(it.doneBy);
         const lostStaffOption = isDone && !selectedStaffExists
@@ -516,11 +520,13 @@ function renderTasks() {
             <span class="cl-drag-handle" aria-hidden="true">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/><circle cx="15" cy="6" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="15" cy="18" r="1.3"/></svg>
             </span>
-            <span class="cl-time">${escapeHtml(it.time)}</span>
+            <div class="cl-time-wrap">
+                <span class="cl-time">${escapeHtml(it.time)}</span>
+                ${ageHtml}
+            </div>
             <div class="cl-name-wrap">
                 ${hasName ? `<span class="cl-name">${escapeHtml(it.name)}</span>` : ''}
                 ${linkHtml}
-                ${ageHtml}
             </div>
             <select class="cl-doneby ${selectClass}" data-id="${it.id}" ${noStaff ? 'disabled title="Configura el equipo primero"' : ''}>
                 <option value="" ${selValue === '' ? 'selected' : ''}>${noStaff ? '— añade equipo —' : '— Sin hacer —'}</option>

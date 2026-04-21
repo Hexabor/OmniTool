@@ -31,6 +31,12 @@
     box-sizing: border-box;
 }
 
+/* Global scale: root font-size drives every `rem` in the app.
+   Default browser root is 16 px; we trim to 15 for a more compact, elegant feel
+   without touching per-component sizing. Typography stays readable, paddings
+   and margins tighten proportionally. */
+html { font-size: 15px; }
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 0.875rem;
@@ -166,7 +172,7 @@ body {
 .content {
     margin-top: var(--topbar-h);
     margin-left: var(--sidebar-w);
-    padding: 0.8rem 2rem 2rem;
+    padding: 0.75rem 1.5rem 1.5rem;
     min-height: calc(100vh - var(--topbar-h));
 }
 
@@ -175,22 +181,22 @@ body {
 }
 
 .page-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--color-text);
 }
 
 .page-subtitle {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--color-text-light);
-    margin-top: 0.25rem;
+    margin-top: 0.2rem;
 }
 
 /* === Tools Grid === */
 .tools-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 240px));
-    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 220px));
+    gap: 0.6rem;
     justify-content: center;
 }
 
@@ -198,8 +204,8 @@ body {
 .tool-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.9rem 1rem;
+    gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
@@ -207,7 +213,7 @@ body {
     color: inherit;
     transition: all 0.15s;
     cursor: pointer;
-    flex: 0 0 240px;
+    flex: 0 0 220px;
     max-width: 100%;
 }
 
@@ -221,13 +227,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     border-radius: var(--radius-sm);
     flex-shrink: 0;
 }
 
-.tool-card-icon svg { width: 20px; height: 20px; }
+.tool-card-icon svg { width: 18px; height: 18px; }
 
 .icon-blue {
     background: #eff6ff;
@@ -268,10 +274,10 @@ body {
 .home-logo {
     display: flex;
     justify-content: center;
-    margin: 1.5rem 0 2rem;
+    margin: 1rem 0 1.5rem;
 }
 .home-logo img {
-    width: min(40vw, 280px);
+    width: min(32vw, 220px);
     height: auto;
     display: block;
     /* Hides the white background of the PNG so the logo blends with the page */
