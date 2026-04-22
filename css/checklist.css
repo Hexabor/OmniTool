@@ -1072,6 +1072,104 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     color: var(--color-danger);
 }
 
+/* === Briefing: recent archivals shown under the vigentes list === */
+.cl-pers-briefing {
+    margin-top: 0.75rem;
+    padding-top: 0.55rem;
+    border-top: 1px dashed var(--color-border);
+}
+.cl-pers-briefing:empty { display: none; }
+.cl-pers-brief-head {
+    display: block;
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    color: var(--color-text-lighter);
+    margin-bottom: 0.35rem;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+.cl-pers-brief-head:hover { color: var(--color-primary); }
+.cl-pers-brief-row {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.12rem 0;
+    font-size: 0.68rem;
+    color: var(--color-text-light);
+}
+.cl-pers-brief-time {
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-lighter);
+    min-width: 2.5rem;
+}
+.cl-pers-brief-name {
+    flex: 1;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cl-pers-brief-who {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--color-text-light);
+}
+
+/* === Archive modal rows (persistent tasks) === */
+.cl-arch-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--radius-sm);
+    background: #fafafa;
+    font-size: 0.74rem;
+}
+.cl-arch-name {
+    flex: 1;
+    color: var(--color-text);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cl-arch-note {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    cursor: help;
+}
+.cl-arch-action {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.cl-arch-restore:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: var(--color-primary);
+}
+.cl-arch-delete:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: var(--color-danger);
+}
+
 /* === Persistent task: free-form note modal === */
 #clNoteText {
     display: block;

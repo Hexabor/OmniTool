@@ -211,25 +211,32 @@ function applyRemoteData(data) {
     _state.persistent = (data && data.persistent && Array.isArray(data.persistent.items))
         ? data.persistent
         : { items: [] };
-    if (!Array.isArray(_state.persistent.log)) _state.persistent.log = [];
-    // Migrate per-task history entries (if any) into the global log. Idempotent:
-    // once a task's history is folded in, it's emptied so we don't re-copy.
+    if (!Array.isArray(_state.persistent.archive)) _state.persistent.archive = [];
     let migrated = false;
+    // Drop obsolete `log` field (replaced by full-task `archive`).
+    if (Array.isArray(_state.persistent.log)) { delete _state.persistent.log; migrated = true; }
+    // Drop any lingering per-task history arrays (earlier iteration).
     for (const it of _state.persistent.items) {
-        if (Array.isArray(it.history) && it.history.length > 0) {
-            for (const h of it.history) {
-                _state.persistent.log.push({
-                    doneAt: h.doneAt,
-                    doneBy: h.doneBy || '',
-                    taskId: it.id,
-                    taskName: it.name || '',
-                });
-            }
-            delete it.history;
-            migrated = true;
-        }
+        if (Array.isArray(it.history)) { delete it.history; migrated = true; }
     }
-    if (migrated) persist().catch((e) => console.warn('persistent-log migration persist failed', e));
+    // Move any "done-in-items" legacy tasks into the archive so vigentes stays clean.
+    const completedLegacy = _state.persistent.items.filter(it => it.doneBy);
+    if (completedLegacy.length > 0) {
+        for (const it of completedLegacy) {
+            _state.persistent.archive.push({
+                id: it.id,
+                name: it.name || '',
+                priority: clampPriority(it.priority),
+                note: it.note || '',
+                createdAt: it.createdAt,
+                completedAt: new Date().toISOString(),
+                completedBy: it.doneBy,
+            });
+        }
+        _state.persistent.items = _state.persistent.items.filter(it => !it.doneBy);
+        migrated = true;
+    }
+    if (migrated) persist().catch((e) => console.warn('persistent-archive migration persist failed', e));
     let cleanedAny = false;
     for (const cl of _state.checklists) {
         if (!cl.items) cl.items = [];
@@ -354,40 +361,31 @@ function renderPersistent() {
     const items = (_state.persistent && _state.persistent.items) || [];
     const countEl = $('clPersCount');
     if (countEl) {
-        const done = items.filter(it => it.doneBy).length;
-        countEl.textContent = `${done} / ${items.length}`;
-        countEl.classList.toggle('complete', items.length > 0 && done === items.length);
+        // Count now shows vigentes (nothing is "done in place" anymore —
+        // completed tasks move straight to the archive).
+        countEl.textContent = String(items.length);
+        countEl.classList.remove('complete');
     }
+    renderPersBriefing();
     if (items.length === 0) {
-        list.innerHTML = '<div class="cl-pers-empty">Sin tareas pendientes. Añade una arriba y quedará guardada hasta que la completes.</div>';
+        list.innerHTML = '<div class="cl-pers-empty">Sin tareas pendientes. Añade una arriba; al marcarla como hecha se moverá al archivo.</div>';
         return;
     }
-    // Sort: pending on top; within each group, higher priority first.
-    // Array.prototype.sort is stable, so ties preserve insertion order.
-    const sorted = items.slice().sort((a, b) => {
-        const ad = a.doneBy ? 1 : 0;
-        const bd = b.doneBy ? 1 : 0;
-        if (ad !== bd) return ad - bd;
-        return clampPriority(b.priority) - clampPriority(a.priority);
-    });
+    // Sort by priority desc (stable within ties).
+    const sorted = items.slice().sort((a, b) => clampPriority(b.priority) - clampPriority(a.priority));
     const noStaff = _state.staff.length === 0;
     list.innerHTML = sorted.map(it => {
-        const isDone = !!it.doneBy;
         const priority = clampPriority(it.priority);
         const hasNote = !!(it.note && it.note.trim());
         const staffOptions = _state.staff.map(s =>
-            `<option value="${escapeHtml(s)}" ${it.doneBy === s ? 'selected' : ''}>${escapeHtml(s)}</option>`
+            `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`
         ).join('');
-        const lostStaffOption = isDone && !_state.staff.includes(it.doneBy)
-            ? `<option value="${escapeHtml(it.doneBy)}" selected>${escapeHtml(it.doneBy)} (ya no está)</option>`
-            : '';
         return `
-        <div class="cl-pers-task ${isDone ? 'done' : ''}" data-id="${it.id}">
+        <div class="cl-pers-task" data-id="${it.id}">
             <span class="cl-pers-name" title="Doble clic para renombrar">${escapeHtml(it.name)}</span>
             <div class="cl-pers-controls">
-                <select class="cl-pers-doneby ${isDone ? 'assigned' : ''}" data-id="${it.id}" ${noStaff ? 'disabled title="Configura el equipo primero"' : ''}>
-                    <option value="" ${!isDone ? 'selected' : ''}>${noStaff ? '— añade equipo —' : '— Sin hacer —'}</option>
-                    ${lostStaffOption}
+                <select class="cl-pers-doneby" data-id="${it.id}" ${noStaff ? 'disabled title="Configura el equipo primero"' : 'title="Marcar como hecha mueve la tarea al archivo"'}>
+                    <option value="" selected>${noStaff ? '— añade equipo —' : '— Sin hacer —'}</option>
                     ${staffOptions}
                 </select>
                 <div class="cl-pers-priority-row">
@@ -482,6 +480,23 @@ async function saveNote() {
     await persist();
 }
 
+// Small "recently archived" summary under the vigentes list — latest 3 entries.
+// Clicking opens the full archive modal.
+function renderPersBriefing() {
+    const el = $('clPersBriefing');
+    if (!el) return;
+    const archive = (_state.persistent && Array.isArray(_state.persistent.archive)) ? _state.persistent.archive : [];
+    if (archive.length === 0) { el.innerHTML = ''; return; }
+    const latest = archive.slice().sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || '')).slice(0, 3);
+    const pad = n => String(n).padStart(2, '0');
+    const rows = latest.map(a => {
+        const d = new Date(a.completedAt);
+        const t = isNaN(d) ? '--:--' : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `<div class="cl-pers-brief-row"><span class="cl-pers-brief-time">${t}</span><span class="cl-pers-brief-name">${escapeHtml(a.name || '(sin nombre)')}</span><span class="cl-pers-brief-who">${escapeHtml(a.completedBy || '—')}</span></div>`;
+    }).join('');
+    el.innerHTML = `<button class="cl-pers-brief-head" id="clPersBriefOpen" type="button" title="Abrir archivo completo">Recién archivadas ›</button>${rows}`;
+}
+
 async function addPersistentTask(name) {
     const clean = (name || '').trim();
     if (!clean) return;
@@ -497,25 +512,75 @@ async function addPersistentTask(name) {
     await persist();
 }
 
+// Marking a persistent task as done MOVES it from the vigentes list to the
+// archive, preserving all its properties (name, priority, note, createdAt)
+// and stamping completedAt/completedBy. From the archive it can be restored
+// back to vigentes or permanently deleted.
 async function setPersistentDoneBy(id, doneBy) {
-    const it = _state.persistent && _state.persistent.items.find(x => x.id === id);
-    if (!it) return;
-    const previous = it.doneBy || '';
-    it.doneBy = doneBy || '';
-    // Log a completion to the global archive whenever we transition to an
-    // assigned name (and it's not a no-op re-pick of the same name).
-    // Un-assigning doesn't log. A task-name snapshot is stored so the log
-    // still reads correctly if the task is later renamed or deleted.
-    if (doneBy && doneBy !== previous) {
-        if (!Array.isArray(_state.persistent.log)) _state.persistent.log = [];
-        _state.persistent.log.push({
-            doneAt: new Date().toISOString(),
-            doneBy,
-            taskId: it.id,
-            taskName: it.name || '',
-        });
-    }
+    if (!doneBy) return;  // "— Sin hacer —" was reselected; nothing to do
+    if (!_state.persistent || !Array.isArray(_state.persistent.items)) return;
+    const idx = _state.persistent.items.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const it = _state.persistent.items[idx];
+    if (!Array.isArray(_state.persistent.archive)) _state.persistent.archive = [];
+    _state.persistent.archive.push({
+        id: it.id,
+        name: it.name || '',
+        priority: clampPriority(it.priority),
+        note: it.note || '',
+        createdAt: it.createdAt,
+        completedAt: new Date().toISOString(),
+        completedBy: doneBy,
+    });
+    _state.persistent.items.splice(idx, 1);
     renderPersistent();
+    await persist();
+}
+
+async function restoreFromArchive(id) {
+    if (!_state.persistent || !Array.isArray(_state.persistent.archive)) return;
+    const idx = _state.persistent.archive.findIndex(x => x.id === id);
+    if (idx < 0) return;
+    const archived = _state.persistent.archive[idx];
+    if (!Array.isArray(_state.persistent.items)) _state.persistent.items = [];
+    _state.persistent.items.push({
+        id: archived.id,
+        name: archived.name || '',
+        priority: clampPriority(archived.priority),
+        note: archived.note || '',
+        doneBy: '',
+        createdAt: archived.createdAt || Date.now(),
+    });
+    _state.persistent.archive.splice(idx, 1);
+    renderPersistent();
+    renderPersArchive();
+    await persist();
+}
+
+async function deleteFromArchive(id) {
+    if (!_state.persistent || !Array.isArray(_state.persistent.archive)) return;
+    const archived = _state.persistent.archive.find(x => x.id === id);
+    if (!archived) return;
+    if (!confirm(`¿Eliminar "${archived.name || 'esta tarea'}" del archivo? No se puede deshacer.`)) return;
+    _state.persistent.archive = _state.persistent.archive.filter(x => x.id !== id);
+    renderPersistent();  // briefing may need refresh
+    renderPersArchive();
+    await persist();
+}
+
+async function purgePersArchive() {
+    const storeCode = getStoreCode();
+    if (!storeCode) return;
+    const pwd = prompt('Contraseña de la tienda para borrar TODO el archivo de tareas persistentes:');
+    if (pwd == null) return;
+    try {
+        const doc = await db.collection('stores').doc(storeCode).get();
+        if (!doc.exists || doc.data().password !== pwd) { alert('Contraseña incorrecta.'); return; }
+    } catch (e) { console.error(e); alert('Error verificando la contraseña.'); return; }
+    if (!confirm('Se borrará el archivo completo. ¿Continuar?')) return;
+    _state.persistent.archive = [];
+    renderPersistent();
+    renderPersArchive();
     await persist();
 }
 
@@ -569,40 +634,48 @@ function closePersArchive() { $('clPersArchiveOverlay').classList.remove('open')
 
 function renderPersArchive() {
     const body = $('clPersArchiveBody');
-    const log = (_state.persistent && Array.isArray(_state.persistent.log)) ? _state.persistent.log : [];
-    if (log.length === 0) {
-        body.innerHTML = '<div class="cl-hist-empty">Sin completados aún. Aquí se irán acumulando las tareas persistentes que marques como hechas.</div>';
+    const archive = (_state.persistent && Array.isArray(_state.persistent.archive)) ? _state.persistent.archive : [];
+    if (archive.length === 0) {
+        body.innerHTML = '<div class="cl-hist-empty">Sin tareas archivadas. Aquí caerán las persistentes que marques como hechas, con sus propiedades intactas para recuperarlas si hiciera falta.</div>';
         return;
     }
     // Group by local date (YYYY-MM-DD), latest first
     const byDate = new Map();
-    for (const h of log) {
-        const d = new Date(h.doneAt);
+    for (const a of archive) {
+        const d = new Date(a.completedAt);
         if (isNaN(d)) continue;
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         if (!byDate.has(key)) byDate.set(key, []);
-        byDate.get(key).push(h);
+        byDate.get(key).push(a);
     }
     const dates = Array.from(byDate.keys()).sort().reverse();
     const pad = n => String(n).padStart(2, '0');
     const daysHtml = dates.map(date => {
-        const entries = byDate.get(date).slice().sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
+        const entries = byDate.get(date).slice().sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
         const { label, sub, isToday } = formatHistoryDate(date);
-        const rowsHtml = entries.map(h => {
-            const d = new Date(h.doneAt);
+        const rowsHtml = entries.map(a => {
+            const d = new Date(a.completedAt);
             const time = isNaN(d) ? '--:--' : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            const hasNote = !!(a.note && a.note.trim());
             return `
-                <div class="cl-hist-row">
+                <div class="cl-arch-row">
                     <span class="cl-hist-time">${time}</span>
-                    <span class="cl-hist-name">${escapeHtml(h.taskName || '(sin nombre)')}</span>
-                    <span class="cl-hist-who done">${escapeHtml(h.doneBy || '—')}</span>
+                    <span class="cl-arch-name">${escapeHtml(a.name || '(sin nombre)')}</span>
+                    ${hasNote ? `<span class="cl-arch-note" title="${escapeHtml(a.note)}">📝</span>` : ''}
+                    <span class="cl-hist-who done">${escapeHtml(a.completedBy || '—')}</span>
+                    <button class="cl-arch-action cl-arch-restore" data-id="${a.id}" title="Recuperar a la lista de vigentes">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    </button>
+                    <button class="cl-arch-action cl-arch-delete" data-id="${a.id}" title="Eliminar del archivo">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                 </div>`;
         }).join('');
         return `
             <div class="cl-hist-day">
                 <div class="cl-hist-day-header">
                     <span class="cl-hist-day-label ${isToday ? 'today' : ''}">${escapeHtml(label)}</span>
-                    <span class="cl-hist-day-count">${sub} · ${entries.length} ${entries.length === 1 ? 'entrada' : 'entradas'}</span>
+                    <span class="cl-hist-day-count">${sub} · ${entries.length} ${entries.length === 1 ? 'tarea' : 'tareas'}</span>
                 </div>
                 <div class="cl-hist-rows">${rowsHtml}</div>
             </div>`;
@@ -1462,8 +1535,19 @@ function bindUI() {
     // Persistent archive modal
     $('btnPersArchive').addEventListener('click', openPersArchive);
     $('clPersArchiveClose').addEventListener('click', closePersArchive);
+    $('btnPurgePersArchive').addEventListener('click', purgePersArchive);
     $('clPersArchiveOverlay').addEventListener('click', (e) => {
         if (e.target === $('clPersArchiveOverlay')) closePersArchive();
+    });
+    $('clPersArchiveBody').addEventListener('click', (e) => {
+        const restore = e.target.closest('.cl-arch-restore');
+        if (restore) { restoreFromArchive(restore.getAttribute('data-id')); return; }
+        const del = e.target.closest('.cl-arch-delete');
+        if (del) { deleteFromArchive(del.getAttribute('data-id')); }
+    });
+    // Clicking the briefing header opens the full archive
+    document.addEventListener('click', (e) => {
+        if (e.target && e.target.id === 'clPersBriefOpen') openPersArchive();
     });
 
     // Persistent note modal

@@ -4,8 +4,11 @@ const CHANGELOG = [
         version: 'v0.8',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'new', text: 'Checklist · Tareas persistentes: marcar como hecha MUEVE la tarea al archivo en lugar de dejarla en la lista. La lista de vigentes queda siempre limpia. La tarea se guarda en el archivo con TODO su contenido (nombre, prioridad, nota) y se puede recuperar de vuelta a vigentes con un clic' },
+            { type: 'new', text: 'Checklist · Tareas persistentes: pequeño briefing "Recién archivadas" al pie de la lista de vigentes con las 3 últimas completadas (hora · tarea · quién). Clic → abre el archivo completo' },
+            { type: 'new', text: 'Checklist · Tareas persistentes: botón "Archivo" en la cabecera de la columna abre el modal con todas las tareas archivadas, agrupadas por fecha. Cada entrada tiene botones de Recuperar (↺) y Eliminar (✕). Botón "Limpiar" con contraseña en la cabecera del modal para vaciar todo de golpe' },
+            { type: 'fix', text: 'Checklist · Tareas persistentes: borrar una tarea ya no deja rastro en el archivo. Solo las que completas explícitamente aparecen archivadas' },
             { type: 'fix', text: 'Checklist: sincronización en tiempo real del módulo entre dispositivos (onSnapshot de Firestore). Cualquier cambio hecho en otro PC aparece sin refrescar, y las notas de las tareas persistentes ya no pueden ser pisadas por una pestaña con datos viejos' },
-            { type: 'new', text: 'Checklist · Tareas persistentes: botón "Archivo" en la cabecera de la columna. Abre un modal con todas las tareas completadas a lo largo del tiempo, agrupadas por fecha (más reciente arriba): hora · tarea · quién la hizo. Es un archivo global, no un historial por tarea' },
             { type: 'new', text: 'Xfer Reg · Resumen: segundo botón en la fila "Printed cover" que copia BoxID + Nombre + Categoría separados por tabs, listo para pegar en las columnas B/C/D de la plantilla de petición de carátulas' },
             { type: 'ui', text: 'Xfer Reg · Resumen: tabla con encabezados de columna (Estado / Uds / Unit price / % / IDs / Carátulas). Panel más estrecho, tabla centrada en lugar de estirada, y botones de copia con más aire' },
             { type: 'fix', text: 'Checklist · Histórico: se duplicaban entradas de días pasados (mezcla de versiones antiguas que auto-escribían en cada marca + archivo al "Iniciar {fecha}"). Ahora se deduplican al cargar y al archivar se hace upsert, no append' },
