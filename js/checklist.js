@@ -211,6 +211,25 @@ function applyRemoteData(data) {
     _state.persistent = (data && data.persistent && Array.isArray(data.persistent.items))
         ? data.persistent
         : { items: [] };
+    if (!Array.isArray(_state.persistent.log)) _state.persistent.log = [];
+    // Migrate per-task history entries (if any) into the global log. Idempotent:
+    // once a task's history is folded in, it's emptied so we don't re-copy.
+    let migrated = false;
+    for (const it of _state.persistent.items) {
+        if (Array.isArray(it.history) && it.history.length > 0) {
+            for (const h of it.history) {
+                _state.persistent.log.push({
+                    doneAt: h.doneAt,
+                    doneBy: h.doneBy || '',
+                    taskId: it.id,
+                    taskName: it.name || '',
+                });
+            }
+            delete it.history;
+            migrated = true;
+        }
+    }
+    if (migrated) persist().catch((e) => console.warn('persistent-log migration persist failed', e));
     let cleanedAny = false;
     for (const cl of _state.checklists) {
         if (!cl.items) cl.items = [];
@@ -404,29 +423,8 @@ function openNoteModal(task) {
     $('clNoteTitle').textContent = 'Notas · ' + (task.name || '(sin nombre)');
     $('clNoteText').value = task.note || '';
     renderNoteSigners();
-    renderNoteHistory(task);
     $('clNoteOverlay').classList.add('open');
     setTimeout(() => $('clNoteText').focus(), 60);
-}
-
-// Read-only list of completion events for the current persistent task.
-// Latest first; format "DD/MM HH:mm · Nombre".
-function renderNoteHistory(task) {
-    const box = $('clNoteHistory');
-    if (!box) return;
-    const hist = Array.isArray(task.history) ? task.history.slice() : [];
-    if (hist.length === 0) {
-        box.innerHTML = '<div class="cl-note-hist-empty">Aún no se ha marcado como hecha.</div>';
-        return;
-    }
-    hist.sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
-    const pad = n => String(n).padStart(2, '0');
-    const rows = hist.map(h => {
-        const d = new Date(h.doneAt);
-        const stamp = isNaN(d) ? '—' : `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        return `<div class="cl-note-hist-row"><span class="cl-note-hist-date">${stamp}</span><span class="cl-note-hist-who">${escapeHtml(h.doneBy || '—')}</span></div>`;
-    }).join('');
-    box.innerHTML = `<div class="cl-note-hist-title">Completada ${hist.length} ${hist.length === 1 ? 'vez' : 'veces'}</div>${rows}`;
 }
 
 function closeNoteModal() {
@@ -504,11 +502,18 @@ async function setPersistentDoneBy(id, doneBy) {
     if (!it) return;
     const previous = it.doneBy || '';
     it.doneBy = doneBy || '';
-    // Log a completion whenever we transition to an assigned name (and it's
-    // not a no-op re-pick of the same name). Un-assigning doesn't log.
+    // Log a completion to the global archive whenever we transition to an
+    // assigned name (and it's not a no-op re-pick of the same name).
+    // Un-assigning doesn't log. A task-name snapshot is stored so the log
+    // still reads correctly if the task is later renamed or deleted.
     if (doneBy && doneBy !== previous) {
-        if (!Array.isArray(it.history)) it.history = [];
-        it.history.push({ doneAt: new Date().toISOString(), doneBy });
+        if (!Array.isArray(_state.persistent.log)) _state.persistent.log = [];
+        _state.persistent.log.push({
+            doneAt: new Date().toISOString(),
+            doneBy,
+            taskId: it.id,
+            taskName: it.name || '',
+        });
     }
     renderPersistent();
     await persist();
@@ -553,6 +558,56 @@ function startPersNameEdit(nameEl, task) {
         else if (e.key === 'Escape') { e.preventDefault(); commit(false); }
     });
     input.addEventListener('blur', () => commit(true));
+}
+
+// === Persistent archive modal ===
+function openPersArchive() {
+    renderPersArchive();
+    $('clPersArchiveOverlay').classList.add('open');
+}
+function closePersArchive() { $('clPersArchiveOverlay').classList.remove('open'); }
+
+function renderPersArchive() {
+    const body = $('clPersArchiveBody');
+    const log = (_state.persistent && Array.isArray(_state.persistent.log)) ? _state.persistent.log : [];
+    if (log.length === 0) {
+        body.innerHTML = '<div class="cl-hist-empty">Sin completados aún. Aquí se irán acumulando las tareas persistentes que marques como hechas.</div>';
+        return;
+    }
+    // Group by local date (YYYY-MM-DD), latest first
+    const byDate = new Map();
+    for (const h of log) {
+        const d = new Date(h.doneAt);
+        if (isNaN(d)) continue;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (!byDate.has(key)) byDate.set(key, []);
+        byDate.get(key).push(h);
+    }
+    const dates = Array.from(byDate.keys()).sort().reverse();
+    const pad = n => String(n).padStart(2, '0');
+    const daysHtml = dates.map(date => {
+        const entries = byDate.get(date).slice().sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
+        const { label, sub, isToday } = formatHistoryDate(date);
+        const rowsHtml = entries.map(h => {
+            const d = new Date(h.doneAt);
+            const time = isNaN(d) ? '--:--' : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            return `
+                <div class="cl-hist-row">
+                    <span class="cl-hist-time">${time}</span>
+                    <span class="cl-hist-name">${escapeHtml(h.taskName || '(sin nombre)')}</span>
+                    <span class="cl-hist-who done">${escapeHtml(h.doneBy || '—')}</span>
+                </div>`;
+        }).join('');
+        return `
+            <div class="cl-hist-day">
+                <div class="cl-hist-day-header">
+                    <span class="cl-hist-day-label ${isToday ? 'today' : ''}">${escapeHtml(label)}</span>
+                    <span class="cl-hist-day-count">${sub} · ${entries.length} ${entries.length === 1 ? 'entrada' : 'entradas'}</span>
+                </div>
+                <div class="cl-hist-rows">${rowsHtml}</div>
+            </div>`;
+    }).join('');
+    body.innerHTML = daysHtml;
 }
 
 async function deletePersistentTask(id) {
@@ -1404,6 +1459,13 @@ function bindUI() {
         if (it) startPersNameEdit(nameEl, it);
     });
 
+    // Persistent archive modal
+    $('btnPersArchive').addEventListener('click', openPersArchive);
+    $('clPersArchiveClose').addEventListener('click', closePersArchive);
+    $('clPersArchiveOverlay').addEventListener('click', (e) => {
+        if (e.target === $('clPersArchiveOverlay')) closePersArchive();
+    });
+
     // Persistent note modal
     $('clNoteClose').addEventListener('click', closeNoteModal);
     $('clNoteCancel').addEventListener('click', closeNoteModal);
@@ -1421,6 +1483,7 @@ function bindUI() {
         else if ($('clTeamOverlay').classList.contains('open')) closeTeamModal();
         else if ($('clHistoryOverlay').classList.contains('open')) closeHistoryModal();
         else if ($('clNoteOverlay').classList.contains('open')) closeNoteModal();
+        else if ($('clPersArchiveOverlay').classList.contains('open')) closePersArchive();
     });
 }
 

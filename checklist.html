@@ -236,6 +236,7 @@
                 <div class="cl-pers-header">
                     <h3>Tareas persistentes</h3>
                     <span class="cl-pers-count" id="clPersCount">0 / 0</span>
+                    <button class="cl-pers-archive-btn" id="btnPersArchive" title="Ver archivo de tareas completadas">Archivo</button>
                 </div>
                 <p class="cl-pers-hint">Las que van surgiendo y conviene tener a la vista. Sin hora, sin reinicio diario.</p>
                 <form class="cl-pers-add" id="clPersAddForm">
@@ -330,6 +331,19 @@
         </div>
     </div>
 
+    <!-- Persistent-task archive (all completions, grouped by date) -->
+    <div class="cl-modal-overlay" id="clPersArchiveOverlay">
+        <div class="cl-modal cl-modal-wide">
+            <div class="cl-modal-header">
+                <h3>Archivo · Tareas persistentes completadas</h3>
+                <button class="cl-modal-close" id="clPersArchiveClose" aria-label="Cerrar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="cl-modal-body" id="clPersArchiveBody"></div>
+        </div>
+    </div>
+
     <!-- Persistent-task note modal -->
     <div class="cl-modal-overlay" id="clNoteOverlay">
         <div class="cl-modal cl-modal-wide">
@@ -347,7 +361,6 @@
                     <select id="clNoteSigner"></select>
                     <button type="button" class="btn btn-secondary btn-sm" id="clNoteSignBtn">Firmar</button>
                 </div>
-                <div class="cl-note-history" id="clNoteHistory"></div>
                 <div class="cl-modal-actions">
                     <button type="button" class="btn btn-secondary" id="clNoteCancel">Cancelar</button>
                     <button type="button" class="btn btn-accent" id="clNoteSave">Guardar</button>

@@ -1031,6 +1031,27 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     border-color: #93c5fd;
 }
 
+/* "Archivo" button in the persistent-tasks card header */
+.cl-pers-archive-btn {
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.cl-pers-archive-btn:hover {
+    color: var(--color-text);
+    background: var(--color-bg);
+    border-color: var(--color-text-lighter);
+}
+
 .cl-pers-delete {
     flex-shrink: 0;
     display: inline-flex;
@@ -1099,39 +1120,6 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     border-color: var(--color-primary);
 }
 
-.cl-note-history {
-    margin-top: 0.85rem;
-    padding-top: 0.65rem;
-    border-top: 1px dashed var(--color-border);
-}
-.cl-note-hist-title {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-weight: 600;
-    color: var(--color-text-lighter);
-    margin-bottom: 0.4rem;
-}
-.cl-note-hist-empty {
-    font-size: 0.72rem;
-    color: var(--color-text-lighter);
-    font-style: italic;
-}
-.cl-note-hist-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-    font-size: 0.72rem;
-    padding: 0.15rem 0;
-}
-.cl-note-hist-date {
-    color: var(--color-text-light);
-    font-variant-numeric: tabular-nums;
-}
-.cl-note-hist-who {
-    color: var(--color-text);
-    font-weight: 600;
-}
 
 /* === Responsive === */
 @media (max-width: 600px) {
