@@ -1,0 +1,16 @@
+# Editor / IDE local config
+.vscode/
+.idea/
+
+# OS noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs and env
+*.log
+.env
+.env.local
+
+# In case any npm tooling gets added later
+node_modules/
