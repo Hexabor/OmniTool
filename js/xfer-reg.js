@@ -1584,7 +1584,17 @@ function renderSummary() {
         const cost = items.reduce((s, it) => s + it._cost, 0);
         const pct = totalCost > 0 ? (cost / totalCost) * 100 : 0;
         const boxIds = items.map(it => it['BoxID'] || '').filter(Boolean);
-        return { status, count, cost, pct, boxIds };
+        // For "Printed cover" only: TSV of BoxID + Box Name + Box Category
+        // so it pastes directly into the cover-request spreadsheet template
+        // (columns B, C, D — first three data columns after the row number).
+        const tsv = status === 'Printed cover'
+            ? items.map(it => [
+                  (it['BoxID'] || '').trim(),
+                  (it['Box Name'] || '').trim(),
+                  (it['Box Category'] || '').trim()
+              ].join('\t')).join('\n')
+            : '';
+        return { status, count, cost, pct, boxIds, tsv };
     });
 
     const totalDiscountCount = discountRows.reduce((s, r) => s + r.count, 0);
@@ -1621,15 +1631,33 @@ function renderSummary() {
 
         <div class="summary-section-title">Descontado por estado</div>
         <table class="summary-table">
+            <thead>
+                <tr>
+                    <th class="s-label">Estado</th>
+                    <th class="s-count">Uds</th>
+                    <th class="s-cost">Unit price</th>
+                    <th class="s-pct">%</th>
+                    <th class="s-copy" title="Copiar para global fulfilment">IDs</th>
+                    <th class="s-copy" title="Copiar para petición de printing">Carátulas</th>
+                </tr>
+            </thead>
+            <tbody>
             ${discountRows.map(r => `
                 <tr>
                     <td class="s-label">${r.status}</td>
                     <td class="s-count">${r.count}</td>
                     <td class="s-cost">${r.cost.toFixed(2)} €</td>
                     <td class="s-pct">${r.pct.toFixed(2)}%</td>
-                    <td class="s-copy">${r.count > 0 ? `<button class="btn-copy-ids" data-ids="${r.boxIds.join('\n').replace(/"/g, '&quot;')}" title="Copiar BoxIDs">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    </button>` : ''}</td>
+                    <td class="s-copy">${r.count > 0 ? `
+                        <button class="btn-copy-ids" data-ids="${r.boxIds.join('\n').replace(/"/g, '&quot;')}" title="Copiar BoxIDs">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                    ` : ''}</td>
+                    <td class="s-copy">${r.status === 'Printed cover' && r.count > 0 ? `
+                        <button class="btn-copy-tsv" data-tsv="${r.tsv.replace(/"/g, '&quot;')}" title="Copiar BoxID + Nombre + Categoría para pegar en la plantilla de carátulas (cols. B, C, D)">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                        </button>
+                    ` : ''}</td>
                 </tr>
             `).join('')}
             <tr class="s-total-row">
@@ -1638,7 +1666,9 @@ function renderSummary() {
                 <td class="s-cost">${totalDiscountCost.toFixed(2)} €</td>
                 <td class="s-pct">${totalDiscountPct.toFixed(2)}%</td>
                 <td class="s-copy"></td>
+                <td class="s-copy"></td>
             </tr>
+            </tbody>
         </table>
 
         <div class="summary-section-title">Valor efectivo</div>
@@ -1721,6 +1751,19 @@ document.addEventListener('click', (e) => {
     const ids = btn.dataset.ids;
     if (!ids) return;
     navigator.clipboard.writeText(ids).then(() => {
+        btn.classList.add('copied');
+        setTimeout(() => btn.classList.remove('copied'), 1500);
+    });
+});
+
+// Printed cover: copy BoxID + Name + Category as TSV for the cover-request
+// spreadsheet. Pastes directly into columns B/C/D starting at the first data row.
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-copy-tsv');
+    if (!btn) return;
+    const tsv = btn.dataset.tsv;
+    if (!tsv) return;
+    navigator.clipboard.writeText(tsv).then(() => {
         btn.classList.add('copied');
         setTimeout(() => btn.classList.remove('copied'), 1500);
     });

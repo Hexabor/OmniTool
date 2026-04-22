@@ -897,7 +897,7 @@
     background: var(--color-surface);
     border-radius: var(--radius);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    width: 480px;
+    width: 440px;
     max-width: 90vw;
     max-height: 85vh;
     display: flex;
@@ -962,24 +962,47 @@
 }
 
 .summary-table {
-    width: 100%;
     border-collapse: collapse;
     font-size: 0.78rem;
-    margin-bottom: 1.25rem;
+    margin: 0 auto 1.25rem;
 }
 
-.summary-table td {
-    padding: 0.3rem 0;
+.summary-table td,
+.summary-table th {
+    padding: 0.35rem 0.55rem;
     vertical-align: middle;
 }
+.summary-table td:first-child,
+.summary-table th:first-child {
+    padding-left: 0;
+}
+.summary-table td:last-child,
+.summary-table th:last-child {
+    padding-right: 0;
+}
+
+.summary-table thead th {
+    font-size: 0.64rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-lighter);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.3rem;
+    text-align: right;
+    white-space: nowrap;
+}
+.summary-table thead th.s-label { text-align: left; }
+.summary-table thead th.s-copy { text-align: center; }
 
 .summary-table .s-label {
     color: var(--color-text-light);
+    white-space: nowrap;
 }
 
 .summary-table .s-count {
     text-align: right;
-    width: 3rem;
+    width: 2.5rem;
     font-variant-numeric: tabular-nums;
 }
 
@@ -1113,12 +1136,11 @@
     background: none;
     border: 1px solid var(--color-border);
     border-radius: 3px;
-    padding: 0.15rem;
+    padding: 0.25rem;
     cursor: pointer;
     color: var(--color-text-lighter);
     transition: all 0.15s;
     vertical-align: middle;
-    margin-left: 0.3rem;
 }
 
 .btn-copy-ids:hover {
@@ -1132,8 +1154,32 @@
 }
 
 .s-copy {
-    width: 1.5rem;
+    width: 2.2rem;
     text-align: center;
+}
+
+/* Copy-as-TSV button (Printed cover only — dumps 3 columns for the
+   cover-request spreadsheet) */
+.btn-copy-tsv {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--color-text-lighter);
+    transition: all 0.15s;
+    vertical-align: middle;
+}
+.btn-copy-tsv:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.btn-copy-tsv.copied {
+    color: #22c55e;
+    border-color: #22c55e;
 }
 
 /* Stacked button pairs */

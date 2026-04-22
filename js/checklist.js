@@ -186,10 +186,13 @@ function insertByTime(items, newItem) {
 }
 
 // === Firestore ===
-async function load() {
-    const data = await loadModuleData(MODULE);
-    // Migration: Phase 1 stored { items: [...] } at top level. Wrap into one checklist.
+let _unsubscribe = null;
+
+// Map server data into _state. Runs on every snapshot, including our own
+// writes after round-trip (they're benign — local state is already correct).
+function applyRemoteData(data) {
     if (data && Array.isArray(data.items) && !Array.isArray(data.checklists)) {
+        // Migration: Phase 1 stored { items: [...] } at top level.
         _state.checklists = [{
             id: uuid('ck_'),
             name: 'Apertura',
@@ -197,7 +200,7 @@ async function load() {
                 id: it.id || uuid(),
                 time: it.time || '',
                 name: it.name || '',
-                doneBy: '',  // reset: Phase 1 had no staff list to attribute to
+                doneBy: '',
             })),
         }];
         _state.staff = [];
@@ -205,29 +208,57 @@ async function load() {
         _state.checklists = (data && Array.isArray(data.checklists)) ? data.checklists : [];
         _state.staff = (data && Array.isArray(data.staff)) ? data.staff : [];
     }
-    // Persistent (right column) list — separate from the daily checklists
     _state.persistent = (data && data.persistent && Array.isArray(data.persistent.items))
         ? data.persistent
         : { items: [] };
-    // Normalise: until the user explicitly reorders, array order should follow time.
-    // This also migrates older data (which used render-time sort) to an array-is-truth model.
     let cleanedAny = false;
     for (const cl of _state.checklists) {
         if (!cl.items) cl.items = [];
         if (!cl.manualOrder) sortItemsByTime(cl.items);
-        // Clean up legacy duplicate history entries (see dedupHistory).
         if (dedupHistory(cl)) cleanedAny = true;
     }
-    // If dedup collapsed anything, push the clean version back so other
-    // devices don't have to re-clean. Background write — don't block init.
     if (cleanedAny) persist().catch((e) => console.warn('history dedup persist failed', e));
-    // Restore active checklist preference
     const storedActive = localStorage.getItem(activeKey());
     if (storedActive && _state.checklists.find(c => c.id === storedActive)) {
         _state.activeId = storedActive;
-    } else {
+    } else if (!_state.checklists.find(c => c.id === _state.activeId)) {
         _state.activeId = _state.checklists[0]?.id || null;
     }
+}
+
+// Real-time subscription to the checklist module doc. Updates arrive from any
+// device on the same store; our own writes also echo back here (filtered via
+// hasPendingWrites — the snapshot is local-only until the server confirms).
+// This kills the clobber bug where device B, holding stale state, would save
+// without device A's recent note and silently delete it.
+async function load() {
+    const ref = storeDocRef(MODULE);
+    if (!ref) return;
+    if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
+    return new Promise((resolve, reject) => {
+        let firstSnapshot = true;
+        _unsubscribe = ref.onSnapshot(
+            { includeMetadataChanges: false },
+            snap => {
+                // Local pending writes: state already reflects them, skip to
+                // avoid re-rendering over in-progress DOM (e.g. open modals).
+                if (snap.metadata.hasPendingWrites && !firstSnapshot) return;
+                const data = snap.exists ? snap.data() : null;
+                applyRemoteData(data);
+                if (firstSnapshot) {
+                    firstSnapshot = false;
+                    resolve();
+                } else {
+                    // Remote update: refresh all derived UI.
+                    renderAll();
+                }
+            },
+            err => {
+                console.error('[checklist] snapshot error:', err);
+                if (firstSnapshot) { firstSnapshot = false; reject(err); }
+            }
+        );
+    });
 }
 
 // Full write without merge — mirrors the adjustments module fix so that
@@ -373,8 +404,29 @@ function openNoteModal(task) {
     $('clNoteTitle').textContent = 'Notas · ' + (task.name || '(sin nombre)');
     $('clNoteText').value = task.note || '';
     renderNoteSigners();
+    renderNoteHistory(task);
     $('clNoteOverlay').classList.add('open');
     setTimeout(() => $('clNoteText').focus(), 60);
+}
+
+// Read-only list of completion events for the current persistent task.
+// Latest first; format "DD/MM HH:mm · Nombre".
+function renderNoteHistory(task) {
+    const box = $('clNoteHistory');
+    if (!box) return;
+    const hist = Array.isArray(task.history) ? task.history.slice() : [];
+    if (hist.length === 0) {
+        box.innerHTML = '<div class="cl-note-hist-empty">Aún no se ha marcado como hecha.</div>';
+        return;
+    }
+    hist.sort((a, b) => (b.doneAt || '').localeCompare(a.doneAt || ''));
+    const pad = n => String(n).padStart(2, '0');
+    const rows = hist.map(h => {
+        const d = new Date(h.doneAt);
+        const stamp = isNaN(d) ? '—' : `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `<div class="cl-note-hist-row"><span class="cl-note-hist-date">${stamp}</span><span class="cl-note-hist-who">${escapeHtml(h.doneBy || '—')}</span></div>`;
+    }).join('');
+    box.innerHTML = `<div class="cl-note-hist-title">Completada ${hist.length} ${hist.length === 1 ? 'vez' : 'veces'}</div>${rows}`;
 }
 
 function closeNoteModal() {
@@ -450,7 +502,14 @@ async function addPersistentTask(name) {
 async function setPersistentDoneBy(id, doneBy) {
     const it = _state.persistent && _state.persistent.items.find(x => x.id === id);
     if (!it) return;
+    const previous = it.doneBy || '';
     it.doneBy = doneBy || '';
+    // Log a completion whenever we transition to an assigned name (and it's
+    // not a no-op re-pick of the same name). Un-assigning doesn't log.
+    if (doneBy && doneBy !== previous) {
+        if (!Array.isArray(it.history)) it.history = [];
+        it.history.push({ doneAt: new Date().toISOString(), doneBy });
+    }
     renderPersistent();
     await persist();
 }

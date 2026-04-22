@@ -4,6 +4,10 @@ const CHANGELOG = [
         version: 'v0.8',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'fix', text: 'Checklist: sincronización en tiempo real del módulo entre dispositivos (onSnapshot de Firestore). Cualquier cambio hecho en otro PC aparece sin refrescar, y las notas de las tareas persistentes ya no pueden ser pisadas por una pestaña con datos viejos' },
+            { type: 'new', text: 'Checklist · Tareas persistentes: historial de completado por tarea — cada vez que se marca como hecha queda registrado con fecha, hora y quién. Se ve dentro del modal de Notas (sección inferior), lo más reciente arriba' },
+            { type: 'new', text: 'Xfer Reg · Resumen: segundo botón en la fila "Printed cover" que copia BoxID + Nombre + Categoría separados por tabs, listo para pegar en las columnas B/C/D de la plantilla de petición de carátulas' },
+            { type: 'ui', text: 'Xfer Reg · Resumen: tabla con encabezados de columna (Estado / Uds / Unit price / % / IDs / Carátulas). Panel más estrecho, tabla centrada en lugar de estirada, y botones de copia con más aire' },
             { type: 'fix', text: 'Checklist · Histórico: se duplicaban entradas de días pasados (mezcla de versiones antiguas que auto-escribían en cada marca + archivo al "Iniciar {fecha}"). Ahora se deduplican al cargar y al archivar se hace upsert, no append' },
             { type: 'new', text: 'Checklist · Histórico: botón temporal "Limpiar" en la cabecera del modal — borra todo el histórico de la tienda tras pedir contraseña, por si alguien tenía datos ya corruptos' },
             { type: 'new', text: 'App: favicon personalizado — capibara para el home, y cada módulo tiene su icono con su color (Checklist morado, Garantías ámbar, Xfer Reg azul, Ajustes indigo). Al ver pestañas abiertas a la vez, sabes de qué va cada una de un vistazo' },
