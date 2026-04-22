@@ -4,6 +4,7 @@
 
 const MODULE = 'checklist';
 const ACTIVE_KEY_PREFIX = 'checklist_active_'; // + storeCode
+const NOTE_SIGNER_KEY_PREFIX = 'checklist_note_signer_'; // + storeCode
 
 let _state = {
     checklists: [],     // [{ id, name, manualOrder, cycleDate, items, history }]
@@ -12,6 +13,7 @@ let _state = {
     activeId: null,
     editingTaskId: null,
     afterTaskId: null,  // when set on submit: new item is inserted right after this task
+    editingPersNoteId: null,  // persistent task whose note is open in the note modal
     renamingChecklistId: null,  // when set: rename flow; null = new-checklist flow
     editMode: false,
     draggedId: null,
@@ -301,6 +303,7 @@ function renderPersistent() {
     list.innerHTML = sorted.map(it => {
         const isDone = !!it.doneBy;
         const priority = clampPriority(it.priority);
+        const hasNote = !!(it.note && it.note.trim());
         const staffOptions = _state.staff.map(s =>
             `<option value="${escapeHtml(s)}" ${it.doneBy === s ? 'selected' : ''}>${escapeHtml(s)}</option>`
         ).join('');
@@ -309,16 +312,16 @@ function renderPersistent() {
             : '';
         return `
         <div class="cl-pers-task ${isDone ? 'done' : ''}" data-id="${it.id}">
-            <span class="cl-pers-name">${escapeHtml(it.name)}</span>
+            <span class="cl-pers-name" title="Doble clic para renombrar">${escapeHtml(it.name)}</span>
             <div class="cl-pers-controls">
                 <select class="cl-pers-doneby ${isDone ? 'assigned' : ''}" data-id="${it.id}" ${noStaff ? 'disabled title="Configura el equipo primero"' : ''}>
                     <option value="" ${!isDone ? 'selected' : ''}>${noStaff ? '— añade equipo —' : '— Sin hacer —'}</option>
                     ${lostStaffOption}
                     ${staffOptions}
                 </select>
-                <label class="cl-pers-priority-row">
-                    <span class="cl-pers-priority-label">Prioridad</span>
-                    <select class="cl-pers-priority" data-id="${it.id}" style="background:${priorityColor(priority).bg};color:${priorityColor(priority).textColor}">
+                <div class="cl-pers-priority-row">
+                    <button class="cl-pers-note ${hasNote ? 'has-note' : ''}" data-id="${it.id}" title="${hasNote ? 'Ver / editar notas' : 'Añadir notas'}" aria-label="Notas">Notas</button>
+                    <select class="cl-pers-priority" data-id="${it.id}" title="Prioridad" style="background:${priorityColor(priority).bg};color:${priorityColor(priority).textColor}">
                         ${(() => {
                             // Highest priority at the top of the rollup, lowest at the bottom
                             const opts = [];
@@ -329,13 +332,83 @@ function renderPersistent() {
                             return opts.join('');
                         })()}
                     </select>
-                </label>
+                </div>
             </div>
             <button class="cl-pers-delete" data-id="${it.id}" title="Eliminar" aria-label="Eliminar">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>`;
     }).join('');
+}
+
+// === Persistent task: free-form note modal ===
+// Single shared textarea per task. Multiple people can add lines and use the
+// "Firmar" button to stamp their name + dd/mm hh:mm at the cursor, so the log
+// reads naturally without needing structured comment entries.
+function noteSignerKey() { return NOTE_SIGNER_KEY_PREFIX + (getStoreCode() || ''); }
+
+function openNoteModal(task) {
+    _state.editingPersNoteId = task.id;
+    $('clNoteTitle').textContent = 'Notas · ' + (task.name || '(sin nombre)');
+    $('clNoteText').value = task.note || '';
+    renderNoteSigners();
+    $('clNoteOverlay').classList.add('open');
+    setTimeout(() => $('clNoteText').focus(), 60);
+}
+
+function closeNoteModal() {
+    $('clNoteOverlay').classList.remove('open');
+    _state.editingPersNoteId = null;
+}
+
+function renderNoteSigners() {
+    const sel = $('clNoteSigner');
+    const btn = $('clNoteSignBtn');
+    if (_state.staff.length === 0) {
+        sel.innerHTML = '<option value="">— configura el equipo primero —</option>';
+        sel.disabled = true;
+        btn.disabled = true;
+        return;
+    }
+    sel.disabled = false;
+    btn.disabled = false;
+    const stored = localStorage.getItem(noteSignerKey());
+    const preselect = (stored && _state.staff.includes(stored)) ? stored : _state.staff[0];
+    sel.innerHTML = _state.staff.map(s =>
+        `<option value="${escapeHtml(s)}" ${s === preselect ? 'selected' : ''}>${escapeHtml(s)}</option>`
+    ).join('');
+}
+
+function insertSignature() {
+    const signer = $('clNoteSigner').value;
+    if (!signer) return;
+    localStorage.setItem(noteSignerKey(), signer);
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const stamp = `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const sig = `— ${signer}, ${stamp}\n`;
+    const ta = $('clNoteText');
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? ta.value.length;
+    const before = ta.value.substring(0, start);
+    const after = ta.value.substring(end);
+    // Ensure the signature starts on its own line
+    const needsLead = before && !before.endsWith('\n');
+    const insert = (needsLead ? '\n' : '') + sig;
+    ta.value = before + insert + after;
+    const caret = (before + insert).length;
+    ta.setSelectionRange(caret, caret);
+    ta.focus();
+}
+
+async function saveNote() {
+    if (!_state.editingPersNoteId) return;
+    const it = _state.persistent && _state.persistent.items.find(x => x.id === _state.editingPersNoteId);
+    if (!it) { closeNoteModal(); return; }
+    it.note = $('clNoteText').value;
+    closeNoteModal();
+    renderPersistent();
+    await persist();
 }
 
 async function addPersistentTask(name) {
@@ -367,6 +440,39 @@ async function setPersistentPriority(id, value) {
     it.priority = clampPriority(value);
     renderPersistent();
     await persist();
+}
+
+// Inline rename of a persistent task. Double-click the name span to turn it
+// into an input; Enter or blur saves, Escape reverts. A re-render restores
+// the row layout cleanly afterwards (simpler than surgically swapping back).
+function startPersNameEdit(nameEl, task) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'cl-pers-name-edit';
+    input.value = task.name || '';
+    input.maxLength = 140;
+    nameEl.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let done = false;
+    const commit = async (save) => {
+        if (done) return;
+        done = true;
+        if (save) {
+            const v = input.value.trim();
+            if (v && v !== task.name) {
+                task.name = v;
+                await persist();
+            }
+        }
+        renderPersistent();
+    };
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(true); }
+        else if (e.key === 'Escape') { e.preventDefault(); commit(false); }
+    });
+    input.addEventListener('blur', () => commit(true));
 }
 
 async function deletePersistentTask(id) {
@@ -1170,9 +1276,32 @@ function bindUI() {
         }
     });
     $('clPersList').addEventListener('click', (e) => {
+        const noteBtn = e.target.closest('.cl-pers-note');
+        if (noteBtn) {
+            const it = _state.persistent && _state.persistent.items.find(x => x.id === noteBtn.getAttribute('data-id'));
+            if (it) openNoteModal(it);
+            return;
+        }
         const delBtn = e.target.closest('.cl-pers-delete');
-        if (!delBtn) return;
-        deletePersistentTask(delBtn.getAttribute('data-id'));
+        if (delBtn) deletePersistentTask(delBtn.getAttribute('data-id'));
+    });
+    // Double-click the name to rename inline
+    $('clPersList').addEventListener('dblclick', (e) => {
+        const nameEl = e.target.closest('.cl-pers-name');
+        if (!nameEl) return;
+        const row = nameEl.closest('.cl-pers-task');
+        if (!row) return;
+        const it = _state.persistent && _state.persistent.items.find(x => x.id === row.getAttribute('data-id'));
+        if (it) startPersNameEdit(nameEl, it);
+    });
+
+    // Persistent note modal
+    $('clNoteClose').addEventListener('click', closeNoteModal);
+    $('clNoteCancel').addEventListener('click', closeNoteModal);
+    $('clNoteSave').addEventListener('click', saveNote);
+    $('clNoteSignBtn').addEventListener('click', insertSignature);
+    $('clNoteOverlay').addEventListener('click', (e) => {
+        if (e.target === $('clNoteOverlay')) closeNoteModal();
     });
 
     // ESC closes any open modal
@@ -1182,6 +1311,7 @@ function bindUI() {
         else if ($('clNameOverlay').classList.contains('open')) closeNameModal();
         else if ($('clTeamOverlay').classList.contains('open')) closeTeamModal();
         else if ($('clHistoryOverlay').classList.contains('open')) closeHistoryModal();
+        else if ($('clNoteOverlay').classList.contains('open')) closeNoteModal();
     });
 }
 

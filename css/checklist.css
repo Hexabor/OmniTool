@@ -910,6 +910,23 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     color: var(--color-text);
     line-height: 1.25;
     word-break: break-word;
+    cursor: text;
+}
+.cl-pers-name-edit {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--color-text);
+    line-height: 1.25;
+    padding: 0.1rem 0.35rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: #fff;
+}
+.cl-pers-name-edit:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 .cl-pers-controls {
     display: flex;
@@ -946,11 +963,6 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     gap: 0.35rem;
     justify-content: flex-end;
 }
-.cl-pers-priority-label {
-    font-size: 0.6rem;
-    color: var(--color-text-light);
-    font-weight: 600;
-}
 .cl-pers-priority {
     padding: 0.15rem 0.3rem;
     border: 1px solid var(--color-border);
@@ -969,6 +981,37 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
 .cl-pers-task.done .cl-pers-priority-row {
     opacity: 0.55;
 }
+/* "Notas" pill — lives where the "Prioridad" label used to. Always clickable
+   (opens the note modal); styled subtly when empty, coloured when there's
+   content to read. */
+.cl-pers-note {
+    font-family: inherit;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-lighter);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.cl-pers-note:hover {
+    color: var(--color-text);
+    border-color: var(--color-border);
+    background: var(--color-bg);
+}
+.cl-pers-note.has-note {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: var(--color-primary);
+}
+.cl-pers-note.has-note:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
 .cl-pers-delete {
     flex-shrink: 0;
     display: inline-flex;
@@ -987,6 +1030,54 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     background: #fef2f2;
     border-color: #fecaca;
     color: var(--color-danger);
+}
+
+/* === Persistent task: free-form note modal === */
+#clNoteText {
+    display: block;
+    width: 100%;
+    min-height: 260px;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--color-text);
+    background: #fff;
+    resize: vertical;
+}
+#clNoteText:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.cl-note-sign {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+.cl-note-sign-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    flex-shrink: 0;
+}
+.cl-note-sign select {
+    flex: 1;
+    min-width: 0;
+    padding: 0.28rem 0.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-size: 0.78rem;
+    color: var(--color-text);
+    cursor: pointer;
+}
+.cl-note-sign select:focus {
+    outline: none;
+    border-color: var(--color-primary);
 }
 
 /* === Responsive === */

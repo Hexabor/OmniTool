@@ -4,6 +4,10 @@ const CHANGELOG = [
         version: 'v0.8',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'new', text: 'App: favicon personalizado — capibara para el home, y cada módulo tiene su icono con su color (Checklist morado, Garantías ámbar, Xfer Reg azul, Ajustes indigo). Al ver pestañas abiertas a la vez, sabes de qué va cada una de un vistazo' },
+            { type: 'new', text: 'Checklist · Tareas persistentes: cada tarea puede llevar una nota libre — consejos, pasos, contexto. Abierta desde la píldora "Notas" en la fila. Modal con textarea + botón "Firmar" que inserta tu nombre y la fecha al final de tu aportación' },
+            { type: 'new', text: 'Checklist · Tareas persistentes: doble clic en el nombre para renombrar una tarea inline (Enter guarda, Escape cancela)' },
+            { type: 'ui', text: 'Checklist · Tareas persistentes: la palabra "Prioridad" se retira de la fila; aparece como tooltip al pasar el ratón por el rollup. Su sitio lo ocupa la píldora "Notas" (azul llena si la tarea tiene contenido, outline tenue si no)' },
             { type: 'ui', text: 'App: escala global más compacta — root a 15 px (antes 16 px), paddings/tarjetas del home y logo reducidos. Todo el resto de la app escala con los rem' },
             { type: 'ui', text: 'Checklist: tipografía y padding de los bloques de tarea reducidos ~25 % para un aire más minimalista' },
             { type: 'ui', text: 'Checklist: el chip "hace N días" se achica y pasa a apilarse bajo la hora — las filas ya no se estiran por la píldora' },
