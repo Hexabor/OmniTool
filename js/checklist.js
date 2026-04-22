@@ -68,17 +68,41 @@ function computeDaysSince(task, refDate) {
     return n == null ? null : Math.max(0, n);
 }
 
-function isCritical(task, refDate) {
+// Days since the task was last "processed" — done OR skipped, whichever
+// happened most recently across the checklist's history. Falls back to
+// lastDoneDate / creation date if nothing in history yet. This drives the
+// critical-alarm decision so that explicitly skipping a task counts as
+// handling it for the purposes of not raising a red flag later.
+function computeDaysSinceProcessed(task, refDate, checklist) {
+    let ref = null;
+    if (checklist && Array.isArray(checklist.history)) {
+        for (const h of checklist.history) {
+            if (h.taskId !== task.id) continue;
+            if (!h.doneBy && !h.skipped) continue;  // ignore "sin marcar" entries
+            if (!ref || h.date > ref) ref = h.date;
+        }
+    }
+    if (!ref) ref = task.lastDoneDate || taskCreationDate(task);
+    if (!ref) return null;
+    const target = refDate || todayISO();
+    const n = daysBetween(ref, target);
+    return n == null ? null : Math.max(0, n);
+}
+
+function isCritical(task, refDate, checklist) {
     // A task processed in the current cycle isn't critical — it's already done
     // or explicitly skipped for this cycle.
     if (task.doneBy || task.skipped) return false;
     const threshold = Number(task.criticalEveryDays);
     if (!threshold || threshold <= 0) return false;
-    const days = computeDaysSince(task, refDate);
+    // Measure against "last processed" (done OR skipped) so that skipping a
+    // task — an explicit decision that it didn't need doing — doesn't let the
+    // alarm fire on the next cycle just because the clock moved forward.
+    const days = computeDaysSinceProcessed(task, refDate, checklist);
     // Strictly greater than the threshold: "N días sin hacerla ANTES de
     // crítica" means the alarm fires on day N+1 of inactivity. So a daily
     // task (threshold 1) stays neutral on its normal cycle day and only
-    // flags red if actually skipped for 2+ days.
+    // flags red if it's been ignored for 2+ days with no skip either.
     return days != null && days > threshold;
 }
 
@@ -98,9 +122,9 @@ function overdueMinutes(task) {
 // its own red styling so we don't stack two reds — skip the tint when critical.
 // Also skipped when cycleDate !== today: you're looking at a stale cycle, every
 // scheduled time has already passed and the list would be all red — noise.
-function overdueClass(task, refDate) {
+function overdueClass(task, refDate, checklist) {
     if (task.doneBy || task.skipped) return '';
-    if (isCritical(task, refDate)) return '';
+    if (isCritical(task, refDate, checklist)) return '';
     if (refDate && refDate !== todayISO()) return '';
     const min = overdueMinutes(task);
     if (min == null || min < 0) return '';
@@ -786,21 +810,23 @@ function renderTasks() {
         const separator = (!_state.editMode && thisProcessed && !prevProcessed)
             ? '<div class="cl-separator" aria-hidden="true"></div>'
             : '';
-        const critical = isCritical(it, refDate);
+        const critical = isCritical(it, refDate, active);
         const rowState = [
             isDone ? 'done' : (isSkipped ? 'skipped' : ''),
             critical ? 'critical' : '',
-            overdueClass(it, refDate),
+            overdueClass(it, refDate, active),
         ].filter(Boolean).join(' ');
         const selValue = isDone ? it.doneBy : (isSkipped ? '__skip__' : '');
         const selectClass = isDone ? 'assigned' : (isSkipped ? 'skipped' : '');
-        // Age chip: only shown when the task has a criticality threshold
-        // configured AND it's been more than one day without being processed.
-        // Tasks without criticality don't get the chip at all — it was noise
-        // on lists where most items are just daily routine.
+        // Age chip: only shown for PENDING tasks (not done, not skipped)
+        // with a criticality threshold configured and more than one day
+        // without being processed. Skipped tasks are intentionally skipped
+        // (no deadline) and done ones are already handled — neither should
+        // carry an alert.
         const daysSince = computeDaysSince(it, refDate);
         const hasCriticality = Number(it.criticalEveryDays) > 0;
-        const ageHtml = (hasCriticality && daysSince != null && daysSince > 1) ? `
+        const isPending = !isDone && !isSkipped;
+        const ageHtml = (isPending && hasCriticality && daysSince != null && daysSince > 1) ? `
             <span class="cl-age ${critical ? 'cl-age-critical' : ''}" title="Hace ${daysSince} días desde la última vez marcada como hecha · crítica tras ${it.criticalEveryDays} día${it.criticalEveryDays === 1 ? '' : 's'} sin hacer">
                 ${critical ? '⚠ ' : ''}hace ${daysSince} días
             </span>` : '';
@@ -1593,7 +1619,7 @@ function refreshOverdueStyles() {
         const row = document.querySelector(`.cl-task[data-id="${it.id}"]`);
         if (!row) continue;
         row.classList.remove(...OVERDUE_CLASSES);
-        const cls = overdueClass(it, refDate);
+        const cls = overdueClass(it, refDate, active);
         if (cls) row.classList.add(cls);
     }
 }

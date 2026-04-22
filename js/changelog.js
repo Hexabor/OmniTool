@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '23/04/2026',
+        version: 'v0.9',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'fix', text: 'Checklist: saltar una tarea ahora cuenta como "procesarla" para la alerta roja. Si una tarea con umbral crítico de 1 día se saltó ayer, hoy no salta en rojo — queda solo con el chip "hace N días" en gris. El rojo se reserva para tareas que llevan más del umbral sin hacer NI saltar' },
+        ]
+    },
+    {
         date: '22/04/2026',
         version: 'v0.8',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'ui', text: 'Checklist · Tareas persistentes: la cabecera de la columna reordenada — título a la izquierda, contador y botón Archivo agrupados a la derecha' },
             { type: 'ui', text: 'Checklist · Tareas persistentes: el contador vuelve al formato X / Y, ahora como progreso del día (archivadas hoy / total del día). Empieza en 0/N y sube mientras completas' },
