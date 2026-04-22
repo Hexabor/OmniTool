@@ -135,6 +135,21 @@ function pruneHistory(checklist) {
     checklist.history = checklist.history.filter(h => h.date >= cutoff);
 }
 
+// Collapse duplicate history entries for the same (date, taskId). Last one
+// wins — which is by design, as archive entries (written by startNewDay) come
+// chronologically after per-mark entries from the legacy auto-recorder that
+// used to run on every setTaskState call. Returns true if anything collapsed.
+function dedupHistory(checklist) {
+    if (!Array.isArray(checklist.history)) return false;
+    const before = checklist.history.length;
+    const seen = new Map();
+    for (const h of checklist.history) {
+        seen.set(h.date + '|' + h.taskId, h);
+    }
+    checklist.history = Array.from(seen.values());
+    return checklist.history.length !== before;
+}
+
 // At least one daily checklist has a cycleDate older than today (or missing).
 // Drives the enabled state of the "Iniciar nuevo día" button.
 function needsNewDay() {
@@ -196,10 +211,16 @@ async function load() {
         : { items: [] };
     // Normalise: until the user explicitly reorders, array order should follow time.
     // This also migrates older data (which used render-time sort) to an array-is-truth model.
+    let cleanedAny = false;
     for (const cl of _state.checklists) {
         if (!cl.items) cl.items = [];
         if (!cl.manualOrder) sortItemsByTime(cl.items);
+        // Clean up legacy duplicate history entries (see dedupHistory).
+        if (dedupHistory(cl)) cleanedAny = true;
     }
+    // If dedup collapsed anything, push the clean version back so other
+    // devices don't have to re-clean. Background write — don't block init.
+    if (cleanedAny) persist().catch((e) => console.warn('history dedup persist failed', e));
     // Restore active checklist preference
     const storedActive = localStorage.getItem(activeKey());
     if (storedActive && _state.checklists.find(c => c.id === storedActive)) {
@@ -908,15 +929,18 @@ async function startNewDay() {
         if (!Array.isArray(cl.history)) cl.history = [];
         const cycleDate = cl.cycleDate;
         // Archive every task, including those without a mark — so the history
-        // reflects what actually happened (and didn't).
+        // reflects what actually happened (and didn't). Upsert by (date,taskId)
+        // so re-archiving or legacy per-mark entries never double up.
+        const keep = cl.history.filter(h => h.date !== cycleDate || !(cl.items || []).some(it => it.id === h.taskId));
         for (const it of (cl.items || [])) {
-            cl.history.push({
+            keep.push({
                 date: cycleDate,
                 taskId: it.id,
                 doneBy: it.doneBy || '',
                 skipped: !!it.skipped,
             });
         }
+        cl.history = keep;
         for (const it of (cl.items || [])) {
             it.doneBy = '';
             it.skipped = false;
@@ -1055,6 +1079,31 @@ function renderHistoryModal() {
 
     body.innerHTML = filterHtml + daysHtml;
     bindHistoryFilter();
+}
+
+// TEMPORARY (v0.8): manual history purge behind store-password. Lets the user
+// wipe a polluted log (legacy duplicates) without waiting for the next archive
+// to overwrite them. Safe to delete once the data is clean.
+async function purgeHistory() {
+    const storeCode = getStoreCode();
+    if (!storeCode) return;
+    const pwd = prompt('Contraseña de la tienda para borrar TODO el histórico:');
+    if (pwd == null) return;  // user cancelled
+    try {
+        const doc = await db.collection('stores').doc(storeCode).get();
+        if (!doc.exists || doc.data().password !== pwd) {
+            alert('Contraseña incorrecta.');
+            return;
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error verificando la contraseña.');
+        return;
+    }
+    if (!confirm('Se borrará el histórico de TODAS las checklists de esta tienda. ¿Continuar?')) return;
+    for (const cl of _state.checklists) cl.history = [];
+    await persist();
+    renderHistoryModal();
 }
 
 function bindHistoryFilter() {
@@ -1222,6 +1271,7 @@ function bindUI() {
     // History modal
     $('btnHistory').addEventListener('click', openHistoryModal);
     $('clHistoryClose').addEventListener('click', closeHistoryModal);
+    $('btnPurgeHistory').addEventListener('click', purgeHistory);
     $('clHistoryOverlay').addEventListener('click', (e) => {
         if (e.target === $('clHistoryOverlay')) closeHistoryModal();
     });

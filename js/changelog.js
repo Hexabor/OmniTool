@@ -4,6 +4,8 @@ const CHANGELOG = [
         version: 'v0.8',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'fix', text: 'Checklist · Histórico: se duplicaban entradas de días pasados (mezcla de versiones antiguas que auto-escribían en cada marca + archivo al "Iniciar {fecha}"). Ahora se deduplican al cargar y al archivar se hace upsert, no append' },
+            { type: 'new', text: 'Checklist · Histórico: botón temporal "Limpiar" en la cabecera del modal — borra todo el histórico de la tienda tras pedir contraseña, por si alguien tenía datos ya corruptos' },
             { type: 'new', text: 'App: favicon personalizado — capibara para el home, y cada módulo tiene su icono con su color (Checklist morado, Garantías ámbar, Xfer Reg azul, Ajustes indigo). Al ver pestañas abiertas a la vez, sabes de qué va cada una de un vistazo' },
             { type: 'new', text: 'Checklist · Tareas persistentes: cada tarea puede llevar una nota libre — consejos, pasos, contexto. Abierta desde la píldora "Notas" en la fila. Modal con textarea + botón "Firmar" que inserta tu nombre y la fecha al final de tu aportación' },
             { type: 'new', text: 'Checklist · Tareas persistentes: doble clic en el nombre para renombrar una tarea inline (Enter guarda, Escape cancela)' },

@@ -800,6 +800,25 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     cursor: not-allowed;
 }
 
+/* Temporary history-purge button in the history modal header */
+.cl-hist-purge {
+    margin-left: auto;
+    margin-right: 0.5rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--color-danger);
+    background: transparent;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.cl-hist-purge:hover {
+    background: #fef2f2;
+    border-color: var(--color-danger);
+}
+
 /* === History: "sin marcar" variant === */
 .cl-hist-row.unmarked { background: #fafaf9; color: var(--color-text-light); }
 .cl-hist-who.unmarked {
