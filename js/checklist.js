@@ -361,10 +361,21 @@ function renderPersistent() {
     const items = (_state.persistent && _state.persistent.items) || [];
     const countEl = $('clPersCount');
     if (countEl) {
-        // Count now shows vigentes (nothing is "done in place" anymore —
-        // completed tasks move straight to the archive).
-        countEl.textContent = String(items.length);
-        countEl.classList.remove('complete');
+        // Daily progress: "archivadas hoy / (archivadas hoy + vigentes)".
+        // The denominator is the day's workload; it stays stable as tasks
+        // move from vigentes to archive over the day.
+        const today = todayISO();
+        const archive = (_state.persistent && _state.persistent.archive) || [];
+        const doneToday = archive.filter(a => {
+            const d = new Date(a.completedAt);
+            if (isNaN(d)) return false;
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return key === today;
+        }).length;
+        const totalToday = doneToday + items.length;
+        countEl.textContent = `${doneToday} / ${totalToday}`;
+        countEl.title = 'Archivadas hoy / total del día (vigentes + archivadas hoy)';
+        countEl.classList.toggle('complete', totalToday > 0 && items.length === 0);
     }
     renderPersBriefing();
     if (items.length === 0) {

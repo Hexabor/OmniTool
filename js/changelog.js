@@ -4,6 +4,8 @@ const CHANGELOG = [
         version: 'v0.8',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'ui', text: 'Checklist · Tareas persistentes: la cabecera de la columna reordenada — título a la izquierda, contador y botón Archivo agrupados a la derecha' },
+            { type: 'ui', text: 'Checklist · Tareas persistentes: el contador vuelve al formato X / Y, ahora como progreso del día (archivadas hoy / total del día). Empieza en 0/N y sube mientras completas' },
             { type: 'new', text: 'Checklist · Tareas persistentes: marcar como hecha MUEVE la tarea al archivo en lugar de dejarla en la lista. La lista de vigentes queda siempre limpia. La tarea se guarda en el archivo con TODO su contenido (nombre, prioridad, nota) y se puede recuperar de vuelta a vigentes con un clic' },
             { type: 'new', text: 'Checklist · Tareas persistentes: pequeño briefing "Recién archivadas" al pie de la lista de vigentes con las 3 últimas completadas (hora · tarea · quién). Clic → abre el archivo completo' },
             { type: 'new', text: 'Checklist · Tareas persistentes: botón "Archivo" en la cabecera de la columna abre el modal con todas las tareas archivadas, agrupadas por fecha. Cada entrada tiene botones de Recuperar (↺) y Eliminar (✕). Botón "Limpiar" con contraseña en la cabecera del modal para vaciar todo de golpe' },

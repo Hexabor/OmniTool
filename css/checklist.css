@@ -837,12 +837,11 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
 .cl-pers-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.6rem;
+    gap: 0.4rem;
     margin-bottom: 0.2rem;
 }
 .cl-pers-header h3 {
-    margin: 0;
+    margin: 0 auto 0 0;  /* push everything else to the right */
     font-size: 0.88rem;
     font-weight: 700;
     color: var(--color-text);
