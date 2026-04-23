@@ -5,6 +5,7 @@ const CHANGELOG = [
         tag: 'ÚLTIMA',
         entries: [
             { type: 'fix', text: 'Checklist: saltar una tarea ahora cuenta como "procesarla" para la alerta roja. Si una tarea con umbral crítico de 1 día se saltó ayer, hoy no salta en rojo — queda solo con el chip "hace N días" en gris. El rojo se reserva para tareas que llevan más del umbral sin hacer NI saltar' },
+            { type: 'ui', text: 'App: logo y favicon actualizados con fondo transparente. El blend que escondía el fondo blanco se mantiene como seguro — es inocuo con PNGs ya transparentes y cubre cualquier tinte residual que pudiera quedar' },
         ]
     },
     {

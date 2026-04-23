@@ -280,7 +280,10 @@ body {
     width: min(32vw, 220px);
     height: auto;
     display: block;
-    /* Hides the white background of the PNG so the logo blends with the page */
+    /* Funde cualquier tinte casi blanco del PNG con el fondo de la página.
+       Inocuo con transparencia real (los píxeles transparentes siguen siendo
+       transparentes), pero elimina el halo cuando el "fondo transparente"
+       exportado tiene una ligera tonalidad. */
     mix-blend-mode: multiply;
 }
 
