@@ -1,4 +1,7 @@
-/* === Two-column layout: checklist on the left, reserved panel on the right === */
+/* === Two-column layout: checklist on the left, persistents on the right ===
+   Collapses to single column (persistents wrap below) at viewport ≤ 1250 px
+   — cada columna queda en ~568 px antes del salto. El header puede ir
+   apretado en esa franja pero sigue legible. */
 .cl-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -8,7 +11,7 @@
 .cl-main { min-width: 0; }
 .cl-side { min-width: 0; }
 
-@media (max-width: 900px) {
+@media (max-width: 1250px) {
     .cl-layout { grid-template-columns: 1fr; }
 }
 
@@ -28,18 +31,31 @@ body.cl-edit-mode #btnEditMode {
 body.cl-edit-mode #btnEditMode .cl-edit-icon-pencil { display: none; }
 body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
 
-/* === Top bar === */
+/* === Top bar ===
+   2-column grid: left holds the bar content (switcher + actions, which may
+   stack into multiple rows internally), right holds the donut chart.
+   max-width caps the bar at the narrow column's natural width — so when
+   the layout collapses to a single column, the bar doesn't stretch and
+   every element (donut included) keeps its position. Empty space appears
+   on the right of the bar, by design. */
 .cl-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    gap: 0.5rem 1rem;
     align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
     margin-bottom: 0.8rem;
     padding: 0.5rem 0;
     position: sticky;
     top: var(--topbar-h);
     z-index: 90;
     background: var(--color-bg);
+}
+.cl-bar-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
 }
 
 .cl-bar-main {
@@ -102,6 +118,14 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
 .cl-bar-manage {
     display: inline-flex;
     gap: 0.25rem;
+}
+
+/* Square icon-only modifier for btn-sm buttons in the bar — equal padding
+   gives a true square (26×26 at root 15 px), matching btn-sm height while
+   trimming horizontal width versus the default rectangular padding. */
+.btn.btn-sm.btn-icon {
+    padding: 0.4rem;
+    flex-shrink: 0;
 }
 
 .cl-icon-btn {
@@ -883,6 +907,86 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     color: #475569;
 }
 
+/* === Progress donut — right grid cell of the checklist bar === */
+.cl-bar-chart {
+    align-self: center;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.7rem;
+}
+.cl-bar-chart[hidden] { display: none; }
+.cl-pchart-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.cl-pchart-capi {
+    width: auto;
+    height: 72px;
+    flex-shrink: 0;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+    /* Algunos exports "transparentes" llevan un tinte casi-blanco en vez de
+       alpha real. Multiply funde ese tinte con el fondo del card sin tocar
+       los píxeles del capibara. */
+    mix-blend-mode: multiply;
+}
+.cl-pchart-svg {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+}
+.cl-pchart-num {
+    font-size: 15px;
+    font-weight: 700;
+    fill: var(--color-text);
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+}
+.cl-pchart-pct {
+    font-size: 8px;
+    font-weight: 600;
+    fill: var(--color-text-light);
+    font-family: inherit;
+}
+.cl-pchart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    font-size: 0.66rem;
+    color: var(--color-text);
+    min-width: 6rem;
+}
+.cl-pchart-leg-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.cl-pchart-leg-row strong {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+}
+.cl-pchart-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.cl-pchart-leg-muted {
+    color: var(--color-text-lighter);
+    font-style: italic;
+    font-size: 0.62rem;
+    margin-top: 0.1rem;
+    padding-left: calc(9px + 0.35rem);  /* line up with dotted rows */
+}
+.cl-pchart-leg-muted strong {
+    color: var(--color-text-light);
+}
+
 /* === Persistent checklist (right column) === */
 .cl-pers-card {
     background: var(--color-card);
@@ -1163,7 +1267,8 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
     color: var(--color-text-lighter);
-    min-width: 2.5rem;
+    min-width: 5rem;
+    white-space: nowrap;
 }
 .cl-pers-brief-name {
     flex: 1;

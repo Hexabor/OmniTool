@@ -103,6 +103,19 @@
 .header-progress-fill.pct-blue { background: var(--color-primary); }
 .header-progress-fill.pct-green { background: #22c55e; }
 
+.xfer-progress-capi {
+    width: auto;
+    height: 50px;
+    flex-shrink: 0;
+    align-self: center;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+    /* Misma técnica que en otros mascots: funde cualquier tinte casi-blanco
+       del PNG con el fondo de la página. */
+    mix-blend-mode: multiply;
+}
+
 .file-bar-actions {
     flex-shrink: 0;
     flex-wrap: nowrap;

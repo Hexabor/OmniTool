@@ -546,6 +546,30 @@ body {
     margin-bottom: 1rem;
 }
 
+/* Apariencia toggle (and any future on/off prefs in the settings panel) */
+.settings-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text);
+    cursor: pointer;
+    margin-bottom: 0.4rem;
+}
+.settings-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+/* Honour the mascots toggle: any element marked as a "mascot" is hidden when
+   the user disables them. Future modules add their selector to this list. */
+body.no-mascots .cl-pchart-capi,
+body.no-mascots .xfer-progress-capi {
+    display: none;
+}
+
 .btn-danger {
     background: var(--color-danger);
     color: white;

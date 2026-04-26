@@ -89,6 +89,15 @@
                 </div>
                 <div class="settings-divider"></div>
                 <div class="settings-section">
+                    <h3>Apariencia</h3>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="prefMascots">
+                        <span>Mostrar capibaras de progreso</span>
+                    </label>
+                    <p class="settings-hint">Pequeñas ilustraciones decorativas (como la del donut del Checklist). No afecta al logo ni al favicon.</p>
+                </div>
+                <div class="settings-divider"></div>
+                <div class="settings-section">
                     <h3>Zona peligrosa</h3>
                     <p class="settings-hint">Borra todos los datos de esta tienda en la nube: CSV cargado, estados de líneas y cualquier configuración guardada.</p>
                     <button class="btn btn-danger" id="btnFactoryReset">
@@ -234,6 +243,9 @@
                     <div class="header-progress-fill" id="headerProgressFill"></div>
                 </div>
             </div>
+
+            <!-- Progress mascot (decorative; togglable from Configuración → Apariencia) -->
+            <img id="xferProgressCapi" class="xfer-progress-capi" src="assets/0.png" alt="" loading="lazy" draggable="false">
 
             <!-- Right: buttons -->
             <div class="file-bar-actions" id="fileBarActions" hidden>

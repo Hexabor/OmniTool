@@ -342,6 +342,61 @@ function renderAll() {
     renderTasks();
     renderStartDayControl();
     renderPersistent();
+    renderProgressChart();
+}
+
+// Donut chart in the right column (above the persistent tasks card) showing
+// the active daily checklist's progress: done / skipped / pending. Hidden
+// when there's no active checklist or no items.
+function renderProgressChart() {
+    const card = $('clProgressCard');
+    const wrap = $('clProgressChart');
+    if (!card || !wrap) return;
+    const active = getActiveChecklist();
+    if (!active || !Array.isArray(active.items) || active.items.length === 0) {
+        card.hidden = true;
+        return;
+    }
+    const total = active.items.length;
+    const done = active.items.filter(it => it.doneBy).length;
+    const skipped = active.items.filter(it => it.skipped && !it.doneBy).length;
+    // Skipped tasks are removed from the denominator entirely — they're not
+    // "good" nor "pending", they simply don't apply today. Effective total
+    // shrinks by the number of skips.
+    const effectiveTotal = total - skipped;
+    const pending = effectiveTotal - done;
+
+    if (effectiveTotal === 0) {
+        // Everything was skipped today — nothing meaningful to chart.
+        card.hidden = true;
+        return;
+    }
+    card.hidden = false;
+    const pct = Math.round((done / effectiveTotal) * 100);
+
+    // Capibara mascot: only "upgrades" once you fully cross each 20% threshold,
+    // so 100% is reserved for actually finishing. Files in assets/ named after
+    // the bucket: 0.png, 20.png, 40.png, 60.png, 80.png, 100.png.
+    const capiBucket = Math.min(100, Math.floor(pct / 20) * 20);
+
+    const r = 38;
+    const C = 2 * Math.PI * r;
+    const doneLen = (done / effectiveTotal) * C;
+
+    wrap.innerHTML = `
+        <img class="cl-pchart-capi" src="assets/${capiBucket}.png" alt="" loading="lazy" draggable="false">
+        <svg viewBox="0 0 100 100" class="cl-pchart-svg" aria-hidden="true">
+            <circle cx="50" cy="50" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="13"/>
+            ${done > 0 ? `<circle cx="50" cy="50" r="${r}" fill="none" stroke="#059669" stroke-width="13" stroke-linecap="butt" stroke-dasharray="${doneLen.toFixed(2)} ${(C - doneLen).toFixed(2)}" transform="rotate(-90 50 50)"/>` : ''}
+            <text x="50" y="46" text-anchor="middle" dominant-baseline="central" class="cl-pchart-num">${done}/${effectiveTotal}</text>
+            <text x="50" y="60" text-anchor="middle" dominant-baseline="central" class="cl-pchart-pct">${pct}%</text>
+        </svg>
+        <div class="cl-pchart-legend">
+            <span class="cl-pchart-leg-row"><i class="cl-pchart-dot" style="background:#059669"></i>Hechas <strong>${done}</strong></span>
+            <span class="cl-pchart-leg-row"><i class="cl-pchart-dot" style="background:#e5e7eb"></i>Pendientes <strong>${pending}</strong></span>
+            ${skipped > 0 ? `<span class="cl-pchart-leg-row cl-pchart-leg-muted" title="Las tareas saltadas se descartan del total — ni cuentan como hechas ni como pendientes">Saltadas <strong>${skipped}</strong></span>` : ''}
+        </div>
+    `;
 }
 
 function renderStartDayControl() {
@@ -526,8 +581,12 @@ function renderPersBriefing() {
     const pad = n => String(n).padStart(2, '0');
     const rows = latest.map(a => {
         const d = new Date(a.completedAt);
-        const t = isNaN(d) ? '--:--' : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        return `<div class="cl-pers-brief-row"><span class="cl-pers-brief-time">${t}</span><span class="cl-pers-brief-name">${escapeHtml(a.name || '(sin nombre)')}</span><span class="cl-pers-brief-who">${escapeHtml(a.completedBy || '—')}</span></div>`;
+        // Date first (DD/MM), then HH:MM — the date is the more important
+        // piece for a briefing of the last few archived tasks.
+        const stamp = isNaN(d)
+            ? '--/-- --:--'
+            : `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `<div class="cl-pers-brief-row"><span class="cl-pers-brief-time">${stamp}</span><span class="cl-pers-brief-name">${escapeHtml(a.name || '(sin nombre)')}</span><span class="cl-pers-brief-who">${escapeHtml(a.completedBy || '—')}</span></div>`;
     }).join('');
     el.innerHTML = `<button class="cl-pers-brief-head" id="clPersBriefOpen" type="button" title="Abrir archivo completo">Recién archivadas ›</button>${rows}`;
 }
@@ -749,7 +808,6 @@ function renderTasks() {
     const list = $('clList');
     const empty = $('clEmpty');
     const emptyFull = $('clEmptyFull');
-    const progressEl = $('clProgress');
 
     const active = getActiveChecklist();
 
@@ -757,8 +815,6 @@ function renderTasks() {
         list.innerHTML = '';
         empty.hidden = true;
         emptyFull.hidden = false;
-        progressEl.textContent = '0 / 0';
-        progressEl.classList.remove('complete');
         return;
     }
     emptyFull.hidden = true;
@@ -766,8 +822,6 @@ function renderTasks() {
     if (!active || active.items.length === 0) {
         list.innerHTML = '';
         empty.hidden = false;
-        progressEl.textContent = '0 / 0';
-        progressEl.classList.remove('complete');
         return;
     }
     empty.hidden = true;
@@ -783,11 +837,6 @@ function renderTasks() {
             const bp = (b.doneBy || b.skipped) ? 1 : 0;
             return ap - bp;
         });
-    const total = items.length;
-    const processed = items.filter(it => it.doneBy || it.skipped).length;
-    progressEl.textContent = `${processed} / ${total}`;
-    progressEl.classList.toggle('complete', total > 0 && processed === total);
-
     const staffOptions = _state.staff.map(s =>
         `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`
     ).join('');
@@ -899,6 +948,8 @@ function renderTasks() {
     }).join('');
 
     if (_state.editMode) bindDragHandlers();
+    // Keep the donut in sync with whatever just changed (mark, skip, edit, etc.)
+    renderProgressChart();
 }
 
 // === Task modal (add / edit) ===
@@ -1103,22 +1154,6 @@ async function setTaskState(taskId, rawValue) {
     // (see startNewDay). Marks stay ephemeral within the current cycle.
     renderTasks();
     await persist();
-}
-
-function updateProgress() {
-    const active = getActiveChecklist();
-    const progressEl = $('clProgress');
-    if (!active || active.items.length === 0) {
-        progressEl.textContent = '0 / 0';
-        progressEl.classList.remove('complete');
-        return;
-    }
-    const total = active.items.length;
-    // Both done and skipped count as "processed" — the user's mental model is
-    // "how many tasks still need attention"
-    const processed = active.items.filter(x => x.doneBy || x.skipped).length;
-    progressEl.textContent = `${processed} / ${total}`;
-    progressEl.classList.toggle('complete', total > 0 && processed === total);
 }
 
 // Inline toggle in edit mode — flips it.allowSkip without opening the modal.
@@ -1367,7 +1402,10 @@ function bindHistoryFilter() {
 function toggleEditMode() {
     _state.editMode = !_state.editMode;
     document.body.classList.toggle('cl-edit-mode', _state.editMode);
-    $('btnEditMode').querySelector('.cl-edit-label').textContent = _state.editMode ? 'Listo' : 'Editar';
+    const tip = _state.editMode ? 'Listo' : 'Editar tareas';
+    const btn = $('btnEditMode');
+    btn.title = tip;
+    btn.setAttribute('aria-label', tip);
     renderTasks();
 }
 

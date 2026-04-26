@@ -90,6 +90,15 @@
                 </div>
                 <div class="settings-divider"></div>
                 <div class="settings-section">
+                    <h3>Apariencia</h3>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="prefMascots">
+                        <span>Mostrar capibaras de progreso</span>
+                    </label>
+                    <p class="settings-hint">Pequeñas ilustraciones decorativas (como la del donut del Checklist). No afecta al logo ni al favicon.</p>
+                </div>
+                <div class="settings-divider"></div>
+                <div class="settings-section">
                     <h3>Zona peligrosa</h3>
                     <p class="settings-hint">Borra todos los datos de esta tienda en la nube.</p>
                     <button class="btn btn-danger" id="btnFactoryReset">
@@ -173,19 +182,12 @@
     <main class="content cl-layout">
         <section class="cl-main">
             <div class="cl-bar">
+                <div class="cl-bar-content">
                 <div class="cl-bar-main">
                     <label class="cl-switcher-wrap">
                         <span class="cl-switcher-label">Checklist:</span>
                         <select class="cl-switcher" id="clSwitcher"></select>
                     </label>
-                    <span class="cl-progress" id="clProgress">0 / 0</span>
-                    <button class="cl-icon-btn" id="btnSkipInfo" title="Sobre el botón Saltar" aria-label="Sobre el botón Saltar">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="16" x2="12" y2="12"/>
-                            <line x1="12" y1="8" x2="12.01" y2="8"/>
-                        </svg>
-                    </button>
                     <div class="cl-bar-manage cl-edit-only">
                         <button class="cl-icon-btn" id="btnNewChecklist" title="Nueva checklist" aria-label="Nueva checklist">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -211,16 +213,25 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Añadir tarea
                     </button>
-                    <button class="btn btn-secondary btn-sm cl-use-only" id="btnHistory" title="Ver qué se hizo los últimos 14 días">
+                    <button class="btn btn-secondary btn-sm btn-icon cl-use-only" id="btnHistory" title="Histórico — qué se hizo los últimos 14 días" aria-label="Histórico">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><path d="M12 7v5l3 3"/></svg>
-                        Histórico
                     </button>
                     <button class="btn btn-primary btn-sm cl-use-only" id="btnStartDay" title="Archiva el día anterior e inicia el día de hoy">Iniciar —</button>
-                    <button class="btn btn-secondary btn-sm" id="btnEditMode" title="Editar tareas">
+                    <button class="btn btn-secondary btn-sm btn-icon" id="btnSkipInfo" title="Sobre el botón Saltar" aria-label="Sobre el botón Saltar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-secondary btn-sm btn-icon" id="btnEditMode" title="Editar tareas" aria-label="Editar tareas">
                         <svg class="cl-edit-icon-pencil" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                         <svg class="cl-edit-icon-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span class="cl-edit-label">Editar</span>
                     </button>
+                </div>
+                </div>
+                <div class="cl-bar-chart" id="clProgressCard" hidden>
+                    <div class="cl-pchart-wrap" id="clProgressChart"></div>
                 </div>
             </div>
 

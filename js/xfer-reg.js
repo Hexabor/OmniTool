@@ -1022,6 +1022,15 @@ function updateHeaderProgress() {
     headerProgressLabel.textContent = pct.toFixed(1) + '%';
     headerProgressLabel.style.color = isGreen ? '#22c55e' : 'var(--color-text)';
 
+    // Progress mascot — capybara matches the % bucket (0/20/40/60/80/100).
+    // Only "upgrades" once each 20% threshold is fully crossed.
+    const capi = document.getElementById('xferProgressCapi');
+    if (capi) {
+        const bucket = Math.min(100, Math.max(0, Math.floor(pct / 20) * 20));
+        const nextSrc = `assets/${bucket}.png`;
+        if (!capi.src.endsWith(nextSrc)) capi.src = nextSrc;
+    }
+
     // Update or create phrase element inside progress-info
     let textEl = document.querySelector('.header-progress-text');
     if (!textEl) {

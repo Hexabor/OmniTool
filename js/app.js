@@ -1,3 +1,15 @@
+// === Cross-page UI preferences ===
+// Mascots toggle: when 'pref_mascots' is '0' we hide decorative mascot
+// elements (e.g. the capybara in the Checklist's progress donut). Logo and
+// favicon are NOT affected. Applied as a body class so any module can opt
+// into honouring it via `body.no-mascots .my-mascot { display: none; }`.
+const PREF_MASCOTS_KEY = 'pref_mascots';
+function applyMascotPref() {
+    const off = localStorage.getItem(PREF_MASCOTS_KEY) === '0';
+    document.body.classList.toggle('no-mascots', off);
+}
+applyMascotPref();
+
 // === Store gate ===
 const storeGate = document.getElementById('storeGate');
 const storeSelect = document.getElementById('storeSelect');
@@ -253,6 +265,16 @@ if (btnSettings && settingsOverlay) {
     settingsClose.addEventListener('click', () => {
         settingsOverlay.classList.remove('open');
     });
+
+    // Mascots toggle — sync checkbox with stored pref + persist on change
+    const prefMascots = document.getElementById('prefMascots');
+    if (prefMascots) {
+        prefMascots.checked = localStorage.getItem(PREF_MASCOTS_KEY) !== '0';
+        prefMascots.addEventListener('change', () => {
+            localStorage.setItem(PREF_MASCOTS_KEY, prefMascots.checked ? '1' : '0');
+            applyMascotPref();
+        });
+    }
 
 
     if (btnSwitchStore) {

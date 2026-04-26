@@ -4,6 +4,13 @@ const CHANGELOG = [
         version: 'v0.10',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'new', text: 'Checklist: gráfico de progreso a la derecha de la barra — donut con Hechas / Pendientes y un capibara mascota que evoluciona por tramos de 20 % (0 → 20 → 40 → 60 → 80 → 100). Reemplaza al contador "X / Y" en texto' },
+            { type: 'new', text: 'Checklist: las tareas saltadas se muestran aparte en la leyenda del donut y se descuentan del total — no cuentan como hechas ni como pendientes, simplemente "no aplican hoy"' },
+            { type: 'ui', text: 'Checklist: barra superior reorganizada — los botones "Histórico" y "Editar" pasan a iconos cuadrados (con tooltip), y el botón info "i" se mueve al área de acciones. La barra ya no estira: el donut ocupa la celda derecha y deja aire por diseño' },
+            { type: 'ui', text: 'Checklist: el layout 50/50 (checklist + persistentes) ahora aguanta hasta 1250 px antes de colapsar a una columna (antes a 900 px). Permite que ambas columnas convivan en monitores estándar de tienda' },
+            { type: 'ui', text: 'Checklist · Tareas persistentes: el briefing "Recién archivadas" ahora muestra DD/MM HH:MM (antes solo HH:MM) — más útil cuando hay tareas archivadas hace varios días' },
+            { type: 'new', text: 'Xfer Reg: capibara mascota decorativo en la cabecera de progreso, también por tramos de 20 %. Acompaña al porcentaje y la frase de ánimo' },
+            { type: 'new', text: 'App: nueva sección "Apariencia → Mostrar capibaras de progreso" en los Ajustes de todos los módulos. Toggle global (persistido por dispositivo) para ocultar las ilustraciones decorativas si prefieres una vista más sobria. No afecta al logo ni al favicon' },
             { type: 'new', text: 'Procurement — nuevo módulo activado en el home y la sidebar para gestionar todas las incidencias de stock. Fase 1: peticiones de compra al departamento de procurement (accesorios faltantes, material de tienda…)' },
             { type: 'new', text: 'Procurement: máquina de estados Pedido → Autorizado OPS → Llegando → Recibido → Cerrado, más Cancelado/Rechazado como vía paralela. Cada estado se marca con un botón propio en el detalle' },
             { type: 'new', text: 'Procurement: cada cambio de estado queda registrado automáticamente con fecha-hora, persona que lo marca y nota opcional. Historial visible al final del panel de detalle' },
