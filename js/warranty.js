@@ -840,7 +840,7 @@ function renderDefectiveSection(it) {
                         <option value="RTO" ${t === 'RTO' ? 'selected' : ''}>RTO</option>
                     </select>
                 </label>
-                <label class="full">Tienda destino <input type="text" data-edit="processingStore" value="${escapeHtml(it.processingStore || '')}" placeholder="Tienda o proveedor"></label>
+                <label class="full" title="Solo para casos de RTO a franquicia">Tienda destino RTO <input type="text" data-edit="processingStore" value="${escapeHtml(it.processingStore || '')}" placeholder="Tienda o proveedor"></label>
                 <label class="full">Investigado / cubierto por <input type="text" data-edit="investigatedBy" value="${escapeHtml(it.investigatedBy || '')}"></label>
                 <label class="full">Descripción del defecto
                     <textarea data-edit="defectDescription" rows="3" placeholder="Detalles para agilizar el procesamiento">${escapeHtml(it.defectDescription || '')}</textarea>
@@ -871,7 +871,7 @@ function renderDefectiveSection(it) {
             <div class="wd-row"><span class="lbl">Test Order</span><span class="val ${it.testOrder ? '' : 'muted'}">${escapeHtml(it.testOrder || '—')}</span></div>
             <div class="wd-row"><span class="lbl">Fecha de venta</span><span class="val ${it.saleDate ? '' : 'muted'}">${fmtDate(it.saleDate) || '—'}</span></div>
             <div class="wd-row"><span class="lbl">Tipo</span><span class="val ${it.processingType || it.defectiveProcessed ? '' : 'muted'}">${processingDisplay}</span></div>
-            <div class="wd-row"><span class="lbl">Tienda destino</span><span class="val ${it.processingStore ? '' : 'muted'}">${escapeHtml(it.processingStore || '—')}</span></div>
+            <div class="wd-row" title="Solo para casos de RTO a franquicia"><span class="lbl">Tienda destino RTO</span><span class="val ${it.processingStore ? '' : 'muted'}">${escapeHtml(it.processingStore || '—')}</span></div>
             <div class="wd-row"><span class="lbl">Investigado por</span><span class="val ${it.investigatedBy ? '' : 'muted'}">${escapeHtml(it.investigatedBy || '—')}</span></div>
         </div>
         <div class="wd-row" style="margin-top:0.55rem">
@@ -1185,14 +1185,7 @@ function bindUI() {
     $('warrantyFormCancel').addEventListener('click', closeModal);
     $('warrantyForm').addEventListener('submit', handleFormSubmit);
     $('wfInStore').addEventListener('change', toggleTestOrderField);
-    $('warrantyModalOverlay').addEventListener('click', (e) => {
-        if (e.target === $('warrantyModalOverlay')) closeModal();
-    });
 
-    // Detail overlay close
-    $('warrantyDetailOverlay').addEventListener('click', (e) => {
-        if (e.target === $('warrantyDetailOverlay')) closeDetail();
-    });
 
     // ESC closes panels
     document.addEventListener('keydown', (e) => {

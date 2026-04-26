@@ -254,11 +254,6 @@ if (btnSettings && settingsOverlay) {
         settingsOverlay.classList.remove('open');
     });
 
-    settingsOverlay.addEventListener('click', (e) => {
-        if (e.target === settingsOverlay) {
-            settingsOverlay.classList.remove('open');
-        }
-    });
 
     if (btnSwitchStore) {
         btnSwitchStore.addEventListener('click', () => {
@@ -328,9 +323,4 @@ if (btnChangelog && changelogOverlay) {
         changelogOverlay.classList.remove('open');
     });
 
-    changelogOverlay.addEventListener('click', (e) => {
-        if (e.target === changelogOverlay) {
-            changelogOverlay.classList.remove('open');
-        }
-    });
 }

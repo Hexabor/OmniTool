@@ -1441,9 +1441,6 @@ function bindUI() {
     $('clModalClose').addEventListener('click', closeTaskModal);
     $('clCancel').addEventListener('click', closeTaskModal);
     $('clForm').addEventListener('submit', handleTaskSubmit);
-    $('clModalOverlay').addEventListener('click', (e) => {
-        if (e.target === $('clModalOverlay')) closeTaskModal();
-    });
 
     // Switcher
     $('clSwitcher').addEventListener('change', (e) => {
@@ -1463,17 +1460,11 @@ function bindUI() {
     $('clNameClose').addEventListener('click', closeNameModal);
     $('clNameCancel').addEventListener('click', closeNameModal);
     $('clNameForm').addEventListener('submit', handleNameSubmit);
-    $('clNameOverlay').addEventListener('click', (e) => {
-        if (e.target === $('clNameOverlay')) closeNameModal();
-    });
 
     // Team
     $('btnTeam').addEventListener('click', openTeamModal);
     $('clTeamClose').addEventListener('click', closeTeamModal);
     $('clTeamDone').addEventListener('click', closeTeamModal);
-    $('clTeamOverlay').addEventListener('click', (e) => {
-        if (e.target === $('clTeamOverlay')) closeTeamModal();
-    });
     $('clTeamAddForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = $('clTeamNewName').value;
@@ -1496,9 +1487,6 @@ function bindUI() {
     $('btnHistory').addEventListener('click', openHistoryModal);
     $('clHistoryClose').addEventListener('click', closeHistoryModal);
     $('btnPurgeHistory').addEventListener('click', purgeHistory);
-    $('clHistoryOverlay').addEventListener('click', (e) => {
-        if (e.target === $('clHistoryOverlay')) closeHistoryModal();
-    });
 
     // Edit mode toggle
     $('btnEditMode').addEventListener('click', toggleEditMode);
@@ -1573,9 +1561,6 @@ function bindUI() {
     $('btnPersArchive').addEventListener('click', openPersArchive);
     $('clPersArchiveClose').addEventListener('click', closePersArchive);
     $('btnPurgePersArchive').addEventListener('click', purgePersArchive);
-    $('clPersArchiveOverlay').addEventListener('click', (e) => {
-        if (e.target === $('clPersArchiveOverlay')) closePersArchive();
-    });
     $('clPersArchiveBody').addEventListener('click', (e) => {
         const restore = e.target.closest('.cl-arch-restore');
         if (restore) { restoreFromArchive(restore.getAttribute('data-id')); return; }
@@ -1592,9 +1577,6 @@ function bindUI() {
     $('clNoteCancel').addEventListener('click', closeNoteModal);
     $('clNoteSave').addEventListener('click', saveNote);
     $('clNoteSignBtn').addEventListener('click', insertSignature);
-    $('clNoteOverlay').addEventListener('click', (e) => {
-        if (e.target === $('clNoteOverlay')) closeNoteModal();
-    });
 
     // ESC closes any open modal
     document.addEventListener('keydown', (e) => {

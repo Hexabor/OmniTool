@@ -291,9 +291,6 @@ const archiveBody = document.getElementById('archiveBody');
 const archiveClose = document.getElementById('archiveClose');
 
 archiveClose.addEventListener('click', () => archiveOverlay.classList.remove('open'));
-archiveOverlay.addEventListener('click', (e) => {
-    if (e.target === archiveOverlay) archiveOverlay.classList.remove('open');
-});
 
 document.getElementById('btnArchiveList').addEventListener('click', async () => {
     archiveBody.innerHTML = '<p style="text-align:center;padding:2rem 0;color:var(--color-text-lighter)">Cargando...</p>';
@@ -1108,11 +1105,6 @@ if (btnChecker && checkerInput) {
 if (checkerClose) {
     checkerClose.addEventListener('click', () => checkerOverlay.classList.remove('open'));
 }
-if (checkerOverlay) {
-    checkerOverlay.addEventListener('click', (e) => {
-        if (e.target === checkerOverlay) checkerOverlay.classList.remove('open');
-    });
-}
 
 function processChecker(file) {
     const reader = new FileReader();
@@ -1526,11 +1518,6 @@ if (summaryClose) {
     });
 }
 
-if (summaryOverlay) {
-    summaryOverlay.addEventListener('click', (e) => {
-        if (e.target === summaryOverlay) summaryOverlay.classList.remove('open');
-    });
-}
 
 function renderSummary() {
     if (!summaryBody || !_lastCSV) {

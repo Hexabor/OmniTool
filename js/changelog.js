@@ -4,6 +4,8 @@ const CHANGELOG = [
         version: 'v0.9',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'fix', text: 'App: cerrar un modal haciendo clic fuera ya no funciona — solo cierran la X de la esquina, los botones de la propia ventana o ESC. Antes, un drag-select de texto que terminaba sobre el fondo cerraba la ventana de golpe y se perdía lo escrito' },
+            { type: 'ui', text: 'Garantías · Defectuoso del cliente: el campo "Tienda destino" pasa a llamarse "Tienda destino RTO". Tooltip al pasar el ratón aclara que es solo para casos de RTO a franquicia' },
             { type: 'fix', text: 'Checklist: saltar una tarea ahora cuenta como "procesarla" para la alerta roja. Si una tarea con umbral crítico de 1 día se saltó ayer, hoy no salta en rojo — queda solo con el chip "hace N días" en gris. El rojo se reserva para tareas que llevan más del umbral sin hacer NI saltar' },
             { type: 'ui', text: 'App: logo y favicon actualizados con fondo transparente. El blend que escondía el fondo blanco se mantiene como seguro — es inocuo con PNGs ya transparentes y cubre cualquier tinte residual que pudiera quedar' },
         ]
