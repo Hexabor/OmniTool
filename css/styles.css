@@ -813,4 +813,32 @@ body.no-mascots .xfer-progress-capi {
     .tool-card {
         flex: 1 1 auto;
     }
+
+    /* Topbar: en móvil el "CapiTool" se oculta (redundante una vez dentro de
+       la app — el hamburger + nombre del módulo ya orientan), y el nombre
+       del módulo deja de estar absolute-centrado para fluir junto a los
+       botones, evitando solapes con "Novedades" / la tienda. */
+    .topbar {
+        padding: 0 0.6rem;
+    }
+    .topbar-left {
+        gap: 0.5rem;
+        min-width: 0;
+    }
+    .topbar-title {
+        display: none;
+    }
+    .topbar-module {
+        position: static;
+        transform: none;
+        font-size: 0.95rem;
+    }
+    .btn-changelog {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+    .topbar-store {
+        font-size: 0.72rem;
+    }
 }

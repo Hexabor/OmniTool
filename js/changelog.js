@@ -4,6 +4,8 @@ const CHANGELOG = [
         version: 'v0.10',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'fix', text: 'App: en móvil, el nombre del módulo (p. ej. "Checklist") ya no se solapa con el botón "Novedades". Se oculta la marca "CapiTool" en pantallas estrechas (redundante una vez dentro de la app) y el nombre del módulo pasa a flujo normal — se distribuye limpiamente entre el menú hamburguesa y la tienda activa' },
+            { type: 'ui', text: 'Checklist · móvil: barra superior reorganizada — el donut deja de comprimir los botones a la izquierda y pasa a ocupar una fila propia centrada debajo del switcher y las acciones. Donut un poco más compacto (capibara y leyenda más pequeños) para que ocupe lo justo' },
             { type: 'new', text: 'Checklist: gráfico de progreso a la derecha de la barra — donut con Hechas / Pendientes y un capibara mascota que evoluciona por tramos de 20 % (0 → 20 → 40 → 60 → 80 → 100). Reemplaza al contador "X / Y" en texto' },
             { type: 'new', text: 'Checklist: las tareas saltadas se muestran aparte en la leyenda del donut y se descuentan del total — no cuentan como hechas ni como pendientes, simplemente "no aplican hoy"' },
             { type: 'ui', text: 'Checklist: barra superior reorganizada — los botones "Histórico" y "Editar" pasan a iconos cuadrados (con tooltip), y el botón info "i" se mueve al área de acciones. La barra ya no estira: el donut ocupa la celda derecha y deja aire por diseño' },

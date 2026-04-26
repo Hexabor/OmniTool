@@ -1384,4 +1384,29 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
 @media (max-width: 600px) {
     .cl-bar-actions { width: 100%; justify-content: flex-end; }
     .cl-pers-doneby { max-width: 7.5rem; }
+
+    /* Una sola columna en móvil: el donut respira centrado debajo del
+       switcher + acciones, en vez de comprimir los botones a la izquierda. */
+    .cl-bar {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+    }
+    .cl-bar-chart {
+        justify-self: center;
+        padding: 0.35rem 0.6rem;
+    }
+    .cl-pchart-wrap {
+        gap: 0.5rem;
+    }
+    .cl-pchart-capi {
+        height: 56px;
+    }
+    .cl-pchart-svg {
+        width: 60px;
+        height: 60px;
+    }
+    .cl-pchart-legend {
+        font-size: 0.7rem;
+        min-width: 5rem;
+    }
 }
