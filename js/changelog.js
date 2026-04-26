@@ -1,7 +1,7 @@
 const CHANGELOG = [
     {
-        date: '23/04/2026',
-        version: 'v0.9',
+        date: '26/04/2026',
+        version: 'v0.10',
         tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Procurement — nuevo módulo activado en el home y la sidebar para gestionar todas las incidencias de stock. Fase 1: peticiones de compra al departamento de procurement (accesorios faltantes, material de tienda…)' },
@@ -18,6 +18,12 @@ const CHANGELOG = [
             { type: 'ui', text: 'Procurement: dropdown de personas compartido con el equipo del módulo Checklist — fuente única, se configura desde allí' },
             { type: 'ui', text: 'Procurement: calendarios en español, lunes-primero, formato DD/MM/AAAA (flatpickr, igual que Garantías)' },
             { type: 'new', text: 'Procurement: sincronización en tiempo real entre dispositivos — los cambios de otra persona aparecen aquí sin refrescar' },
+        ]
+    },
+    {
+        date: '23/04/2026',
+        version: 'v0.9',
+        entries: [
             { type: 'fix', text: 'App: cerrar un modal haciendo clic fuera ya no funciona — solo cierran la X de la esquina, los botones de la propia ventana o ESC. Antes, un drag-select de texto que terminaba sobre el fondo cerraba la ventana de golpe y se perdía lo escrito' },
             { type: 'ui', text: 'Garantías · Defectuoso del cliente: el campo "Tienda destino" pasa a llamarse "Tienda destino RTO". Tooltip al pasar el ratón aclara que es solo para casos de RTO a franquicia' },
             { type: 'fix', text: 'Checklist: saltar una tarea ahora cuenta como "procesarla" para la alerta roja. Si una tarea con umbral crítico de 1 día se saltó ayer, hoy no salta en rojo — queda solo con el chip "hace N días" en gris. El rojo se reserva para tareas que llevan más del umbral sin hacer NI saltar' },
