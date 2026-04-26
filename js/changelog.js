@@ -4,6 +4,11 @@ const CHANGELOG = [
         version: 'v0.9',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'new', text: 'Procurement — nuevo módulo activado para gestionar peticiones de compra al departamento de procurement (accesorios faltantes, material de tienda…). Estados: Pedido → Autorizado OPS → Llegando → Recibido → Cerrado, más Cancelado/Rechazado como vía paralela. Cada transición queda registrada con fecha/hora y quien lo marca, visible en el historial del panel de detalle' },
+            { type: 'new', text: 'Procurement: tabla con filtros por estado y búsqueda libre. Panel de detalle conmutable entre lateral y inferior (igual que en Garantías), con la disposición memorizada por dispositivo' },
+            { type: 'new', text: 'Procurement: aviso visual ámbar cuando una petición lleva ≥ 7 días en estado "Pedido" sin moverse' },
+            { type: 'new', text: 'Procurement: en el panel de detalle, BoxID y Nº de serie llevan botón de copiar al portapapeles cuando tienen valor' },
+            { type: 'ui', text: 'Procurement: equipo (dropdown de "Pedido por" y "Por" en cambios de estado) compartido con el del módulo Checklist — fuente única, configurado desde allí' },
             { type: 'fix', text: 'App: cerrar un modal haciendo clic fuera ya no funciona — solo cierran la X de la esquina, los botones de la propia ventana o ESC. Antes, un drag-select de texto que terminaba sobre el fondo cerraba la ventana de golpe y se perdía lo escrito' },
             { type: 'ui', text: 'Garantías · Defectuoso del cliente: el campo "Tienda destino" pasa a llamarse "Tienda destino RTO". Tooltip al pasar el ratón aclara que es solo para casos de RTO a franquicia' },
             { type: 'fix', text: 'Checklist: saltar una tarea ahora cuenta como "procesarla" para la alerta roja. Si una tarea con umbral crítico de 1 día se saltó ayer, hoy no salta en rojo — queda solo con el chip "hace N días" en gris. El rojo se reserva para tareas que llevan más del umbral sin hacer NI saltar' },
