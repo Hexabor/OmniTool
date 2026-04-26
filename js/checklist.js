@@ -843,13 +843,20 @@ function renderTasks() {
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 ${escapeHtml(linkLabel)}
             </a>` : '';
-        // Edit/add-after/delete are only rendered in edit mode (defence in depth on top of the CSS hide)
+        // Edit/add-after/skip-toggle/delete are only rendered in edit mode (defence in depth on top of the CSS hide)
+        const skipAllowed = it.allowSkip === true;
         const actionsHtml = _state.editMode ? `
             <div class="cl-actions">
                 <button class="cl-action-btn cl-add-after" data-id="${it.id}" title="Añadir tarea siguiente" aria-label="Añadir tarea siguiente">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"/>
                         <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+                <button class="cl-action-btn cl-skip-toggle ${skipAllowed ? '' : 'disallowed'}" data-id="${it.id}" title="${skipAllowed ? 'Se puede saltar — clic para no permitir' : 'No se puede saltar — clic para permitir'}" aria-label="${skipAllowed ? 'No permitir saltar' : 'Permitir saltar'}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 4 15 12 5 20 5 4"/>
+                        <line x1="17" y1="5" x2="17" y2="19"/>
                     </svg>
                 </button>
                 <button class="cl-action-btn cl-edit" data-id="${it.id}" title="Editar" aria-label="Editar">
@@ -881,7 +888,7 @@ function renderTasks() {
             </div>
             <select class="cl-doneby ${selectClass}" data-id="${it.id}" ${noStaff ? 'disabled title="Configura el equipo primero"' : ''}>
                 <option value="" ${selValue === '' ? 'selected' : ''}>${noStaff ? '— añade equipo —' : '— Sin hacer —'}</option>
-                <option value="__skip__" ${selValue === '__skip__' ? 'selected' : ''}>⏭ Saltar</option>
+                ${it.allowSkip === true ? `<option value="__skip__" ${selValue === '__skip__' ? 'selected' : ''}>⏭ Saltar</option>` : ''}
                 ${lostStaffOption}
                 ${_state.staff.map(s =>
                     `<option value="${escapeHtml(s)}" ${selValue === s ? 'selected' : ''}>${escapeHtml(s)}</option>`
@@ -929,6 +936,10 @@ function openTaskModal(existing, opts) {
         form.urlLabel.value = existing.urlLabel || '';
         form.url.value = existing.url || '';
         form.criticalEveryDays.value = existing.criticalEveryDays || '';
+        // allowSkip defaults to false (most tasks aren't skippable). The user
+        // turns it on per-task for the few that should expose the "Saltar"
+        // option in the dropdown.
+        form.allowSkip.checked = existing.allowSkip === true;
     } else if (opts.prefillTime) {
         if (form.time._flatpickr) form.time._flatpickr.setDate(opts.prefillTime, false, 'H:i');
         else form.time.value = opts.prefillTime;
@@ -957,6 +968,7 @@ async function handleTaskSubmit(e) {
     const urlLabel = (form.urlLabel.value || '').trim();
     const criticalRaw = parseInt(form.criticalEveryDays.value);
     const criticalEveryDays = (!isNaN(criticalRaw) && criticalRaw > 0) ? criticalRaw : null;
+    const allowSkip = form.allowSkip.checked;
     if (!time) return;
     if (!name && !url) {
         alert('Añade un nombre para la tarea o un enlace que haga de nombre.');
@@ -967,9 +979,10 @@ async function handleTaskSubmit(e) {
         if (it) {
             it.time = time; it.name = name; it.url = url; it.urlLabel = urlLabel;
             it.criticalEveryDays = criticalEveryDays;
+            it.allowSkip = allowSkip;
         }
     } else {
-        const newItem = { id: uuid(), time, name, doneBy: '', url, urlLabel, criticalEveryDays };
+        const newItem = { id: uuid(), time, name, doneBy: '', url, urlLabel, criticalEveryDays, allowSkip };
         if (_state.afterTaskId) {
             // "Añadir tarea siguiente": drop the new item directly after its
             // parent. This is an explicit placement, so flip manualOrder on.
@@ -1106,6 +1119,17 @@ function updateProgress() {
     const processed = active.items.filter(x => x.doneBy || x.skipped).length;
     progressEl.textContent = `${processed} / ${total}`;
     progressEl.classList.toggle('complete', total > 0 && processed === total);
+}
+
+// Inline toggle in edit mode — flips it.allowSkip without opening the modal.
+async function toggleAllowSkip(taskId) {
+    const active = getActiveChecklist();
+    if (!active) return;
+    const it = active.items.find(x => x.id === taskId);
+    if (!it) return;
+    it.allowSkip = it.allowSkip === false ? true : false;
+    renderTasks();
+    await persist();
 }
 
 async function deleteTask(taskId) {
@@ -1483,6 +1507,12 @@ function bindUI() {
     // Start new day (archives previous cycle to history, clears marks)
     $('btnStartDay').addEventListener('click', startNewDay);
 
+    // Skip-info modal
+    $('btnSkipInfo').addEventListener('click', () => $('clSkipInfoOverlay').classList.add('open'));
+    const closeSkipInfo = () => $('clSkipInfoOverlay').classList.remove('open');
+    $('clSkipInfoClose').addEventListener('click', closeSkipInfo);
+    $('clSkipInfoOk').addEventListener('click', closeSkipInfo);
+
     // History modal
     $('btnHistory').addEventListener('click', openHistoryModal);
     $('clHistoryClose').addEventListener('click', closeHistoryModal);
@@ -1503,6 +1533,11 @@ function bindUI() {
             const active = getActiveChecklist();
             const parent = active && active.items.find(x => x.id === addAfterBtn.getAttribute('data-id'));
             if (parent) openTaskModal(null, { afterId: parent.id, prefillTime: parent.time });
+            return;
+        }
+        const skipBtn = e.target.closest('.cl-skip-toggle');
+        if (skipBtn) {
+            toggleAllowSkip(skipBtn.getAttribute('data-id'));
             return;
         }
         const editBtn = e.target.closest('.cl-edit');
@@ -1587,6 +1622,7 @@ function bindUI() {
         else if ($('clHistoryOverlay').classList.contains('open')) closeHistoryModal();
         else if ($('clNoteOverlay').classList.contains('open')) closeNoteModal();
         else if ($('clPersArchiveOverlay').classList.contains('open')) closePersArchive();
+        else if ($('clSkipInfoOverlay').classList.contains('open')) $('clSkipInfoOverlay').classList.remove('open');
     });
 }
 

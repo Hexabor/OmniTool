@@ -179,6 +179,13 @@
                         <select class="cl-switcher" id="clSwitcher"></select>
                     </label>
                     <span class="cl-progress" id="clProgress">0 / 0</span>
+                    <button class="cl-icon-btn" id="btnSkipInfo" title="Sobre el botón Saltar" aria-label="Sobre el botón Saltar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </button>
                     <div class="cl-bar-manage cl-edit-only">
                         <button class="cl-icon-btn" id="btnNewChecklist" title="Nueva checklist" aria-label="Nueva checklist">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -287,6 +294,11 @@
                         <input type="number" name="criticalEveryDays" min="1" max="365" step="1" placeholder="Ej. 7">
                     </label>
                 </fieldset>
+                <label class="cl-toggle">
+                    <input type="checkbox" name="allowSkip">
+                    <span class="cl-toggle-label">Se puede saltar</span>
+                    <span class="cl-toggle-hint">Por defecto las tareas no se pueden saltar. Actívalo solo en las que sí — entonces aparecerá "⏭ Saltar" en el desplegable</span>
+                </label>
                 <div class="cl-modal-actions">
                     <button type="button" class="btn btn-secondary" id="clCancel">Cancelar</button>
                     <button type="submit" class="btn btn-accent">Guardar</button>
@@ -329,6 +341,26 @@
                 </button>
             </div>
             <div class="cl-modal-body" id="clHistoryBody"></div>
+        </div>
+    </div>
+
+    <!-- Skip-info modal: explains that skipping resets the day counter -->
+    <div class="cl-modal-overlay" id="clSkipInfoOverlay">
+        <div class="cl-modal cl-modal-narrow">
+            <div class="cl-modal-header">
+                <h3>Sobre el botón "Saltar"</h3>
+                <button class="cl-modal-close" id="clSkipInfoClose" aria-label="Cerrar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="cl-modal-body">
+                <p class="cl-modal-hint">Saltar una tarea cuenta como "procesarla" — reinicia su contador de días sin hacer y la alerta roja de criticidad desaparece.</p>
+                <p class="cl-modal-hint"><strong>No la uses</strong> en tareas de las que quieras conservar el conteo real de días sin hacer (p. ej. mantenimientos periódicos, pedidos a proveedor, etc.). Para esas, deja el desplegable en blanco si no se hizo.</p>
+                <p class="cl-modal-hint">Para que ni aparezca la opción "Saltar" en una tarea, en modo Editar pulsa el icono de saltar (▶|) hasta verlo en rojo y tachado.</p>
+                <div class="cl-modal-actions">
+                    <button type="button" class="btn btn-accent" id="clSkipInfoOk">Entendido</button>
+                </div>
+            </div>
         </div>
     </div>
 

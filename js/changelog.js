@@ -18,6 +18,8 @@ const CHANGELOG = [
             { type: 'ui', text: 'Procurement: dropdown de personas compartido con el equipo del módulo Checklist — fuente única, se configura desde allí' },
             { type: 'ui', text: 'Procurement: calendarios en español, lunes-primero, formato DD/MM/AAAA (flatpickr, igual que Garantías)' },
             { type: 'new', text: 'Procurement: sincronización en tiempo real entre dispositivos — los cambios de otra persona aparecen aquí sin refrescar' },
+            { type: 'new', text: 'Checklist: ahora se puede decidir por tarea si admite "⏭ Saltar" en el desplegable. Por defecto NO se permite — actívalo solo en las que sí, con el switch del modal de editar o pulsando el iconito ▶| en modo Editar (rojo + tachado = bloqueado, normal = permitido)' },
+            { type: 'new', text: 'Checklist: botón de info "i" junto al contador de progreso — abre un aviso recordando que saltar reinicia el contador de días sin hacer, así que no debe usarse en tareas donde quieras conservar el conteo real (mantenimientos, pedidos a proveedor…)' },
         ]
     },
     {
