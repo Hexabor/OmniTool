@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '29/04/2026',
+        version: 'v0.11',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Xfer Reg · Revisión: nueva sección "Enviado pero no marcado como Enviado" justo antes de "Enviados correctamente". Agrupa los items que sí salieron en el stock real pero cuyo estado en la app es REVISAR, "Buscando no encontrado" o vacío. Muestra Box Name, Destino, Estado actual y % de coste — la suma de esos % es exactamente el desfase entre el indicador de la cabecera y el de Revisión, así localizas todas las discrepancias agrupadas' },
+        ]
+    },
+    {
         date: '26/04/2026',
         version: 'v0.10',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'fix', text: 'App: en móvil, el nombre del módulo (p. ej. "Checklist") ya no se solapa con el botón "Novedades". Se oculta la marca "CapiTool" en pantallas estrechas (redundante una vez dentro de la app) y el nombre del módulo pasa a flujo normal — se distribuye limpiamente entre el menú hamburguesa y la tienda activa' },
             { type: 'ui', text: 'Checklist · móvil: barra superior reorganizada — el donut deja de comprimir los botones a la izquierda y pasa a ocupar una fila propia centrada debajo del switcher y las acciones. Donut un poco más compacto (capibara y leyenda más pequeños) para que ocupe lo justo' },

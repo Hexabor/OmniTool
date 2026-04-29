@@ -1464,11 +1464,32 @@ function runChecker(stockCSV) {
         html += '</tbody></table></div>';
     }
 
-    if (matched.length > 0) {
+    // Items that did go out (match in stock CSV) but the user didn't mark as "Enviado".
+    // Cause of cabecera vs Revisión drift: the sum of these % equals that gap.
+    const matchedUnmarked = matched.filter(m => m.xfer.status !== 'Enviado');
+    const matchedOk = matched.filter(m => m.xfer.status === 'Enviado');
+
+    if (matchedUnmarked.length > 0) {
         html += `<div class="chk-section">
-            <div class="chk-section-title">Enviados correctamente <span class="chk-section-count">${matched.length}</span></div>
+            <div class="chk-section-title">Enviado pero no marcado como Enviado <span class="chk-section-count">${matchedUnmarked.length}</span></div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado actual</th><th>%</th></tr></thead><tbody>`;
+        for (const m of matchedUnmarked) {
+            const pct = effectiveCost > 0 ? (m.xfer.cost / effectiveCost) * 100 : 0;
+            html += `<tr>
+                <td>${m.xfer.boxName}</td>
+                <td>${m.xfer.destination}</td>
+                <td>${statusBadge(m.xfer.status)}</td>
+                <td class="s-pct">${pct.toFixed(2)}%</td>
+            </tr>`;
+        }
+        html += '</tbody></table></div>';
+    }
+
+    if (matchedOk.length > 0) {
+        html += `<div class="chk-section">
+            <div class="chk-section-title">Enviados correctamente <span class="chk-section-count">${matchedOk.length}</span></div>
             <table class="chk-table"><thead><tr><th>Box Name</th><th>Destino</th><th>Estado</th></tr></thead><tbody>`;
-        for (const m of matched) {
+        for (const m of matchedOk) {
             html += `<tr><td>${m.xfer.boxName}</td><td>${m.xfer.destination}</td><td>${statusBadge(m.xfer.status)}</td></tr>`;
         }
         html += '</tbody></table></div>';
