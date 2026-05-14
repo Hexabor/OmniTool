@@ -595,6 +595,7 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     word-break: break-word;
 }
 
+.cl-team-edit,
 .cl-team-remove {
     background: none;
     border: none;
@@ -604,7 +605,26 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     border-radius: var(--radius-sm);
     line-height: 0;
 }
+.cl-team-edit:hover { color: var(--color-primary); background: #eff6ff; }
 .cl-team-remove:hover { color: var(--color-danger); background: #fef2f2; }
+
+.cl-team-name { cursor: text; }
+
+.cl-team-name-edit {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--color-text);
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: #fff;
+}
+.cl-team-name-edit:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
 
 .cl-team-empty {
     padding: 1rem;

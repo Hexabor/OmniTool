@@ -1106,7 +1106,10 @@ function renderTeamList() {
     }
     ul.innerHTML = _state.staff.map(name => `
         <li class="cl-team-item">
-            <span class="cl-team-name">${escapeHtml(name)}</span>
+            <span class="cl-team-name" title="Doble clic para renombrar">${escapeHtml(name)}</span>
+            <button class="cl-team-edit" data-name="${escapeHtml(name)}" title="Renombrar" aria-label="Renombrar ${escapeHtml(name)}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </button>
             <button class="cl-team-remove" data-name="${escapeHtml(name)}" title="Quitar" aria-label="Quitar ${escapeHtml(name)}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -1130,6 +1133,70 @@ async function removeTeamMember(name) {
     renderTeamList();
     renderTasks();
     await persist();
+}
+
+// Inline rename of a staff member. Click the pencil or double-click the name
+// to swap the span for an input; Enter/blur saves, Escape reverts. Propagates
+// the new name across daily items, history archives and the persistent archive
+// so past entries don't get orphaned as "(ya no está)".
+function startTeamNameEdit(nameEl, oldName) {
+    if (_state.staff.indexOf(oldName) === -1) return;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'cl-team-name-edit';
+    input.value = oldName;
+    input.maxLength = 60;
+    nameEl.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let done = false;
+    const commit = async (save) => {
+        if (done) return;
+        done = true;
+        if (save) {
+            const v = input.value.trim();
+            if (!v) {
+                alert('El nombre no puede estar vacío.');
+                renderTeamList();
+                return;
+            }
+            if (v !== oldName && _state.staff.includes(v)) {
+                alert(`Ya existe un miembro llamado "${v}".`);
+                renderTeamList();
+                return;
+            }
+            if (v !== oldName) {
+                const idx = _state.staff.indexOf(oldName);
+                if (idx === -1) { renderTeamList(); return; }
+                _state.staff[idx] = v;
+                // Propagate the rename so past assignments keep pointing here
+                for (const cl of _state.checklists) {
+                    for (const it of (cl.items || [])) {
+                        if (it.doneBy === oldName) it.doneBy = v;
+                    }
+                    for (const h of (cl.history || [])) {
+                        if (h.doneBy === oldName) h.doneBy = v;
+                    }
+                }
+                if (_state.persistent && Array.isArray(_state.persistent.archive)) {
+                    for (const a of _state.persistent.archive) {
+                        if (a.completedBy === oldName) a.completedBy = v;
+                    }
+                }
+                renderTeamList();
+                renderTasks();
+                await persist();
+                return;
+            }
+        }
+        renderTeamList();
+    };
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(true); }
+        else if (e.key === 'Escape') { e.preventDefault(); commit(false); }
+    });
+    input.addEventListener('blur', () => commit(true));
 }
 
 // === Task actions ===
@@ -1534,9 +1601,24 @@ function bindUI() {
         await addTeamMember(name);
     });
     $('clTeamList').addEventListener('click', (e) => {
-        const btn = e.target.closest('.cl-team-remove');
-        if (!btn) return;
-        removeTeamMember(btn.getAttribute('data-name'));
+        const editBtn = e.target.closest('.cl-team-edit');
+        if (editBtn) {
+            const li = editBtn.closest('.cl-team-item');
+            const nameEl = li && li.querySelector('.cl-team-name');
+            if (nameEl) startTeamNameEdit(nameEl, editBtn.getAttribute('data-name'));
+            return;
+        }
+        const removeBtn = e.target.closest('.cl-team-remove');
+        if (removeBtn) {
+            removeTeamMember(removeBtn.getAttribute('data-name'));
+        }
+    });
+    $('clTeamList').addEventListener('dblclick', (e) => {
+        const nameEl = e.target.closest('.cl-team-name');
+        if (!nameEl) return;
+        const li = nameEl.closest('.cl-team-item');
+        const editBtn = li && li.querySelector('.cl-team-edit');
+        if (editBtn) startTeamNameEdit(nameEl, editBtn.getAttribute('data-name'));
     });
 
     // Sort by time (edit mode)

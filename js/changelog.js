@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '15/05/2026',
+        version: 'v0.12',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Checklist · Equipo: ahora los nombres del equipo se pueden renombrar sin perder el histórico. En el modal "Equipo" cada miembro tiene un botón de lápiz (o doble clic sobre el nombre) que abre un input inline — Enter guarda, Esc cancela. El nuevo nombre se propaga automáticamente a las tareas marcadas, al histórico de 14 días y al archivo de persistentes, así no aparece "(ya no está)" donde antes estaba la persona' },
+        ]
+    },
+    {
         date: '29/04/2026',
         version: 'v0.11',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Xfer Reg · Revisión: nueva sección "Enviado pero no marcado como Enviado" justo antes de "Enviados correctamente". Agrupa los items que sí salieron en el stock real pero cuyo estado en la app es REVISAR, "Buscando no encontrado" o vacío. Muestra Box Name, Destino, Estado actual y % de coste — la suma de esos % es exactamente el desfase entre el indicador de la cabecera y el de Revisión, así localizas todas las discrepancias agrupadas' },
         ]
