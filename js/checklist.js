@@ -472,7 +472,7 @@ function renderPersistent() {
         ).join('');
         return `
         <div class="cl-pers-task" data-id="${it.id}">
-            <span class="cl-pers-name" title="Doble clic para renombrar">${escapeHtml(it.name)}</span>
+            <span class="cl-pers-name" title="Doble clic para renombrar (o usa el lápiz)">${escapeHtml(it.name)}</span>
             <div class="cl-pers-controls">
                 <select class="cl-pers-doneby" data-id="${it.id}" ${noStaff ? 'disabled title="Configura el equipo primero"' : 'title="Marcar como hecha mueve la tarea al archivo"'}>
                     <option value="" selected>${noStaff ? '— añade equipo —' : '— Sin hacer —'}</option>
@@ -493,6 +493,9 @@ function renderPersistent() {
                     </select>
                 </div>
             </div>
+            <button class="cl-pers-edit" data-id="${it.id}" title="Editar nombre" aria-label="Editar nombre">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
             <button class="cl-pers-delete" data-id="${it.id}" title="Eliminar" aria-label="Eliminar">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -1697,6 +1700,14 @@ function bindUI() {
         if (noteBtn) {
             const it = _state.persistent && _state.persistent.items.find(x => x.id === noteBtn.getAttribute('data-id'));
             if (it) openNoteModal(it);
+            return;
+        }
+        const editBtn = e.target.closest('.cl-pers-edit');
+        if (editBtn) {
+            const row = editBtn.closest('.cl-pers-task');
+            const nameEl = row && row.querySelector('.cl-pers-name');
+            const it = _state.persistent && _state.persistent.items.find(x => x.id === editBtn.getAttribute('data-id'));
+            if (it && nameEl) startPersNameEdit(nameEl, it);
             return;
         }
         const delBtn = e.target.closest('.cl-pers-delete');

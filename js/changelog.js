@@ -1,8 +1,16 @@
 const CHANGELOG = [
     {
+        date: '16/05/2026',
+        version: 'v0.13',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Checklist · Tareas persistentes: botón de lápiz visible junto al de eliminar para editar el nombre. Mismo flujo que el doble clic (Enter guarda, Esc cancela), pero descubrible — pensado sobre todo para los monitores táctiles verticales donde el doble clic es incómodo' },
+            { type: 'ui', text: 'App: el selector de tienda se reduce temporalmente a las 4 tiendas piloto (Madrid Atocha, Islazul, Las Rosas y Usera). El resto del listado se restablecerá cuando la herramienta esté lista para más despliegue' },
+        ]
+    },
+    {
         date: '15/05/2026',
         version: 'v0.12',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Checklist · Equipo: ahora los nombres del equipo se pueden renombrar sin perder el histórico. En el modal "Equipo" cada miembro tiene un botón de lápiz (o doble clic sobre el nombre) que abre un input inline — Enter guarda, Esc cancela. El nuevo nombre se propaga automáticamente a las tareas marcadas, al histórico de 14 días y al archivo de persistentes, así no aparece "(ya no está)" donde antes estaba la persona' },
         ]

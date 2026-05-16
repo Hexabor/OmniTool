@@ -1232,6 +1232,7 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     border-color: var(--color-text-lighter);
 }
 
+.cl-pers-edit,
 .cl-pers-delete {
     flex-shrink: 0;
     display: inline-flex;
@@ -1245,6 +1246,11 @@ body.cl-edit-mode #btnEditMode .cl-edit-icon-check { display: inline-block; }
     color: var(--color-text-light);
     cursor: pointer;
     transition: all 0.15s;
+}
+.cl-pers-edit:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: var(--color-primary);
 }
 .cl-pers-delete:hover {
     background: #fef2f2;
