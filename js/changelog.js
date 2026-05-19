@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '19/05/2026',
+        version: 'v0.14',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'fix', text: 'Garantías · Tienda origen: el desplegable vuelve a mostrar las 69 tiendas de la red. Al limitar el login a las 4 piloto, sin querer también se redujeron las opciones de "Tienda origen" en garantías, cuando lo lógico es seguir pudiendo registrar garantías procedentes de cualquier tienda de la red' },
+        ]
+    },
+    {
         date: '16/05/2026',
         version: 'v0.13',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Checklist · Tareas persistentes: botón de lápiz visible junto al de eliminar para editar el nombre. Mismo flujo que el doble clic (Enter guarda, Esc cancela), pero descubrible — pensado sobre todo para los monitores táctiles verticales donde el doble clic es incómodo' },
             { type: 'ui', text: 'App: el selector de tienda se reduce temporalmente a las 4 tiendas piloto (Madrid Atocha, Islazul, Las Rosas y Usera). El resto del listado se restablecerá cuando la herramienta esté lista para más despliegue' },

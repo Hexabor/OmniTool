@@ -408,7 +408,7 @@ function openModal(prefill) {
     // Populate source store dropdown
     const sel = $('wfSourceStore');
     sel.innerHTML = '<option value="">— Seleccionar —</option>' +
-        STORES.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+        ALL_STORES.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
 
     if (prefill) {
         form.umid.value = prefill.umid || '';
@@ -680,7 +680,7 @@ function renderRequestSection(it) {
                 <label class="full">UMID <input type="text" data-edit="umid" value="${escapeHtml(it.umid || '')}"></label>
                 <label class="full">Tienda origen
                     <select data-edit="sourceStore">
-                        ${STORES.map(s => `<option value="${escapeHtml(s)}" ${s === it.sourceStore ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
+                        ${ALL_STORES.map(s => `<option value="${escapeHtml(s)}" ${s === it.sourceStore ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
                     </select>
                 </label>
                 <label>Box ID <input type="text" data-edit="boxId" value="${escapeHtml(it.boxId || '')}"></label>
