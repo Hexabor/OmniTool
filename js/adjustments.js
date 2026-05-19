@@ -1,6 +1,7 @@
 // === Control de ajustes ===
 const MODULE = 'adjustments';
 const VIEW_KEY = 'adjustments_view';
+const COMPACT_KEY = 'adjustments_compact';
 
 // Annual adjustment threshold (as fraction of yearly sales).
 // Net cumulative adjustments outside this range = failed.
@@ -12,6 +13,7 @@ let _state = {
     filtered: {},          // { id: true } — flagged for exclusion from "real" analysis
     weeklySales: {},       // { "2026-17": 3718.00, ... } — manually entered per week
     view: 'summary',       // 'summary' | 'list' (persisted in localStorage)
+    editMode: false,       // UI-only, not persisted; resets on reload to avoid accidental deletes
     sortKey: 'dateIso',
     sortDir: 'desc',
     filters: {
@@ -544,7 +546,7 @@ function renderTable() {
     updateStats(items);
 
     if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="19" style="text-align:center;padding:1.5rem;color:var(--color-text-lighter)">Sin resultados con estos filtros.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="20" style="text-align:center;padding:1.5rem;color:var(--color-text-lighter)">Sin resultados con estos filtros.</td></tr>`;
         return;
     }
     tbody.innerHTML = items.map(renderRow).join('');
@@ -564,8 +566,8 @@ function renderRow(it) {
         </td>
         <td class="col-week">${it.week || '—'}</td>
         <td class="col-date">${fmtShortDate(it.dateIso)}</td>
-        <td>${escapeHtml(it.branch)}</td>
-        <td>${escapeHtml(it.location)}</td>
+        <td class="col-branch">${escapeHtml(it.branch)}</td>
+        <td class="col-location">${escapeHtml(it.location)}</td>
         <td class="col-category">${escapeHtml(it.category)}</td>
         <td class="col-boxname">${escapeHtml(it.boxName)}</td>
         <td class="col-boxid">${escapeHtml(it.boxId)}</td>
@@ -573,13 +575,14 @@ function renderRow(it) {
         <td class="col-type">${escapeHtml(it.type)}</td>
         <td class="col-notes">${escapeHtml(it.notes)}</td>
         <td class="num">${fmtMoney(it.unitPrice)}</td>
-        <td class="num">${fmtMoney(it.unitCost)}</td>
+        <td class="num col-unit-cost">${fmtMoney(it.unitCost)}</td>
         <td>${orderNum}</td>
         <td class="num">${fromQ}</td>
         <td class="num">${toQ}</td>
         <td class="num">${signNum(it.adjQty)}</td>
         <td class="num ${saleClass}">${fmtMoney(it.adjSaleVal)}</td>
-        <td class="num">${fmtMoney(it.adjCostVal)}</td>
+        <td class="num col-adj-cost">${fmtMoney(it.adjCostVal)}</td>
+        <td class="col-delete"><button class="adj-row-delete" data-id="${it.id}" title="Eliminar este ajuste" aria-label="Eliminar">×</button></td>
     </tr>`;
 }
 
@@ -591,6 +594,39 @@ function updateStats(visibleItems) {
     $('adjStatSum').textContent = fmtMoney(sumVis) + ' €';
     $('adjStatFiltered').textContent = filteredAll.length.toLocaleString('es-ES');
     $('adjStatFilteredSum').textContent = fmtMoney(sumFiltered) + ' €';
+}
+
+// === Edit mode toggle (UI only, not persisted) ===
+function setEditMode(on) {
+    _state.editMode = !!on;
+    document.body.classList.toggle('adj-editing', _state.editMode);
+    const btn = $('adjBtnEditMode');
+    if (btn) btn.classList.toggle('active', _state.editMode);
+}
+
+// === Compact view (per-device, persisted in localStorage) ===
+// Hides Tienda / Ubicación / Adj Cost and shrinks padding+font ~10 % so the
+// listado fits on vertical monitors without horizontal scroll.
+function setCompact(on) {
+    const v = !!on;
+    document.body.classList.toggle('adj-compact', v);
+    const btn = $('adjBtnCompact');
+    if (btn) btn.classList.toggle('active', v);
+    localStorage.setItem(COMPACT_KEY, v ? '1' : '0');
+}
+
+// === Permanent delete (in-app only — won't survive a CSV re-import if the row is still there) ===
+async function deleteItem(id) {
+    const it = _state.items.find(x => x.id === id);
+    if (!it) return;
+    const summary = `${fmtShortDate(it.dateIso)} · ${it.boxId || '—'} · ${it.boxName || ''}`;
+    const detail = `Adj Qty: ${signNum(it.adjQty)} · Sale: ${fmtMoney(it.adjSaleVal)} € · Cost: ${fmtMoney(it.adjCostVal)} €`;
+    if (!confirm(`¿Eliminar este ajuste?\n\n${summary}\n${detail}\n\nSi el ajuste sigue presente en un CSV futuro, reaparecerá al re-importar.`)) return;
+    _state.items = _state.items.filter(x => x.id !== id);
+    if (_state.filtered[id]) delete _state.filtered[id];
+    await persist();
+    renderAll();
+    console.log(`[adj] ajuste eliminado: ${id}`);
 }
 
 // === Filter checkbox toggle ===
@@ -634,6 +670,12 @@ function bindUI() {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && getStoreCode()) refresh();
     });
+
+    // Edit mode toggle
+    $('adjBtnEditMode').addEventListener('click', () => setEditMode(!_state.editMode));
+
+    // Compact view toggle
+    $('adjBtnCompact').addEventListener('click', () => setCompact(!document.body.classList.contains('adj-compact')));
 
     // Filters
     $('adjSearch').addEventListener('input', (e) => { _state.filters.search = e.target.value.trim(); renderTable(); });
@@ -702,6 +744,13 @@ function bindUI() {
         toggleFilter(cb.getAttribute('data-id'), cb.checked);
     });
 
+    // Row delete button (delegated, only meaningful in edit mode)
+    $('adjTbody').addEventListener('click', (e) => {
+        const btn = e.target.closest('.adj-row-delete');
+        if (!btn) return;
+        deleteItem(btn.getAttribute('data-id'));
+    });
+
     // Weekly sales input (delegated)
     $('adjSummaryTbody').addEventListener('change', async (e) => {
         const inp = e.target.closest('.adj-sales-input');
@@ -753,6 +802,7 @@ function applyViewVisibility() {
 
 async function init() {
     _state.view = localStorage.getItem(VIEW_KEY) || 'summary';
+    setCompact(localStorage.getItem(COMPACT_KEY) === '1');
     bindUI();
     await load();
     renderAll();

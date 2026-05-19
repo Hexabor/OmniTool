@@ -4,6 +4,9 @@ const CHANGELOG = [
         version: 'v0.14',
         tag: 'ÚLTIMA',
         entries: [
+            { type: 'new', text: 'Ajustes · Vista compacta: nuevo botón en la barra superior (icono de filas) que oculta las columnas Tienda, Ubicación, C. unit. y Adj Cost € y reduce ~20 % el tamaño de filas y texto del listado. Pensado para monitores verticales donde la tabla no cabía. Persiste por dispositivo — al desactivar vuelve a verse todo' },
+            { type: 'new', text: 'Ajustes · Modo edición: nuevo botón en la barra superior (icono de lápiz) que muestra una columna extra "Eliminar" con un botón × por fila para borrar ajustes individualmente. Pide confirmación con los detalles del ajuste antes de eliminar. Pensado para limpiar duplicados que se cuelan cuando la fuente exporta el mismo ajuste con un Adj Cost ligeramente distinto entre informes' },
+            { type: 'fix', text: 'Ajustes · Modo edición: el aviso ámbar de modo edición ya no aparece en la vista Resumen semanal (donde no hay nada que eliminar) — solo en Listado completo' },
             { type: 'fix', text: 'Garantías · Tienda origen: el desplegable vuelve a mostrar las 69 tiendas de la red. Al limitar el login a las 4 piloto, sin querer también se redujeron las opciones de "Tienda origen" en garantías, cuando lo lógico es seguir pudiendo registrar garantías procedentes de cualquier tienda de la red' },
         ]
     },

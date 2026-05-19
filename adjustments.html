@@ -203,6 +203,20 @@
             </div>
 
             <div class="adj-actions">
+                <button class="adj-icon-btn" id="adjBtnCompact" title="Vista compacta — oculta Tienda / Ubicación / Adj Cost y reduce filas (útil en monitores verticales)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                        <line x1="3" y1="14" x2="21" y2="14"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <button class="adj-icon-btn" id="adjBtnEditMode" title="Modo edición — eliminar ajustes individualmente">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                </button>
                 <button class="adj-icon-btn" id="adjBtnRefresh" title="Refrescar desde Firestore">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"/>
@@ -317,6 +331,11 @@
             </div>
         </section>
 
+        <!-- Edit-mode warning (only visible when edit mode is active) -->
+        <div class="adj-edit-warning" id="adjEditWarning">
+            <strong>Modo edición activo</strong> — usa el botón <span class="adj-edit-warning-x">×</span> para eliminar ajustes. Si el ajuste sigue presente en un CSV que vuelvas a importar, reaparecerá. Para excluir del análisis sin borrar, usa la casilla <strong>Filtrar</strong>.
+        </div>
+
         <!-- Table output -->
         <div class="adj-table-wrap">
             <table class="adj-table" id="adjTable">
@@ -325,8 +344,8 @@
                         <th class="col-filter" title="Marcar/desmarcar para excluir del análisis">Filtrar</th>
                         <th class="sortable" data-sort="week">WK</th>
                         <th class="sortable" data-sort="dateIso">Fecha</th>
-                        <th class="sortable" data-sort="branch">Tienda</th>
-                        <th class="sortable" data-sort="location">Ubicación</th>
+                        <th class="sortable col-branch" data-sort="branch">Tienda</th>
+                        <th class="sortable col-location" data-sort="location">Ubicación</th>
                         <th class="sortable" data-sort="category">Categoría</th>
                         <th class="sortable" data-sort="boxName">Box Name</th>
                         <th class="sortable" data-sort="boxId">Box ID</th>
@@ -334,13 +353,14 @@
                         <th class="sortable" data-sort="type">Type</th>
                         <th class="sortable" data-sort="notes">Notas</th>
                         <th class="sortable num" data-sort="unitPrice">P. unit.</th>
-                        <th class="sortable num" data-sort="unitCost">C. unit.</th>
+                        <th class="sortable num col-unit-cost" data-sort="unitCost">C. unit.</th>
                         <th class="sortable" data-sort="orderNumber">Order Nº</th>
                         <th class="sortable num" data-sort="fromQty">From</th>
                         <th class="sortable num" data-sort="toQty">To</th>
                         <th class="sortable num" data-sort="adjQty">Adj Qty</th>
                         <th class="sortable num" data-sort="adjSaleVal">Adj Sale €</th>
-                        <th class="sortable num" data-sort="adjCostVal">Adj Cost €</th>
+                        <th class="sortable num col-adj-cost" data-sort="adjCostVal">Adj Cost €</th>
+                        <th class="col-delete" title="Solo visible en Modo edición">Eliminar</th>
                     </tr>
                 </thead>
                 <tbody id="adjTbody"></tbody>

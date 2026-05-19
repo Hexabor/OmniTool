@@ -114,6 +114,15 @@
     color: #6366f1;
     background: #eef2ff;
 }
+.adj-icon-btn.active {
+    border-color: #f97316;
+    color: #ea580c;
+    background: #fff7ed;
+}
+.adj-icon-btn.active:hover {
+    border-color: #ea580c;
+    background: #ffedd5;
+}
 .adj-icon-btn.refreshing svg {
     animation: adj-spin 0.8s linear infinite;
 }
@@ -286,7 +295,8 @@
 /* Hide list-only sections in summary view, and vice versa */
 body.adj-view-summary .adj-filters,
 body.adj-view-summary .adj-stats,
-body.adj-view-summary .adj-table-wrap { display: none !important; }
+body.adj-view-summary .adj-table-wrap,
+body.adj-view-summary .adj-edit-warning { display: none !important; }
 body.adj-view-list .adj-summary { display: none !important; }
 
 /* === Weekly summary === */
@@ -605,6 +615,119 @@ body.adj-view-list .adj-summary { display: none !important; }
     cursor: pointer;
     accent-color: #6366f1;
 }
+
+/* Edit-mode: delete column (hidden by default, shown when body.adj-editing) */
+.adj-table th.col-delete,
+.adj-table td.col-delete {
+    display: none;
+    width: 60px;
+    text-align: center;
+    background: #fff7ed;
+    border-left: 1px solid #fdba74;
+    font-size: 0.65rem;
+    color: #9a3412;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+body.adj-editing .adj-table th.col-delete,
+body.adj-editing .adj-table td.col-delete {
+    display: table-cell;
+}
+.adj-row-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid #f87171;
+    background: #fef2f2;
+    color: #b91c1c;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 700;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+.adj-row-delete:hover {
+    background: #b91c1c;
+    color: white;
+    border-color: #b91c1c;
+}
+
+.adj-edit-warning {
+    display: none;
+    padding: 0.5rem 0.85rem;
+    margin-bottom: 0.5rem;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #9a3412;
+    font-size: 0.78rem;
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+}
+body.adj-editing .adj-edit-warning {
+    display: block;
+}
+.adj-edit-warning-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 16px;
+    border: 1px solid #f87171;
+    background: #fef2f2;
+    color: #b91c1c;
+    border-radius: 3px;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+/* === Compact view — fits the listado on vertical monitors === */
+/* Override the default orange .active styling: compact is a layout pref, not destructive */
+#adjBtnCompact.active {
+    border-color: #6366f1;
+    color: #6366f1;
+    background: #eef2ff;
+}
+#adjBtnCompact.active:hover {
+    border-color: #4f46e5;
+    background: #e0e7ff;
+}
+
+body.adj-compact .adj-table th.col-branch,
+body.adj-compact .adj-table td.col-branch,
+body.adj-compact .adj-table th.col-location,
+body.adj-compact .adj-table td.col-location,
+body.adj-compact .adj-table th.col-unit-cost,
+body.adj-compact .adj-table td.col-unit-cost,
+body.adj-compact .adj-table th.col-adj-cost,
+body.adj-compact .adj-table td.col-adj-cost {
+    display: none;
+}
+
+/* ~20 % shrink (two iterations) across the listado: padding + font sizes */
+body.adj-compact .adj-table {
+    font-size: 0.6rem;
+}
+body.adj-compact .adj-table th {
+    font-size: 0.5rem;
+    padding: 0.4rem 0.45rem;
+}
+body.adj-compact .adj-table td {
+    padding: 0.32rem 0.45rem;
+}
+body.adj-compact .adj-table td.col-notes { font-size: 0.57rem; max-width: 200px; }
+body.adj-compact .adj-table td.col-boxid { font-size: 0.57rem; }
+body.adj-compact .adj-table td.col-serial { font-size: 0.55rem; max-width: 95px; }
+body.adj-compact .adj-table td.col-type,
+body.adj-compact .adj-table td.col-category { font-size: 0.57rem; }
+body.adj-compact .adj-table td.col-boxname { max-width: 180px; }
 
 /* Empty state */
 .adj-empty {
