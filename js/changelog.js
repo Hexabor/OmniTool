@@ -1,8 +1,16 @@
 const CHANGELOG = [
     {
+        date: '26/05/2026',
+        version: 'v0.15',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Garantías · Nuevo estado intermedio "Llegando" entre Pedido y Recibido. Desde un pedido aparece el botón "Marcar llegando" (cian) — al pulsarlo se guarda la fecha en camino y el item pasa al chip "Llegando" en la barra de filtros. Desde Llegando se puede marcar "Recibido" o "Fallido" (por si se extravía en tránsito). Si vas directo de Pedido a Recibido, el estado Llegando ni siquiera aparece — es opcional, no fuerza nada' },
+            { type: 'ui', text: 'Garantías · Filtros: nuevo chip "Llegando" entre Pedido y Recibido con su propio contador y color cian. Los items en Llegando que lleven 7+ días desde la fecha de pedido se resaltan en ámbar igual que los Pedido estancados' },
+        ]
+    },
+    {
         date: '19/05/2026',
         version: 'v0.14',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Ajustes · Vista compacta: nuevo botón en la barra superior (icono de filas) que oculta las columnas Tienda, Ubicación, C. unit. y Adj Cost € y reduce ~20 % el tamaño de filas y texto del listado. Pensado para monitores verticales donde la tabla no cabía. Persiste por dispositivo — al desactivar vuelve a verse todo' },
             { type: 'new', text: 'Ajustes · Modo edición: nuevo botón en la barra superior (icono de lápiz) que muestra una columna extra "Eliminar" con un botón × por fila para borrar ajustes individualmente. Pide confirmación con los detalles del ajuste antes de eliminar. Pensado para limpiar duplicados que se cuelan cuando la fuente exporta el mismo ajuste con un Adj Cost ligeramente distinto entre informes' },

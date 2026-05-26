@@ -397,6 +397,7 @@ body.layout-bottom .wd-mini-form {
 }
 
 .status-pedido { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.status-llegando { background: #ecfeff; color: #0e7490; border-color: #a5f3fc; }
 .status-recibido { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .status-entregado { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
 .status-cerrado { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
@@ -404,6 +405,7 @@ body.layout-bottom .wd-mini-form {
 
 /* Filter chip color hint */
 .wf-chip.wf-pedido:not(.active)   { color: #b45309; }
+.wf-chip.wf-llegando:not(.active) { color: #0e7490; }
 .wf-chip.wf-recibido:not(.active) { color: #1d4ed8; }
 .wf-chip.wf-entregado:not(.active){ color: #15803d; }
 .wf-chip.wf-cerrado:not(.active)  { color: #475569; }

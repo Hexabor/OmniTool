@@ -117,6 +117,7 @@ function isResolved(item) {
 function statusLabel(s) {
     return ({
         pedido: 'Pedido',
+        llegando: 'Llegando',
         recibido: 'Recibido',
         entregado: 'Entregado',
         cerrado: 'Cerrado',
@@ -318,7 +319,7 @@ function applyFilters() {
 }
 
 function updateCounts() {
-    const counts = { all: 0, pedido: 0, recibido: 0, entregado: 0, cerrado: 0, fallido: 0 };
+    const counts = { all: 0, pedido: 0, llegando: 0, recibido: 0, entregado: 0, cerrado: 0, fallido: 0 };
     _state.items.forEach(it => {
         if (isResolved(it)) {
             counts.cerrado++;
@@ -354,7 +355,7 @@ function renderTable() {
     }
 
     tbody.innerHTML = items.map(it => {
-        const stale = it.status === 'pedido' && daysSince(it.requestDate) >= STALE_DAYS;
+        const stale = (it.status === 'pedido' || it.status === 'llegando') && daysSince(it.requestDate) >= STALE_DAYS;
         const incomplete = !it.umid || !it.boxId;
         return `
         <tr class="${stale ? 'stale' : ''}" data-id="${it.id}">
@@ -614,6 +615,7 @@ function renderDetail() {
             ${actions ? `<div class="wd-actions">${actions}</div>` : ''}
             ${retryChain}
             ${renderRequestSection(it)}
+            ${renderArrivingSection(it)}
             ${renderReceptionSection(it)}
             ${renderCallsSection(it)}
             ${renderDeliverySection(it)}
@@ -649,6 +651,10 @@ function renderDetail() {
 function renderActions(it) {
     const a = [];
     if (it.status === 'pedido') {
+        a.push(`<button class="btn btn-accent btn-sm" data-action="mark-arriving">Marcar llegando</button>`);
+        a.push(`<button class="btn btn-secondary btn-sm" data-action="mark-received">Marcar recibido</button>`);
+        a.push(`<button class="btn btn-secondary btn-sm" data-action="mark-failed">Marcar fallido</button>`);
+    } else if (it.status === 'llegando') {
         a.push(`<button class="btn btn-accent btn-sm" data-action="mark-received">Marcar recibido</button>`);
         a.push(`<button class="btn btn-secondary btn-sm" data-action="mark-failed">Marcar fallido</button>`);
     } else if (it.status === 'recibido') {
@@ -706,8 +712,44 @@ function renderRequestSection(it) {
     </div>`;
 }
 
+function renderArrivingSection(it) {
+    // Mini-form launched from the "Marcar llegando" button while still pedido
+    if (it.status === 'pedido' && _state.editMode === 'arrive') {
+        return `<div class="wd-section">
+            <h4>Llegando <button class="wd-section-edit" data-edit-cancel="arrive">Cancelar</button></h4>
+            <div class="wd-mini-form">
+                <label class="full">Fecha en camino <input type="date" data-edit="arrivingDate" value="${todayISO()}"></label>
+                <div class="wd-mini-actions">
+                    <button class="btn btn-accent btn-sm" data-action="save-arrived">Guardar</button>
+                </div>
+            </div>
+        </div>`;
+    }
+    // Hide the section until the item has actually passed through llegando
+    if (it.status === 'pedido') return '';
+    if (!it.arrivingDate && it.status !== 'llegando') return '';
+
+    if (_state.editMode === 'arriving') {
+        return `<div class="wd-section">
+            <h4>Llegando <button class="wd-section-edit" data-edit-cancel="arriving">Cancelar</button></h4>
+            <div class="wd-mini-form">
+                <label class="full">Fecha en camino <input type="date" data-edit="arrivingDate" value="${it.arrivingDate || ''}"></label>
+                <div class="wd-mini-actions">
+                    <button class="btn btn-accent btn-sm" data-action="save-arriving">Guardar</button>
+                </div>
+            </div>
+        </div>`;
+    }
+    return `<div class="wd-section">
+        <h4>Llegando <button class="wd-section-edit" data-edit="arriving">Editar</button></h4>
+        <div class="wd-grid">
+            <div class="wd-row"><span class="lbl">Fecha en camino</span><span class="val">${fmtDate(it.arrivingDate) || '—'}</span></div>
+        </div>
+    </div>`;
+}
+
 function renderReceptionSection(it) {
-    if (it.status === 'pedido') {
+    if (it.status === 'pedido' || it.status === 'llegando') {
         if (_state.editMode === 'receive') {
             return `<div class="wd-section">
                 <h4>Recepción <button class="wd-section-edit" data-edit-cancel="receive">Cancelar</button></h4>
@@ -984,6 +1026,7 @@ async function handleDetailAction(e, it) {
     const action = e.currentTarget.getAttribute('data-action');
 
     // === Edit-mode transitions (capture baseline for conflict detection) ===
+    if (action === 'mark-arriving')  { beginEdit('arrive'); return; }
     if (action === 'mark-received')  { beginEdit('receive'); return; }
     if (action === 'mark-delivered') { beginEdit('deliver'); return; }
     if (action === 'close-case')     { beginEdit('close'); return; }
@@ -1002,6 +1045,21 @@ async function handleDetailAction(e, it) {
     }
 
     // === Mini-form saves (with conflict detection) ===
+    if (action === 'save-arrived') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.arrivingDate = v.arrivingDate || todayISO();
+            target.status = 'llegando';
+        });
+        return;
+    }
+    if (action === 'save-arriving') {
+        const v = getEditValues();
+        await saveGuarded(target => {
+            target.arrivingDate = v.arrivingDate || target.arrivingDate;
+        });
+        return;
+    }
     if (action === 'save-received') {
         const v = getEditValues();
         await saveGuarded(target => {
