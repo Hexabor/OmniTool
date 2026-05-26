@@ -373,6 +373,14 @@ body.layout-bottom .wd-mini-form {
     color: var(--color-primary);
 }
 
+.warranty-table td.col-icon.has-contact {
+    color: #16a34a;
+}
+
+.warranty-table td.col-icon.no-contact {
+    color: #dc2626;
+}
+
 .warranty-table .muted { color: var(--color-text-lighter); }
 
 /* Stale row (>= 7 days in pedido) */

@@ -370,7 +370,14 @@ function renderTable() {
             <td>${fmtDate(it.receivedDate) || '<span class="muted">—</span>'}</td>
             <td>${fmtDate(it.deliveredDate) || '<span class="muted">—</span>'}</td>
             <td class="col-icon ${it.comments ? 'has-icon' : ''}" title="${it.comments ? 'Tiene comentarios' : ''}">${it.comments ? ICON_COMMENT : ''}</td>
-            <td class="col-icon ${(it.calls && it.calls.length) ? 'has-icon' : ''}" title="${(it.calls && it.calls.length) ? it.calls.length + ' llamada(s)' : ''}">${(it.calls && it.calls.length) ? ICON_PHONE : ''}</td>
+            ${(() => {
+                const calls = it.calls || [];
+                if (!calls.length) return `<td class="col-icon"></td>`;
+                const contacted = calls.some(c => c.success);
+                const cls = contacted ? 'has-contact' : 'no-contact';
+                const tip = `${calls.length} llamada(s) · ${contacted ? 'contacto realizado' : 'sin contacto'}`;
+                return `<td class="col-icon has-icon ${cls}" title="${tip}">${ICON_PHONE}</td>`;
+            })()}
         </tr>`;
     }).join('');
 }
