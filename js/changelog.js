@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '27/05/2026',
+        version: 'v0.16',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Garantías · Detalle: nuevo botón "← Revertir a [estado anterior]" en la barra de acciones. Si te equivocas pasando un caso a Llegando, Recibido, Entregado, Cerrado o Fallido, ahora puedes devolverlo al estado anterior — al confirmar se limpian los datos del estado actual (fecha en camino, recepción, entrega, cierre o motivo de fallo, según corresponda). Si un Fallido ya tiene reintento generado el botón no aparece, para no romper la cadena de intentos' },
+        ]
+    },
+    {
         date: '26/05/2026',
         version: 'v0.15',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'ui', text: 'Garantías · Listado: el icono de teléfono (última columna) ahora se pinta verde si alguna llamada se marcó como "Sí contactó" y rojo si hay llamadas registradas pero ninguna con contacto. De un vistazo se ve si el cliente está al tanto del estado del pedido o si toca insistir' },
             { type: 'new', text: 'Garantías · Nuevo estado intermedio "Llegando" entre Pedido y Recibido. Desde un pedido aparece el botón "Marcar llegando" (cian) — al pulsarlo se guarda la fecha en camino y el item pasa al chip "Llegando" en la barra de filtros. Desde Llegando se puede marcar "Recibido" o "Fallido" (por si se extravía en tránsito). Si vas directo de Pedido a Recibido, el estado Llegando ni siquiera aparece — es opcional, no fuerza nada' },

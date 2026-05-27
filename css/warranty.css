@@ -933,6 +933,19 @@ body.layout-bottom .wd-mini-form {
 }
 .btn-secondary:hover { background: var(--color-border-light); }
 
+.btn-revert {
+    background: transparent;
+    color: var(--color-text-light);
+    border: 1px dashed var(--color-border);
+    margin-left: auto;
+}
+.btn-revert:hover {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+    border-style: solid;
+}
+
 .btn-accent {
     background: var(--color-primary);
     color: white;

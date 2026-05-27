@@ -125,6 +125,38 @@ function statusLabel(s) {
     })[s] || s;
 }
 
+// Compute the previous state for a "Revertir" action. Each step clears
+// the fields populated when entering the current state, so the case looks
+// as it did before the forward transition. For fallido we infer the prior
+// state from whichever date fields are populated.
+function revertTarget(it) {
+    if (it.status === 'llegando') {
+        return { status: 'pedido', clear: ['arrivingDate'] };
+    }
+    if (it.status === 'recibido') {
+        const prev = it.arrivingDate ? 'llegando' : 'pedido';
+        return { status: prev, clear: ['receivedDate', 'receivedBy'] };
+    }
+    if (it.status === 'entregado') {
+        return { status: 'recibido', clear: ['deliveredDate', 'deliveredBy'] };
+    }
+    if (it.status === 'cerrado') {
+        return { status: 'entregado', clear: ['closedDate', 'closedBy'] };
+    }
+    if (it.status === 'fallido') {
+        let prev = 'pedido';
+        if (it.deliveredDate) prev = 'entregado';
+        else if (it.receivedDate) prev = 'recibido';
+        else if (it.arrivingDate) prev = 'llegando';
+        return { status: prev, clear: ['failedReason', 'failedDate'] };
+    }
+    return null;
+}
+
+function hasRetryChild(it) {
+    return _state.items.some(x => x.retryOfId === it.id);
+}
+
 function processingTypeLabel(t) {
     return ({
         RMA_EXT: 'RMA — Garantía externa',
@@ -671,6 +703,10 @@ function renderActions(it) {
     } else if (it.status === 'fallido') {
         a.push(`<button class="btn btn-accent btn-sm" data-action="retry">Generar nuevo intento</button>`);
     }
+    const rev = revertTarget(it);
+    if (rev && !hasRetryChild(it)) {
+        a.push(`<button class="btn btn-revert btn-sm" data-action="revert-status" title="Volver al estado anterior">← Revertir a ${statusLabel(rev.status)}</button>`);
+    }
     return a.join('');
 }
 
@@ -1037,6 +1073,22 @@ async function handleDetailAction(e, it) {
     if (action === 'mark-received')  { beginEdit('receive'); return; }
     if (action === 'mark-delivered') { beginEdit('deliver'); return; }
     if (action === 'close-case')     { beginEdit('close'); return; }
+
+    if (action === 'revert-status') {
+        const tgt = revertTarget(it);
+        if (!tgt) return;
+        if (hasRetryChild(it)) {
+            alert('No se puede revertir: este caso ya tiene un reintento generado.');
+            return;
+        }
+        if (!confirm(`¿Revertir esta garantía al estado "${statusLabel(tgt.status)}"?\nSe limpiarán los datos del estado actual.`)) return;
+        captureEditBaseline();
+        await saveGuarded(target => {
+            target.status = tgt.status;
+            tgt.clear.forEach(f => { delete target[f]; });
+        });
+        return;
+    }
 
     // === Prompt-based transitions ===
     if (action === 'mark-failed') {
