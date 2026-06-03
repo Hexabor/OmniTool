@@ -7,14 +7,20 @@ function saveState() {
     clearTimeout(_saveTimer);
     _saveTimer = setTimeout(() => {
         const statuses = {};
+        const notes = {};
         tableOutput.querySelectorAll('.status-select').forEach(sel => {
             const key = sel.getAttribute('data-key');
             if (key) statuses[key] = sel.value;
         });
+        tableOutput.querySelectorAll('.note-input').forEach(inp => {
+            const key = inp.getAttribute('data-key');
+            if (key) notes[key] = inp.value.trim();
+        });
         saveModuleData(MODULE_ID, {
             csv: _lastCSV || null,
             fileName: _lastFileName || null,
-            statuses
+            statuses,
+            notes
         }).catch(e => console.error('Save failed:', e));
     }, 500);
 }
@@ -51,6 +57,90 @@ const STATUS_OPTIONS = [
     'No shipeable',
     'REVISAR'
 ];
+
+// Escape for safe insertion into HTML text or attribute values
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+const PRINT_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`;
+
+// Full status label on hover (handy when a long status is clipped by the column).
+function updateStatusDisplay(select) {
+    select.title = select.value || 'Sin estado';
+}
+
+const NOTE_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>`;
+
+// Notes cell for the main table: an icon that flags whether a note exists, plus a
+// hidden input that holds the value (so saveState/backup keep reading .note-input).
+function noteCell(key, val) {
+    const has = (val || '').trim() !== '';
+    return `<button type="button" class="note-btn${has ? ' has-note' : ''}" data-key="${esc(key)}" title="${has ? 'Ver/editar nota' : 'Añadir nota'}">${NOTE_ICON}</button>` +
+           `<input type="hidden" class="note-input" data-key="${esc(key)}" value="${esc(val || '')}">`;
+}
+
+function setNoteBtnState(btn, hasNote) {
+    btn.classList.toggle('has-note', hasNote);
+    btn.title = hasNote ? 'Ver/editar nota' : 'Añadir nota';
+}
+
+// Single shared popover to view/edit a note from the main table
+let _notePopover = null;
+function closeNotePopover() {
+    if (!_notePopover) return;
+    _notePopover.el.remove();
+    document.removeEventListener('click', _notePopover.onDocClick, true);
+    document.removeEventListener('keydown', _notePopover.onKey, true);
+    _notePopover = null;
+}
+function openNotePopover(btn) {
+    const cell = btn.closest('.col-notes');
+    const input = cell ? cell.querySelector('.note-input') : null;
+    if (!input) return;
+
+    const wasSame = _notePopover && _notePopover.btn === btn;
+    closeNotePopover();
+    if (wasSame) return; // clicking the same icon again closes it
+
+    const pop = document.createElement('div');
+    pop.className = 'note-popover';
+    pop.innerHTML = `<textarea class="note-popover-text" placeholder="Escribe una nota…"></textarea>`;
+    document.body.appendChild(pop);
+    const ta = pop.querySelector('textarea');
+    ta.value = input.value;
+
+    const r = btn.getBoundingClientRect();
+    pop.style.top = `${r.bottom + 6}px`;
+    pop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8))}px`;
+    if (pop.getBoundingClientRect().bottom > window.innerHeight) {
+        pop.style.top = `${Math.max(8, r.top - pop.offsetHeight - 6)}px`;
+    }
+    ta.focus();
+
+    const key = input.getAttribute('data-key');
+    ta.addEventListener('input', () => {
+        input.value = ta.value;
+        setNoteBtnState(btn, ta.value.trim() !== '');
+        // Keep the checker note (if open) in sync
+        const chk = checkerBody ? checkerBody.querySelector(`.chk-note-input[data-key="${CSS.escape(key)}"]`) : null;
+        if (chk) chk.value = ta.value;
+        saveState();
+    });
+
+    const onDocClick = (ev) => {
+        if (!pop.contains(ev.target) && !btn.contains(ev.target)) closeNotePopover();
+    };
+    const onKey = (ev) => { if (ev.key === 'Escape') closeNotePopover(); };
+    document.addEventListener('click', onDocClick, true);
+    document.addEventListener('keydown', onKey, true);
+
+    _notePopover = { el: pop, btn, onDocClick, onKey };
+}
 
 // === Help tooltips on buttons (hover) ===
 document.querySelectorAll('.btn-help').forEach(help => {
@@ -160,13 +250,19 @@ document.getElementById('btnBackup').addEventListener('click', () => {
         const key = sel.getAttribute('data-key');
         if (key) statuses[key] = sel.value;
     });
+    const notes = {};
+    tableOutput.querySelectorAll('.note-input').forEach(inp => {
+        const key = inp.getAttribute('data-key');
+        if (key && inp.value.trim()) notes[key] = inp.value.trim();
+    });
     const backup = {
         version: 1,
         date: new Date().toISOString(),
         store: getStoreCode() || '',
         fileName: _lastFileName,
         csv: _lastCSV,
-        statuses
+        statuses,
+        notes
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -188,7 +284,7 @@ restoreInput.addEventListener('change', () => {
             if (!backup.csv || !backup.fileName) throw new Error('Backup incompleto');
             if (!confirm(`Restaurar backup de ${backup.store || '?'} (${backup.date?.slice(0, 10) || '?'})?\nEsto reemplazará los datos actuales.`)) return;
             _initialLoadDone = true;
-            loadCSV(backup.csv, backup.fileName, backup.statuses || {});
+            loadCSV(backup.csv, backup.fileName, backup.statuses || {}, backup.notes || {});
         } catch (e) {
             alert('Error al leer el backup: ' + e.message);
         }
@@ -209,11 +305,16 @@ viewToggle.addEventListener('click', () => {
 
     if (!_lastCSV) return;
 
-    // Collect current statuses before re-render
+    // Collect current statuses + notes before re-render
     const currentStatuses = {};
     tableOutput.querySelectorAll('.status-select').forEach(sel => {
         const key = sel.getAttribute('data-key');
         if (key) currentStatuses[key] = sel.value;
+    });
+    const currentNotes = {};
+    tableOutput.querySelectorAll('.note-input').forEach(inp => {
+        const key = inp.getAttribute('data-key');
+        if (key) currentNotes[key] = inp.value;
     });
 
     const rows = parseCSV(_lastCSV);
@@ -221,7 +322,7 @@ viewToggle.addEventListener('click', () => {
     const groups = groupByDestination(expanded);
     const totalItems = expanded.length;
 
-    renderTable(groups, totalItems, currentStatuses);
+    renderTable(groups, totalItems, currentStatuses, currentNotes);
     updateHeaderProgress();
 });
 
@@ -242,11 +343,16 @@ document.getElementById('btnArchive').addEventListener('click', async () => {
     if (!label) return;
     const archiveId = label.replace(/[^a-zA-Z0-9]/g, '-');
 
-    // Collect current statuses
+    // Collect current statuses + notes
     const statuses = {};
     tableOutput.querySelectorAll('.status-select').forEach(sel => {
         const key = sel.getAttribute('data-key');
         if (key) statuses[key] = sel.value;
+    });
+    const notes = {};
+    tableOutput.querySelectorAll('.note-input').forEach(inp => {
+        const key = inp.getAttribute('data-key');
+        if (key && inp.value.trim()) notes[key] = inp.value.trim();
     });
 
     // Compute summary stats
@@ -277,6 +383,7 @@ document.getElementById('btnArchive').addEventListener('click', async () => {
             csv: _lastCSV,
             fileName: _lastFileName,
             statuses,
+            notes,
             stats: { totalItems, destinations: groups.length, pct: Math.round(pct * 10) / 10 }
         });
         alert(`Archivado: ${label}`);
@@ -334,7 +441,7 @@ document.getElementById('btnArchiveList').addEventListener('click', async () => 
                     const data = await loadArchive(MODULE_ID, id);
                     if (!data || !data.csv) { alert('Archivo vacío o corrupto.'); return; }
                     _initialLoadDone = true;
-                    loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {});
+                    loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {}, data.notes || {});
                     archiveOverlay.classList.remove('open');
                 } catch (e) {
                     alert('Error al recuperar: ' + e.message);
@@ -511,9 +618,10 @@ function buildItemKeys(items) {
 }
 
 // === Render table ===
-function renderTable(groups, totalItems, savedStatuses, mode) {
+function renderTable(groups, totalItems, savedStatuses, savedNotes, mode) {
     if (!mode) mode = getViewMode();
     savedStatuses = savedStatuses || {};
+    savedNotes = savedNotes || {};
     const allItems = groups.flatMap(g => g.items);
     const totalCost = allItems.reduce((s, item) => s + (parseFloat(item['Unit Cost Price']) || 0), 0);
 
@@ -615,7 +723,7 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
                 <td>${item['Box Category'] || ''}</td>
                 <td class="col-cost">${cost.toFixed(2)} €</td>
                 <td class="col-pct">${pct.toFixed(2)}%</td>
-                <td class="col-notes"></td>
+                <td class="col-notes">${noteCell(rowKey, savedNotes[rowKey] || '')}</td>
                 <td class="col-spacer"></td>
             </tr>`;
         }
@@ -717,7 +825,7 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
                     <td>${item['Box Category'] || ''}</td>
                     <td class="col-cost">${cost.toFixed(2)} €</td>
                     <td class="col-pct">${pct.toFixed(2)}%</td>
-                    <td class="col-notes"></td>
+                    <td class="col-notes">${noteCell(rowKey, savedNotes[rowKey] || '')}</td>
                     <td class="col-spacer"></td>
                 </tr>`;
             }
@@ -800,13 +908,24 @@ function renderTable(groups, totalItems, savedStatuses, mode) {
             select.value = savedStatuses[key];
             select.setAttribute('data-status', select.value);
         }
+        updateStatusDisplay(select);
         select.addEventListener('change', () => {
             select.setAttribute('data-status', select.value);
+            updateStatusDisplay(select);
             saveState();
             updateHeaderProgress();
             if (summaryOverlay && summaryOverlay.classList.contains('open')) {
                 renderSummary();
             }
+        });
+    });
+
+    // Notes column — icon flags the note; clicking it opens a popover to view/edit
+    closeNotePopover();
+    tableOutput.querySelectorAll('.note-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openNotePopover(btn);
         });
     });
 
@@ -917,7 +1036,7 @@ function migrateStatusKeys(statuses, csvText) {
     return migrated;
 }
 
-function loadCSV(text, name, savedStatuses) {
+function loadCSV(text, name, savedStatuses, savedNotes) {
     _lastCSV = text;
     _lastFileName = name;
 
@@ -939,7 +1058,7 @@ function loadCSV(text, name, savedStatuses) {
     fileName.textContent = name;
     fileCount.textContent = `${totalItems} items · ${groups.length} destinos`;
 
-    renderTable(groups, totalItems, savedStatuses);
+    renderTable(groups, totalItems, savedStatuses, savedNotes);
     updateHeaderProgress();
     if (!savedStatuses || migrated) saveState();
 }
@@ -1061,7 +1180,7 @@ function startRealtimeSync() {
         const data = snap.exists ? snap.data() : null;
         if (data && data.csv) {
             _initialLoadDone = true;
-            loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {});
+            loadCSV(data.csv, data.fileName || 'restored.csv', data.statuses || {}, data.notes || {});
         } else if (!data || !data.csv) {
             // Remote cleared — reset UI if we had data loaded
             if (_lastCSV) {
@@ -1186,13 +1305,16 @@ function runChecker(stockCSV) {
                 const item = group.items[i];
                 const key = chkItemKey(item);
                 const sel = tableOutput.querySelector(`.status-select[data-key="${CSS.escape(key)}"]`);
+                const noteInp = tableOutput.querySelector(`.note-input[data-key="${CSS.escape(key)}"]`);
                 xferItems.push({
+                    key,
                     boxId: (item['BoxID'] || '').trim(),
                     boxName: item['Box Name'] || '',
                     category: item['Box Category'] || '',
                     destination: (item['Destination'] || '').trim(),
                     cost: parseFloat(item['Unit Cost Price']) || 0,
-                    status: sel ? sel.value : ''
+                    status: sel ? sel.value : '',
+                    note: noteInp ? noteInp.value : ''
                 });
             }
         }
@@ -1382,8 +1504,10 @@ function runChecker(stockCSV) {
     // Missing section
     if (missing.length > 0) {
         html += `<div class="chk-section">
-            <div class="chk-section-title">Pendientes de enviar <span class="chk-section-count">${missing.length}</span></div>
-            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Estado</th><th>Penaliza</th><th>Posible sustituto</th></tr></thead><tbody>`;
+            <div class="chk-section-title">Pendientes de enviar <span class="chk-section-count">${missing.length}</span>
+                <button class="btn-chk-print" data-print="missing" title="Imprimir lista">${PRINT_ICON}</button>
+            </div>
+            <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Estado</th><th>Penaliza</th><th>Posible sustituto</th><th>Notas</th></tr></thead><tbody>`;
         for (const m of missing) {
             const penPct = effectiveCost > 0 ? (m.cost / effectiveCost) * 100 : 0;
             let sim = '—';
@@ -1398,6 +1522,7 @@ function runChecker(stockCSV) {
                 <td>${statusBadge(m.status)}</td>
                 <td class="s-pct">${penPct.toFixed(2)}%</td>
                 <td>${sim}</td>
+                <td class="chk-note"><textarea class="chk-note-input" data-key="${esc(m.key)}" placeholder="…">${esc(m.note || '')}</textarea></td>
             </tr>`;
         }
         html += '</tbody></table></div>';
@@ -1418,7 +1543,9 @@ function runChecker(stockCSV) {
         }
 
         html += `<div class="chk-section">
-            <div class="chk-section-title">Envíos no solicitados <span class="chk-section-count">${extras.length}</span></div>
+            <div class="chk-section-title">Envíos no solicitados <span class="chk-section-count">${extras.length}</span>
+                ${xferExtras.length > 0 ? `<button class="btn-chk-print" data-print="extras" title="Imprimir XFER Regular Transfer Out (${xferExtras.length})">${PRINT_ICON}</button>` : ''}
+            </div>
             <table class="chk-table"><thead><tr><th>Box Name</th><th>Box ID</th><th>Destino</th><th>Tipo</th></tr></thead><tbody>`;
 
         // Show individual XFER extras (these are relevant)
@@ -1524,6 +1651,48 @@ function runChecker(stockCSV) {
         }));
         chkPrintBtn.addEventListener('click', () => printSearchingList(searchData, getStoreCode()));
     }
+
+    // Bind editable notes in "Pendientes de enviar" — sync to main table + persist
+    checkerBody.querySelectorAll('.chk-note-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+            const key = inp.getAttribute('data-key');
+            const main = tableOutput.querySelector(`.note-input[data-key="${CSS.escape(key)}"]`);
+            if (main) main.value = inp.value;
+            const btn = tableOutput.querySelector(`.note-btn[data-key="${CSS.escape(key)}"]`);
+            if (btn) setNoteBtnState(btn, inp.value.trim() !== '');
+            saveState();
+        });
+    });
+
+    // Helper: read the latest note for an item (main table is source of truth)
+    const liveNote = (key, fallback) => {
+        const inp = tableOutput.querySelector(`.note-input[data-key="${CSS.escape(key)}"]`);
+        return inp ? inp.value : (fallback || '');
+    };
+
+    // Bind print buttons — "Pendientes de enviar" and "Envíos no solicitados" (XFER only)
+    checkerBody.querySelectorAll('.btn-chk-print').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const store = getStoreCode();
+            if (btn.dataset.print === 'missing') {
+                printCheckerList('Pendientes de enviar', store, missing, [
+                    { label: 'Destino', get: m => m.destination },
+                    { label: 'Box ID', get: m => m.boxId },
+                    { label: 'Box Name', get: m => m.boxName },
+                    { label: 'Estado', get: m => m.status || '—' },
+                    { label: '%', get: m => (effectiveCost > 0 ? (m.cost / effectiveCost) * 100 : 0).toFixed(2) + '%', align: 'pct' },
+                    { label: 'Notas', get: m => liveNote(m.key, m.note) }
+                ]);
+            } else if (btn.dataset.print === 'extras') {
+                const xferExtrasForPrint = extras.filter(e => e.type === XFER_TYPE);
+                printCheckerList('Envíos no solicitados — XFER Regular Transfer Out', store, xferExtrasForPrint, [
+                    { label: 'Destino', get: e => e.destination },
+                    { label: 'Box ID', get: e => e.boxId },
+                    { label: 'Box Name', get: e => e.boxName }
+                ]);
+            }
+        });
+    });
 
     checkerOverlay.classList.add('open');
 }
@@ -1757,6 +1926,34 @@ function printSearchingList(items, store) {
         ${items.map(it => `<tr><td>${it.dest}</td><td>${it.boxId}</td><td>${it.name}</td><td>${it.category}</td><td class="pct">${(it.pct || 0).toFixed(2)}%</td></tr>`).join('')}
         <tr class="total"><td colspan="4">Total</td><td class="pct">${totalPct.toFixed(2)}%</td></tr>
         </tbody></table></body></html>`);
+    win.document.close();
+    win.print();
+}
+
+// === Generic checker list print (Pendientes / Envíos no solicitados) ===
+// Same landscape compact format as printSearchingList. `columns` is an array of
+// { label, get:(item)=>value, align? } so each section can pick its own columns.
+function printCheckerList(title, store, items, columns) {
+    const win = window.open('', '_blank');
+    const headCols = columns.map(c => `<th${c.align ? ` class="${c.align}"` : ''}>${esc(c.label)}</th>`).join('');
+    const bodyRows = items.map(it =>
+        '<tr>' + columns.map(c => `<td${c.align ? ` class="${c.align}"` : ''}>${esc(c.get(it))}</td>`).join('') + '</tr>'
+    ).join('');
+    win.document.write(`<!DOCTYPE html><html><head><title>${esc(title)}</title>
+        <style>
+            body { font-family: Arial, sans-serif; font-size: 9pt; margin: 1cm; }
+            h2 { font-size: 12pt; margin-bottom: 0.3cm; }
+            .meta { font-size: 8pt; color: #666; margin-bottom: 0.5cm; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ccc; padding: 3px 6px; text-align: left; }
+            th { background: #f0f0f0; font-size: 8pt; }
+            .pct { text-align: right; }
+            @media print { @page { size: landscape; margin: 0.5cm; } }
+        </style></head><body>
+        <h2>${esc(title)} — ${esc(store)}</h2>
+        <div class="meta">${items.length} items · ${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+        <table><thead><tr>${headCols}</tr></thead><tbody>${bodyRows}</tbody></table>
+        </body></html>`);
     win.document.close();
     win.print();
 }

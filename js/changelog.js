@@ -1,8 +1,18 @@
 const CHANGELOG = [
     {
+        date: '03/06/2026',
+        version: 'v0.17',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Xfer Reg · Notas: cada item del listado tiene ahora un icono de nota en la última columna — gris si está vacío y azul si tiene nota, así de un vistazo ves cuáles están anotados. Al clicarlo se abre un popover para escribir o consultar la circunstancia del item (no encontrado, no enviable, enviado con alguna particularidad…). La nota se guarda en la nube junto al resto de estados y viaja también en el backup y en los archivos' },
+            { type: 'new', text: 'Xfer Reg · Revisión: las notas también se editan desde las filas de "Pendientes de enviar", con un campo que aprovecha el alto de la fila cuando el item ocupa varias líneas. Lo que escribas aquí se sincroniza con el icono del listado principal y al revés' },
+            { type: 'new', text: 'Xfer Reg · Revisión: nuevos botones de imprimir en "Pendientes de enviar" y en "Envíos no solicitados" (estos últimos solo los XFER Regular Transfer Out). Sacan la lista en el mismo formato apaisado y compacto de siempre; el de pendientes incluye además la columna de notas' },
+            { type: 'ui', text: 'Xfer Reg · Revisión: la ventana emergente se ensancha un poco para dar más espacio a las notas' },
+        ]
+    },
+    {
         date: '27/05/2026',
         version: 'v0.16',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Garantías · Detalle: nuevo botón "← Revertir a [estado anterior]" en la barra de acciones. Si te equivocas pasando un caso a Llegando, Recibido, Entregado, Cerrado o Fallido, ahora puedes devolverlo al estado anterior — al confirmar se limpian los datos del estado actual (fecha en camino, recepción, entrega, cierre o motivo de fallo, según corresponda). Si un Fallido ya tiene reintento generado el botón no aparece, para no romper la cadena de intentos' },
         ]
