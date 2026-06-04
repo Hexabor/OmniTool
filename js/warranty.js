@@ -3,6 +3,8 @@ const MODULE = 'warranty';
 const STALE_DAYS = 7;
 const LAYOUT_KEY = 'warranty_layout';
 const LAYOUT_HEIGHT_KEY = 'warranty_layout_height';
+const SORT_KEY = 'warranty_sortKey';
+const SORT_DIR_KEY = 'warranty_sortDir';
 const MIN_BOTTOM_H = 180;
 const MAX_BOTTOM_RATIO = 0.9;
 
@@ -112,6 +114,15 @@ function getChainLeaf(item) {
 // cerrado item and any fallido ancestors belong to the resolved bucket.
 function isResolved(item) {
     return getChainLeaf(item).status === 'cerrado';
+}
+
+// Orden de progresión del estado, de menos a más finalizado. El flujo normal
+// termina en "entregado" (los cerrados viven en su propia pestaña); fallido y
+// cerrado van al final. Se usa al ordenar por la columna Estado.
+const STATUS_ORDER = ['pedido', 'llegando', 'recibido', 'entregado', 'fallido', 'cerrado'];
+function statusRank(status) {
+    const i = STATUS_ORDER.indexOf(status);
+    return i === -1 ? STATUS_ORDER.length : i;
 }
 
 function statusLabel(s) {
@@ -341,11 +352,16 @@ function applyFilters() {
     const k = _state.sortKey;
     const dir = _state.sortDir === 'asc' ? 1 : -1;
     items.sort((a, b) => {
-        const va = a[k] || '';
-        const vb = b[k] || '';
-        if (va < vb) return -1 * dir;
-        if (va > vb) return 1 * dir;
-        return 0;
+        let cmp;
+        if (k === 'status') {
+            // Por progresión del estado (pedido → … → cerrado), no alfabético
+            cmp = statusRank(a.status) - statusRank(b.status);
+        } else {
+            const va = a[k] || '';
+            const vb = b[k] || '';
+            cmp = va < vb ? -1 : va > vb ? 1 : 0;
+        }
+        return cmp * dir;
     });
     return items;
 }
@@ -366,8 +382,29 @@ function updateCounts() {
     });
 }
 
+// El orden elegido se conserva entre sesiones (por dispositivo)
+function restoreSort() {
+    const k = localStorage.getItem(SORT_KEY);
+    const d = localStorage.getItem(SORT_DIR_KEY);
+    if (k) _state.sortKey = k;
+    if (d === 'asc' || d === 'desc') _state.sortDir = d;
+}
+function saveSort() {
+    localStorage.setItem(SORT_KEY, _state.sortKey);
+    localStorage.setItem(SORT_DIR_KEY, _state.sortDir);
+}
+function updateSortIndicator() {
+    document.querySelectorAll('.warranty-table th').forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (th.getAttribute('data-sort') === _state.sortKey) {
+            th.classList.add(_state.sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+}
+
 function renderTable() {
     updateCounts();
+    updateSortIndicator();
     const tbody = $('warrantyTbody');
     const items = applyFilters();
     const empty = $('warrantyEmpty');
@@ -1262,10 +1299,10 @@ function bindUI() {
                 _state.sortDir = _state.sortDir === 'asc' ? 'desc' : 'asc';
             } else {
                 _state.sortKey = k;
-                _state.sortDir = 'desc';
+                // Estado arranca ascendente (de menos a más finalizado); el resto, descendente
+                _state.sortDir = (k === 'status') ? 'asc' : 'desc';
             }
-            document.querySelectorAll('.warranty-table th').forEach(x => x.classList.remove('sorted-asc', 'sorted-desc'));
-            th.classList.add(_state.sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            saveSort();
             renderTable();
         });
     });
@@ -1314,6 +1351,7 @@ function bindUI() {
 
 async function init() {
     _state.layout = localStorage.getItem(LAYOUT_KEY) || 'side';
+    restoreSort();
     bindUI();
     bindResizeHandle();
     applyLayout();

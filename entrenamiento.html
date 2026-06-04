@@ -157,16 +157,16 @@
                 <line x1="12" y1="22.08" x2="12" y2="12"/>
             </svg>
         </a>
-        <a href="#" class="sidebar-item disabled" title="Abandoned 45 días">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-            </svg>
-        </a>
         <a href="entrenamiento.html" class="sidebar-item active" title="Entrenamientos">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+        </a>
+        <a href="#" class="sidebar-item disabled" title="Abandoned 45 días">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
             </svg>
         </a>
         <div class="sidebar-spacer"></div>
@@ -187,9 +187,12 @@
             </div>
             <div class="tr-toolbar">
                 <div class="tr-search">
-                    <input type="text" id="trSearch" placeholder="Buscar competencia, notas…" autocomplete="off">
+                    <input type="text" id="trSearch" placeholder="Buscar en notas…" autocomplete="off">
                 </div>
+                <input type="text" class="tr-filter" id="trFilterComp" placeholder="Competencia…" list="trCompList" autocomplete="off">
+                <datalist id="trCompList"></datalist>
                 <select class="tr-filter" id="trFilterStaff"></select>
+                <select class="tr-filter" id="trFilterTrainer"></select>
                 <select class="tr-filter" id="trFilterStatus"></select>
                 <span class="tr-count" id="trCount">0 registros</span>
                 <button class="btn btn-accent btn-sm" id="btnAddRecord">
@@ -208,11 +211,11 @@
             <table class="tr-table" id="trTable">
                 <thead>
                     <tr>
-                        <th class="tr-date">Fecha</th>
-                        <th class="tr-staff">Staff</th>
-                        <th class="tr-comp">Competencia</th>
-                        <th class="tr-trainer">Formador</th>
-                        <th class="tr-status">Estado</th>
+                        <th class="tr-date sortable" data-sort="date">Fecha <span class="tr-sort-ind"></span></th>
+                        <th class="tr-staff sortable" data-sort="staff">Staff <span class="tr-sort-ind"></span></th>
+                        <th class="tr-comp sortable" data-sort="competency">Competencia <span class="tr-sort-ind"></span></th>
+                        <th class="tr-trainer sortable" data-sort="trainer">Formador <span class="tr-sort-ind"></span></th>
+                        <th class="tr-status sortable" data-sort="status">Estado <span class="tr-sort-ind"></span></th>
                         <th class="tr-notes">Notas</th>
                         <th class="tr-del"></th>
                     </tr>

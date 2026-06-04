@@ -158,6 +158,23 @@
     white-space: nowrap;
 }
 
+/* Sortable headers */
+.tr-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+.tr-table th.sortable:hover {
+    color: var(--color-text);
+    background: var(--color-border);
+}
+.tr-table th.sorted {
+    color: var(--color-primary);
+}
+.tr-sort-ind {
+    font-size: 0.9em;
+    font-weight: 700;
+}
+
 .tr-table tbody td {
     padding: 0.3rem 0.5rem;
     border-bottom: 1px solid var(--color-border-light);

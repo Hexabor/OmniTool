@@ -9,6 +9,8 @@ const MODULE = 'procurement';
 const STALE_DAYS = 7;
 const LAYOUT_KEY = 'procurement_layout';
 const LAYOUT_HEIGHT_KEY = 'procurement_layout_height';
+const SORT_KEY = 'procurement_sortKey';
+const SORT_DIR_KEY = 'procurement_sortDir';
 const MIN_BOTTOM_H = 200;
 const MAX_BOTTOM_RATIO = 0.9;
 
@@ -34,6 +36,14 @@ const FORWARD = {
     recibido: { to: 'cerrado', label: 'Cerrar' },
 };
 const TERMINAL = ['cerrado', 'cancelado'];
+
+// Orden de progresión del estado (de más inicial a más final) — usado al
+// ordenar por la columna Estado en vez del orden alfabético.
+const STATUS_ORDER = ['pedido', 'autorizado', 'llegando', 'recibido', 'cerrado', 'cancelado'];
+function statusRank(status) {
+    const i = STATUS_ORDER.indexOf(status);
+    return i === -1 ? STATUS_ORDER.length : i;
+}
 
 let _state = {
     items: [],
@@ -226,7 +236,9 @@ async function persist() {
 
 // === Filtering / search / sort ===
 function matchesFilter(it) {
-    if (_state.filter === 'all') return true;
+    // "Todos" (activos) excluye los estados terminales — cerrado/cancelado
+    // solo se ven desde sus propios chips.
+    if (_state.filter === 'all') return !TERMINAL.includes(it.status);
     return it.status === _state.filter;
 }
 function matchesSearch(it) {
@@ -240,22 +252,43 @@ function sortItems(items) {
     const { sortKey, sortDir } = _state;
     const dir = sortDir === 'asc' ? 1 : -1;
     return items.slice().sort((a, b) => {
-        const av = a[sortKey] || '';
-        const bv = b[sortKey] || '';
-        if (av < bv) return -1 * dir;
-        if (av > bv) return 1 * dir;
-        return 0;
+        let cmp;
+        if (sortKey === 'status') {
+            // Por progresión del estado (pedido → … → cancelado), no alfabético
+            cmp = statusRank(a.status) - statusRank(b.status);
+        } else {
+            const av = a[sortKey] || '';
+            const bv = b[sortKey] || '';
+            cmp = av < bv ? -1 : av > bv ? 1 : 0;
+        }
+        return cmp * dir;
     });
 }
 function visibleItems() {
     return sortItems(_state.items.filter(it => matchesFilter(it) && matchesSearch(it)));
 }
 
+// El orden elegido se conserva entre sesiones (por dispositivo)
+function restoreSort() {
+    const k = localStorage.getItem(SORT_KEY);
+    const d = localStorage.getItem(SORT_DIR_KEY);
+    if (k) _state.sortKey = k;
+    if (d === 'asc' || d === 'desc') _state.sortDir = d;
+}
+function saveSort() {
+    localStorage.setItem(SORT_KEY, _state.sortKey);
+    localStorage.setItem(SORT_DIR_KEY, _state.sortDir);
+}
+
 // === Counts for the filter chips ===
 function statusCounts() {
-    const counts = { all: _state.items.length };
+    const counts = { all: 0 };
     for (const k of Object.keys(STATUS_LABEL)) counts[k] = 0;
-    for (const it of _state.items) counts[it.status] = (counts[it.status] || 0) + 1;
+    for (const it of _state.items) {
+        counts[it.status] = (counts[it.status] || 0) + 1;
+        // "Todos" (activos) no cuenta los terminales
+        if (!TERMINAL.includes(it.status)) counts.all += 1;
+    }
     return counts;
 }
 
@@ -629,6 +662,7 @@ function bindUI() {
                 _state.sortKey = key;
                 _state.sortDir = 'asc';
             }
+            saveSort();
             renderTable();
         });
     });
@@ -666,6 +700,7 @@ function bindUI() {
 
 async function init() {
     _state.layout = localStorage.getItem(LAYOUT_KEY) === 'bottom' ? 'bottom' : 'side';
+    restoreSort();
     bindUI();
     applyLayout();
     _state.staff = await loadStaff();

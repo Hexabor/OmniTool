@@ -12,6 +12,8 @@ const STATES = ['Pendiente', 'Nociones', 'Iniciado', 'Competente', 'Avanzado', '
 let _state = {
     records: [],   // [{ id, date, staff, competency, trainer, status, notes }]
     staff: [],     // nombres del equipo, leídos del módulo Checklist
+    sortKey: 'date',   // columna por la que ordenar
+    sortDir: 'desc',   // 'asc' | 'desc' — por defecto fecha más reciente primero
 };
 let _unsubscribe = null;
 let _saveTimer = null;
@@ -133,7 +135,7 @@ function rowHTML(rec) {
     return `<tr data-id="${rec.id}">
         <td class="tr-date"><input type="date" class="f-date" value="${escapeHtml(rec.date || '')}"></td>
         <td class="tr-staff">${personSelect(rec.staff || '', 'f-staff')}</td>
-        <td class="tr-comp"><input type="text" class="f-comp" value="${escapeHtml(rec.competency || '')}" placeholder="Competencia entrenada"></td>
+        <td class="tr-comp"><input type="text" class="f-comp" list="trCompList" value="${escapeHtml(rec.competency || '')}" placeholder="Competencia entrenada" autocomplete="off"></td>
         <td class="tr-trainer">${personSelect(rec.trainer || '', 'f-trainer')}</td>
         <td class="tr-status"><select class="f-status" data-status="${escapeHtml(rec.status || '')}">${statusOptions(rec.status || '')}</select></td>
         <td class="tr-notes"><textarea class="f-notes" rows="2" placeholder="Notas…">${escapeHtml(rec.notes || '')}</textarea></td>
@@ -144,10 +146,73 @@ function rowHTML(rec) {
 function renderTable() {
     const body = tbodyEl();
     if (!body) return;
+    sortRecords();
     body.innerHTML = _state.records.map(rowHTML).join('');
     initDatePickers(body);
+    populateCompetencyList();
+    updateSortIndicators();
     updateEmptyState();
     updateTeamBanner();
+}
+
+// === Sorting ===
+function compareRecords(a, b, key) {
+    if (key === 'status') {
+        // Por orden de progresión (no alfabético); los vacíos van primero
+        return STATES.indexOf(a.status || '') - STATES.indexOf(b.status || '');
+    }
+    const av = (a[key] || '').toString();
+    const bv = (b[key] || '').toString();
+    if (key === 'date') return av.localeCompare(bv);   // ISO ordena bien como texto
+    return av.localeCompare(bv, 'es', { sensitivity: 'base' });
+}
+
+function sortRecords() {
+    const dir = _state.sortDir === 'desc' ? -1 : 1;
+    _state.records.sort((a, b) => {
+        const c = compareRecords(a, b, _state.sortKey);
+        if (c !== 0) return c * dir;
+        // Desempate estable por fecha para que el orden no "salte"
+        return (a.date || '').localeCompare(b.date || '') * -1;
+    });
+}
+
+function updateSortIndicators() {
+    const t = tableEl();
+    if (!t) return;
+    t.querySelectorAll('th.sortable').forEach(th => {
+        const active = th.dataset.sort === _state.sortKey;
+        th.classList.toggle('sorted', active);
+        const ind = th.querySelector('.tr-sort-ind');
+        if (ind) ind.textContent = active ? (_state.sortDir === 'desc' ? '↓' : '↑') : '';
+    });
+}
+
+function onHeaderClick(e) {
+    const th = e.target.closest('th.sortable');
+    if (!th) return;
+    const key = th.dataset.sort;
+    if (_state.sortKey === key) {
+        _state.sortDir = _state.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        _state.sortKey = key;
+        _state.sortDir = (key === 'date') ? 'desc' : 'asc';
+    }
+    renderTable();
+    applyFilter();
+}
+
+// Sugerencias de autorellenado para Competencia: valores únicos ya usados
+function populateCompetencyList() {
+    const list = $('trCompList');
+    if (!list) return;
+    const seen = new Map();   // clave en minúsculas -> valor original
+    _state.records.forEach(r => {
+        const c = (r.competency || '').trim();
+        if (c && !seen.has(c.toLowerCase())) seen.set(c.toLowerCase(), c);
+    });
+    const vals = Array.from(seen.values()).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    list.innerHTML = vals.map(v => `<option value="${escapeHtml(v)}"></option>`).join('');
 }
 
 function initDatePickers(scope) {
@@ -190,6 +255,8 @@ function onCellEdit(e) {
         e.target.setAttribute('data-status', e.target.value);
     }
     readRow(tr);
+    // Al confirmar (no en cada tecla) una competencia, refresca las sugerencias
+    if (e.type === 'change' && e.target.classList.contains('f-comp')) populateCompetencyList();
     applyFilter();
     persist();
 }
@@ -197,22 +264,20 @@ function onCellEdit(e) {
 function addRecord() {
     // Limpia filtros para que el registro nuevo siempre se vea
     $('trSearch').value = '';
+    $('trFilterComp').value = '';
     $('trFilterStaff').value = '';
+    $('trFilterTrainer').value = '';
     $('trFilterStatus').value = '';
 
     const rec = { id: uuid(), date: todayISO(), staff: '', competency: '', trainer: '', status: '', notes: '' };
     _state.records.unshift(rec);
 
-    const body = tbodyEl();
-    const temp = document.createElement('tbody');
-    temp.innerHTML = rowHTML(rec);
-    const tr = temp.firstElementChild;
-    body.prepend(tr);
-    initDatePickers(tr);
-    updateEmptyState();
+    // Re-render para que la fila quede en la posición que le toca según el orden actual
+    renderTable();
     applyFilter();
 
-    const comp = tr.querySelector('.f-comp');
+    const tr = tbodyEl().querySelector(`tr[data-id="${rec.id}"]`);
+    const comp = tr && tr.querySelector('.f-comp');
     if (comp) comp.focus();
     persistNow().catch(e => console.error('[training] add failed:', e));
 }
@@ -233,7 +298,9 @@ function deleteRecord(id, tr) {
 // === Filtering ===
 function applyFilter() {
     const q = ($('trSearch').value || '').trim().toLowerCase();
+    const fComp = ($('trFilterComp').value || '').trim().toLowerCase();
     const fStaff = $('trFilterStaff').value || '';
+    const fTrainer = $('trFilterTrainer').value || '';
     const fStatus = $('trFilterStatus').value || '';
     let visible = 0;
 
@@ -241,11 +308,13 @@ function applyFilter() {
         const rec = _state.records.find(r => r.id === tr.dataset.id);
         if (!rec) return;
         let show = true;
-        if (fStaff && rec.staff !== fStaff) show = false;
+        if (fComp && !(rec.competency || '').toLowerCase().includes(fComp)) show = false;
+        if (show && fStaff && rec.staff !== fStaff) show = false;
+        if (show && fTrainer && rec.trainer !== fTrainer) show = false;
         if (show && fStatus && rec.status !== fStatus) show = false;
         if (show && q) {
-            const hay = `${rec.competency} ${rec.notes} ${rec.staff} ${rec.trainer}`.toLowerCase();
-            if (!hay.includes(q)) show = false;
+            // El buscador libre se centra en las notas (competencia/staff/formador tienen su propio filtro)
+            if (!(rec.notes || '').toLowerCase().includes(q)) show = false;
         }
         tr.hidden = !show;
         if (show) visible++;
@@ -262,10 +331,16 @@ function applyFilter() {
 
 function populateFilters() {
     const staffSel = $('trFilterStaff');
-    const prev = staffSel.value;
+    const prevStaff = staffSel.value;
     staffSel.innerHTML = '<option value="">Todo el staff</option>' +
         _state.staff.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-    staffSel.value = _state.staff.includes(prev) ? prev : '';
+    staffSel.value = _state.staff.includes(prevStaff) ? prevStaff : '';
+
+    const trainerSel = $('trFilterTrainer');
+    const prevTrainer = trainerSel.value;
+    trainerSel.innerHTML = '<option value="">Todos los formadores</option>' +
+        _state.staff.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+    trainerSel.value = _state.staff.includes(prevTrainer) ? prevTrainer : '';
 
     const statusSel = $('trFilterStatus');
     if (!statusSel.dataset.built) {
@@ -279,8 +354,13 @@ function populateFilters() {
 function bindUI() {
     $('btnAddRecord').addEventListener('click', addRecord);
     $('trSearch').addEventListener('input', applyFilter);
+    $('trFilterComp').addEventListener('input', applyFilter);
     $('trFilterStaff').addEventListener('change', applyFilter);
+    $('trFilterTrainer').addEventListener('change', applyFilter);
     $('trFilterStatus').addEventListener('change', applyFilter);
+
+    const thead = tableEl() && tableEl().querySelector('thead');
+    if (thead) thead.addEventListener('click', onHeaderClick);
 
     const body = tbodyEl();
     ['input', 'change'].forEach(ev => body.addEventListener(ev, onCellEdit));

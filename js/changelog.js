@@ -1,8 +1,23 @@
 const CHANGELOG = [
     {
+        date: '04/06/2026',
+        version: 'v0.18',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Entrenamientos · Ordenar por columna: ahora se puede clicar las cabeceras Fecha, Staff, Competencia, Formador y Estado para ordenar la tabla por esa columna; un segundo clic invierte el orden (flecha ↑/↓ indica cuál está activa). Por defecto se ordena por fecha de más reciente a más antigua. El Estado se ordena por progresión (Pendiente → Experto), no alfabéticamente' },
+            { type: 'new', text: 'Entrenamientos · Filtros: nuevo filtro por Formador (mismo desplegable que Staff) y nuevo filtro por Competencia con autocompletado — al escribir sugiere las competencias ya usadas en la tabla. El buscador libre pasa a centrarse en las Notas, ya que competencia, staff, formador y estado tienen cada uno su filtro propio' },
+            { type: 'new', text: 'Entrenamientos · El campo Competencia de cada fila también sugiere los valores ya utilizados al escribir, para mantener los nombres consistentes y teclear menos' },
+            { type: 'ui', text: 'Procurement · Filtros: el chip "Todos" pasa a llamarse "Activos" y deja de mostrar las peticiones Cerradas y Canceladas (su contador tampoco las cuenta). Así la vista por defecto solo enseña lo que sigue en curso; las cerradas y canceladas se siguen consultando desde sus propios chips' },
+            { type: 'ui', text: 'Procurement · Al ordenar por la columna Estado, ya no se ordena alfabéticamente sino por la progresión del flujo: Pedido → Autorizado → Llegando → Recibido (y después Cerrado/Cancelado). Un segundo clic invierte el orden' },
+            { type: 'ui', text: 'Garantías · Al ordenar por la columna Estado, ahora se ordena por la progresión del flujo (de menos a más finalizado): Pedido → Llegando → Recibido → Entregado, y al final Fallido y Cerrado. Un segundo clic invierte el orden' },
+            { type: 'ui', text: 'Garantías · Filtros: el chip "Todos" pasa a llamarse "Activas" para dejar claro que muestra solo las garantías en curso (las cerradas tienen su propia pestaña) — mismo criterio que el módulo Procurement' },
+            { type: 'new', text: 'Procurement y Garantías · El orden de la tabla (columna y sentido) ahora se recuerda en cada dispositivo: al cambiar de pestaña, recargar o cerrar y volver a abrir, la tabla aparece ordenada como la dejaste' },
+            { type: 'ui', text: 'Navegación · Entrenamientos pasa por delante de "Abandoned 45 días" tanto en el menú principal como en la barra lateral' },
+        ]
+    },
+    {
         date: '03/06/2026',
         version: 'v0.17',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Nuevo módulo Entrenamientos — reemplaza la hoja Excel de formación del equipo. Tabla editable con Fecha, Staff, Competencia entrenada, Formador, Estado (6 estados con color: Pendiente, Nociones, Iniciado, Competente, Avanzado, Experto / Formador) y Notas. Staff y Formador salen del mismo equipo que la Checklist (se gestiona en Checklist → Equipo). Incluye buscador y filtros por staff y por estado, y botón para añadir registros. Todo se guarda en la nube en tiempo real, con guardado a prueba de cierres de pestaña' },
             { type: 'new', text: 'Xfer Reg · Notas: cada item del listado tiene ahora un icono de nota en la última columna — gris si está vacío y azul si tiene nota, así de un vistazo ves cuáles están anotados. Al clicarlo se abre un popover para escribir o consultar la circunstancia del item (no encontrado, no enviable, enviado con alguna particularidad…). La nota se guarda en la nube junto al resto de estados y viaja también en el backup y en los archivos' },
