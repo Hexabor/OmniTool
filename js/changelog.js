@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '06/08/2026',
+        version: 'v0.19',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Login/registro · Nueva tienda habilitada: Talavera Trinidad, junto a las 4 tiendas piloto ya existentes' },
+        ]
+    },
+    {
         date: '04/06/2026',
         version: 'v0.18',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Entrenamientos · Ordenar por columna: ahora se puede clicar las cabeceras Fecha, Staff, Competencia, Formador y Estado para ordenar la tabla por esa columna; un segundo clic invierte el orden (flecha ↑/↓ indica cuál está activa). Por defecto se ordena por fecha de más reciente a más antigua. El Estado se ordena por progresión (Pendiente → Experto), no alfabéticamente' },
             { type: 'new', text: 'Entrenamientos · Filtros: nuevo filtro por Formador (mismo desplegable que Staff) y nuevo filtro por Competencia con autocompletado — al escribir sugiere las competencias ya usadas en la tabla. El buscador libre pasa a centrarse en las Notas, ya que competencia, staff, formador y estado tienen cada uno su filtro propio' },

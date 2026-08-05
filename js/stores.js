@@ -3,7 +3,8 @@ const STORES = [
     'Madrid Atocha',
     'Madrid Islazul',
     'Madrid Las Rosas',
-    'Madrid Usera'
+    'Madrid Usera',
+    'Talavera Trinidad'
 ];
 
 // Full store network. Used wherever a tienda can be referenced as data
