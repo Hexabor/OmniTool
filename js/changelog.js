@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '27/08/2026',
+        version: 'v0.21',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'fix', text: 'Garantías · Atención especial: las tarjetas de la rejilla ahora muestran también la fecha de pedido (abajo a la derecha, junto a la tienda origen a la izquierda)' },
+        ]
+    },
+    {
         date: '26/08/2026',
         version: 'v0.20',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Garantías · Nueva "Atención especial": marca cualquier caso con el icono de bandera de su fila (o desde su ficha) y escribe el motivo — el caso sale de la tabla y pasa a una rejilla destacada arriba de todo, con su nota siempre a la vista. Se quita con la × de la tarjeta o desde la ficha, y vuelve directo a la tabla' },
         ]

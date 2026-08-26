@@ -104,8 +104,13 @@
 }
 
 .attn-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
     font-size: 0.68rem;
     color: var(--color-text-lighter);
+    font-variant-numeric: tabular-nums;
 }
 
 /* Generic icon-only button used for the row-level flag action */

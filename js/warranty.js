@@ -494,7 +494,10 @@ function renderAttentionGrid() {
                     </div>
                     <span class="status-badge status-${it.status}">${statusLabel(it.status)}</span>
                     ${it.attentionNote ? `<div class="attn-note">${escapeHtml(it.attentionNote)}</div>` : ''}
-                    <div class="attn-card-foot">${escapeHtml(it.sourceStore || '')}</div>
+                    <div class="attn-card-foot">
+                        <span>${escapeHtml(it.sourceStore || '')}</span>
+                        <span>${fmtDate(it.requestDate) || '—'}</span>
+                    </div>
                 </article>
             `).join('')}
         </div>
