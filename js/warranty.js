@@ -327,7 +327,8 @@ async function refresh() {
 // === Render ===
 function applyFilters() {
     const q = _state.search.trim().toLowerCase();
-    let items = _state.items.slice();
+    // Las marcadas como atención especial viven en su propia rejilla, no en la tabla
+    let items = _state.items.filter(it => !it.attention);
     const f = _state.filter;
     if (f === 'all') {
         // Todos = activos (cadenas no resueltas — leaf no es cerrado)
@@ -369,6 +370,7 @@ function applyFilters() {
 function updateCounts() {
     const counts = { all: 0, pedido: 0, llegando: 0, recibido: 0, entregado: 0, cerrado: 0, fallido: 0 };
     _state.items.forEach(it => {
+        if (it.attention) return; // fuera de la tabla mientras esté en atención especial
         if (isResolved(it)) {
             counts.cerrado++;
         } else {
@@ -403,6 +405,7 @@ function updateSortIndicator() {
 }
 
 function renderTable() {
+    renderAttentionGrid();
     updateCounts();
     updateSortIndicator();
     const tbody = $('warrantyTbody');
@@ -419,7 +422,7 @@ function renderTable() {
     table.style.display = '';
 
     if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:1.5rem;color:var(--color-text-lighter)">Sin resultados con estos filtros.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:1.5rem;color:var(--color-text-lighter)">Sin resultados con estos filtros.</td></tr>`;
         return;
     }
 
@@ -447,12 +450,79 @@ function renderTable() {
                 const tip = `${calls.length} llamada(s) · ${contacted ? 'contacto realizado' : 'sin contacto'}`;
                 return `<td class="col-icon has-icon ${cls}" title="${tip}">${ICON_PHONE}</td>`;
             })()}
+            <td class="col-icon">
+                <button class="icon-btn flag-btn" data-flag-id="${it.id}" title="Marcar como atención especial" aria-label="Marcar como atención especial">${ICON_FLAG}</button>
+            </td>
         </tr>`;
     }).join('');
 }
 
 const ICON_COMMENT = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
 const ICON_PHONE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+const ICON_FLAG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`;
+
+// === Special attention grid ===
+// Marking an item pulls it out of the table entirely (any filter, any search)
+// and shows it here instead. Unmarking puts it straight back where it belongs
+// according to whatever filter/sort is active — no position to "remember".
+function renderAttentionGrid() {
+    const wrap = $('attnSection');
+    const items = _state.items.filter(it => it.attention);
+    if (items.length === 0) {
+        wrap.hidden = true;
+        wrap.innerHTML = '';
+        return;
+    }
+    wrap.hidden = false;
+    wrap.innerHTML = `
+        <div class="attn-head">
+            ${ICON_FLAG}
+            <span class="attn-title">Atención especial</span>
+            <span class="attn-count">${items.length}</span>
+        </div>
+        <div class="attn-grid">
+            ${items.map(it => `
+                <article class="attn-card" data-id="${it.id}">
+                    <div class="attn-card-top">
+                        <div>
+                            <div class="attn-card-name">${escapeHtml(it.boxName || '(sin nombre)')}</div>
+                            <div class="attn-card-meta">${escapeHtml(it.boxId || '—')}</div>
+                        </div>
+                        <button class="attn-unflag" data-unflag-id="${it.id}" title="Quitar de atención especial" aria-label="Quitar de atención especial">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <span class="status-badge status-${it.status}">${statusLabel(it.status)}</span>
+                    ${it.attentionNote ? `<div class="attn-note">${escapeHtml(it.attentionNote)}</div>` : ''}
+                    <div class="attn-card-foot">${escapeHtml(it.sourceStore || '')}</div>
+                </article>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function flagItem(id) {
+    const it = getItem(id);
+    if (!it) return;
+    const note = prompt('¿Por qué necesita atención especial? (opcional)', '');
+    if (note === null) return; // cancelado
+    it.attention = true;
+    it.attentionNote = note.trim();
+    touchUpdated(it);
+    await persist();
+    renderTable();
+}
+
+async function unflagItem(id) {
+    const it = getItem(id);
+    if (!it) return;
+    it.attention = false;
+    it.attentionNote = '';
+    touchUpdated(it);
+    await persist();
+    renderTable();
+    if (_state.selectedId === id) renderDetail();
+}
 
 function copyCell(value, label, incomplete) {
     if (!value) {
@@ -680,14 +750,20 @@ function renderDetail() {
                 <span class="status-badge status-${it.status}">${statusLabel(it.status)}</span>
                 <span class="wd-title">${escapeHtml(it.boxName || '(sin nombre)')}</span>
             </div>
-            <button class="wd-close" id="wdClose">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
+            <div class="wd-header-actions">
+                <button class="wd-flag-toggle ${it.attention ? 'active' : ''}" id="wdFlagToggle" title="${it.attention ? 'Quitar de atención especial' : 'Marcar como atención especial'}" aria-label="${it.attention ? 'Quitar de atención especial' : 'Marcar como atención especial'}">
+                    ${ICON_FLAG}
+                </button>
+                <button class="wd-close" id="wdClose">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div class="wd-body">
+            ${it.attention ? renderAttentionSection(it) : ''}
             ${actions ? `<div class="wd-actions">${actions}</div>` : ''}
             ${retryChain}
             ${renderRequestSection(it)}
@@ -707,6 +783,7 @@ function renderDetail() {
 
     // Bind events
     $('wdClose').addEventListener('click', closeDetail);
+    $('wdFlagToggle').addEventListener('click', () => toggleAttention(it));
     $('wdDelete').addEventListener('click', () => deleteItem(it.id));
     bindDetailEvents(it);
     initDatePickers(wd);
@@ -745,6 +822,32 @@ function renderActions(it) {
         a.push(`<button class="btn btn-revert btn-sm" data-action="revert-status" title="Volver al estado anterior">← Revertir a ${statusLabel(rev.status)}</button>`);
     }
     return a.join('');
+}
+
+function renderAttentionSection(it) {
+    return `<div class="wd-section" style="background:#fffbeb;border-color:#fde68a">
+        <h4 style="color:#b45309">Atención especial <button class="wd-section-edit" data-action="edit-attention-note" style="color:#b45309">Editar nota</button></h4>
+        <div class="wd-comments">${it.attentionNote ? escapeHtml(it.attentionNote) : '<span class="wd-empty-line">Sin nota.</span>'}</div>
+        <div class="wd-mini-actions" style="margin-top:0.5rem;display:flex;justify-content:flex-end">
+            <button class="btn btn-secondary btn-sm" data-action="unflag-attention">Quitar de atención especial</button>
+        </div>
+    </div>`;
+}
+
+async function toggleAttention(it) {
+    if (it.attention) {
+        it.attention = false;
+        it.attentionNote = '';
+    } else {
+        const note = prompt('¿Por qué necesita atención especial? (opcional)', '');
+        if (note === null) return; // cancelado
+        it.attention = true;
+        it.attentionNote = note.trim();
+    }
+    touchUpdated(it);
+    await persist();
+    renderTable();
+    renderDetail();
 }
 
 function renderRetryChain(it) {
@@ -1253,6 +1356,25 @@ async function handleDetailAction(e, it) {
         return;
     }
 
+    if (action === 'unflag-attention') {
+        it.attention = false;
+        it.attentionNote = '';
+        touchUpdated(it);
+        await persist();
+        renderTable();
+        renderDetail();
+        return;
+    }
+    if (action === 'edit-attention-note') {
+        const note = prompt('Nota de atención especial:', it.attentionNote || '');
+        if (note === null) return;
+        it.attentionNote = note.trim();
+        touchUpdated(it);
+        await persist();
+        renderDetail();
+        return;
+    }
+
     // === Instant mutations (append-only, low collision risk — no conflict check) ===
     if (action === 'add-call') {
         if (!it.calls) it.calls = [];
@@ -1321,7 +1443,7 @@ function bindUI() {
         if (document.visibilityState === 'visible' && getStoreCode()) refresh();
     });
 
-    // Row click → detail (or copy if click was on a copy-btn)
+    // Row click → detail (or copy / flag if click was on one of those icon buttons)
     $('warrantyTbody').addEventListener('click', (e) => {
         const copyBtn = e.target.closest('.copy-btn');
         if (copyBtn) {
@@ -1329,9 +1451,27 @@ function bindUI() {
             copyToClipboard(copyBtn);
             return;
         }
+        const flagBtn = e.target.closest('.flag-btn');
+        if (flagBtn) {
+            e.stopPropagation();
+            flagItem(flagBtn.getAttribute('data-flag-id'));
+            return;
+        }
         const tr = e.target.closest('tr');
         if (!tr || !tr.dataset.id) return;
         openDetail(tr.dataset.id);
+    });
+
+    // Attention grid: card opens detail, × unflags without opening it
+    $('attnSection').addEventListener('click', (e) => {
+        const unflagBtn = e.target.closest('.attn-unflag');
+        if (unflagBtn) {
+            e.stopPropagation();
+            unflagItem(unflagBtn.getAttribute('data-unflag-id'));
+            return;
+        }
+        const card = e.target.closest('.attn-card');
+        if (card) openDetail(card.getAttribute('data-id'));
     });
 
     // Modal

@@ -180,6 +180,9 @@
 
     <!-- Main content -->
     <main class="content">
+        <!-- Special attention grid (only rendered while there is at least one flagged case) -->
+        <div class="attn-section" id="attnSection" hidden></div>
+
         <!-- Filter bar -->
         <div class="warranty-bar">
             <div class="warranty-filters" id="warrantyFilters">
@@ -236,6 +239,7 @@
                         <th class="sortable" data-sort="deliveredDate">Entregado</th>
                         <th class="col-icon" title="Comentarios"></th>
                         <th class="col-icon" title="Llamadas"></th>
+                        <th class="col-icon" title="Atención especial"></th>
                     </tr>
                 </thead>
                 <tbody id="warrantyTbody"></tbody>

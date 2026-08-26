@@ -1,8 +1,15 @@
 const CHANGELOG = [
     {
+        date: '26/08/2026',
+        version: 'v0.20',
+        tag: 'ÚLTIMA',
+        entries: [
+            { type: 'new', text: 'Garantías · Nueva "Atención especial": marca cualquier caso con el icono de bandera de su fila (o desde su ficha) y escribe el motivo — el caso sale de la tabla y pasa a una rejilla destacada arriba de todo, con su nota siempre a la vista. Se quita con la × de la tarjeta o desde la ficha, y vuelve directo a la tabla' },
+        ]
+    },
+    {
         date: '06/08/2026',
         version: 'v0.19',
-        tag: 'ÚLTIMA',
         entries: [
             { type: 'new', text: 'Login/registro · Nueva tienda habilitada: Talavera Trinidad, junto a las 4 tiendas piloto ya existentes' },
         ]
