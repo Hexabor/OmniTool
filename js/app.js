@@ -4,6 +4,7 @@
 // favicon are NOT affected. Applied as a body class so any module can opt
 // into honouring it via `body.no-mascots .my-mascot { display: none; }`.
 const PREF_MASCOTS_KEY = 'pref_mascots';
+const APP_MODULE = document.body.dataset.module || null;
 function applyMascotPref() {
     const off = localStorage.getItem(PREF_MASCOTS_KEY) === '0';
     document.body.classList.toggle('no-mascots', off);
@@ -287,13 +288,17 @@ if (btnSettings && settingsOverlay) {
 
     if (btnFactoryReset) {
         btnFactoryReset.addEventListener('click', async () => {
-            if (!confirm('¿Estás seguro de que quieres borrar TODOS los datos de esta tienda en la nube?')) return;
-            if (!confirm('Esta acción no se puede deshacer. ¿Confirmar restablecimiento de fábrica?')) return;
+            if (!APP_MODULE) {
+                console.error('No module configured for reset');
+                return;
+            }
+            if (!confirm('¿Borrar los datos de Control de ajustes de esta tienda?')) return;
+            if (!confirm('Los demás módulos se conservarán. Esta acción no se puede deshacer. ¿Confirmar?')) return;
 
             try {
-                await deleteAllStoreData();
+                await deleteModuleData(APP_MODULE);
             } catch (e) {
-                console.error('Error deleting store data:', e);
+                console.error('Error deleting module data:', e);
             }
 
             settingsOverlay.classList.remove('open');

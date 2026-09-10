@@ -86,15 +86,3 @@ async function deleteArchive(module, archiveId) {
     if (!col) return;
     await col.doc(archiveId).delete();
 }
-
-async function deleteAllStoreData() {
-    const code = getStoreCode();
-    if (!code) return;
-    // Delete all module docs under this store
-    const modules = await db.collection('stores').doc(code).collection('modules').get();
-    const batch = db.batch();
-    modules.forEach(doc => batch.delete(doc.ref));
-    // Delete the store doc itself
-    batch.delete(db.collection('stores').doc(code));
-    await batch.commit();
-}
